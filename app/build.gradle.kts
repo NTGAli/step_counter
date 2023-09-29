@@ -32,17 +32,17 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.4.4"
     }
     packaging {
         resources {
@@ -57,9 +57,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.7.2")
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
-    implementation("androidx.compose.ui:ui:1.5.1")
-    implementation("androidx.compose.ui:ui-graphics:1.5.1")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.5.1")
+    implementation("androidx.compose.ui:ui:1.4.4")
+    implementation("androidx.compose.ui:ui-graphics:1.4.4")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.4.4")
 //    implementation("androidx.compose.material3:material3:1.2.0-alpha08")
     implementation("androidx.compose.material:material:1.6.0-alpha06")
     testImplementation("junit:junit:4.13.2")
@@ -72,7 +72,7 @@ dependencies {
 
     //Hilt
     implementation("com.google.dagger:hilt-android:2.44")
-    kapt("com.google.dagger:hilt-compiler:2.44.2")
+    kapt("com.google.dagger:hilt-compiler:2.44")
 
     //room
     implementation("androidx.room:room-runtime:2.5.2")
@@ -83,6 +83,44 @@ dependencies {
 
     // timber
     implementation("com.jakewharton.timber:timber:5.0.1")
+
+
+    // ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
+    // ViewModel utilities for Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    // LiveData
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
+    // Lifecycles only (without ViewModel or LiveData)
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+    // Lifecycle utilities for Compose
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
+
+    // Saved state module for ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.1")
+
+    // Annotation processor
+    kapt("androidx.lifecycle:lifecycle-compiler:2.6.1")
+    // alternately - if using Java8, use the following instead of lifecycle-compiler
+    implementation("androidx.lifecycle:lifecycle-common-java8:2.6.1")
+
+    // optional - helpers for implementing LifecycleOwner in a Service
+    implementation("androidx.lifecycle:lifecycle-service:2.6.1")
+
+    // optional - ProcessLifecycleOwner provides a lifecycle for the whole application process
+    implementation("androidx.lifecycle:lifecycle-process:2.6.1")
+
+    // optional - ReactiveStreams support for LiveData
+    implementation("androidx.lifecycle:lifecycle-reactivestreams-ktx:2.6.1")
+
+    //coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("androidx.compose.runtime:runtime-livedata:1.4.4")
+
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
+
+
+
 }
 
 kapt {

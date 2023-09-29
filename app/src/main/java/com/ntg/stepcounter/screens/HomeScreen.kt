@@ -2,7 +2,6 @@ package com.ntg.stepcounter.screens
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -26,29 +25,24 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.StepCounterListener
-import com.ntg.stepcounter.ui.theme.Background
+import com.ntg.stepcounter.vm.StepViewModel
 import java.lang.Exception
-import java.util.Random
 
 
 //@OptIn(ExperimentalMaterial3Api::class)
@@ -128,12 +122,14 @@ fun HomeScreen() {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BottomSheetTest() {
+fun BottomSheetTest(stepViewModel: StepViewModel) {
 
     var steps by remember { mutableStateOf("") }
 
 
     StepCounterListener {
+        if (it != null)
+            stepViewModel.insertStep()
         Log.d("dwd","wdlwkjkdlkwjdlkwad 2222")
         try {
             Log.d("dwd","wdlwkjkdlkwjdlkwad 333 ${it!!.values[0]}")
@@ -221,7 +217,7 @@ fun BottomSheetTest() {
                         .fillMaxWidth()
                         .background(Color(ctx.resources.getColor(R.color.background, null)))
                 ) {
-                    Text(text = "steps : $steps")
+                    Text(text = "steps : ${stepViewModel.getAll().observeAsState().value?.filter { it.inBackground }?.size}")
                 }
             }
         }
