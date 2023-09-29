@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">step counter</string>
+    <string name="steps">قدم ها</string>
+    <string name="your_record">رکورد شما</string>
+    <string name="day">روز</string>
+    <string name="number_of_members">تعداد اعضا</string>
+    <string name="days">روز ها</string>
+    <string name="km_cal">%s کیلومتر | %s کالری</string>
 </resources>

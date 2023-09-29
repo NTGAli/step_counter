@@ -3,7 +3,7 @@ package com.ntg.stepcounter.di
 import android.content.Context
 import androidx.room.Room
 import com.ntg.stepcounter.db.AppDB
-import com.ntg.stepcounter.util.extension.Constants.DATABASE_NAME
+import com.ntg.stepcounter.util.Constants.DATABASE_NAME
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

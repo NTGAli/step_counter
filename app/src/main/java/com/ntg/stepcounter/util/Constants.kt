@@ -1,4 +1,4 @@
-package com.ntg.stepcounter.util.extension
+package com.ntg.stepcounter.util
 
 object Constants {
     const val DATABASE_NAME = "steps-database"

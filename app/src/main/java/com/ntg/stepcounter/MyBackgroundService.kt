@@ -13,7 +13,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.os.AsyncTask
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -23,16 +22,13 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.ntg.stepcounter.db.AppDB
 import com.ntg.stepcounter.models.Step
-import com.ntg.stepcounter.util.extension.Constants.NOTIFICATION_CHANNEL_ID
+import com.ntg.stepcounter.util.Constants.NOTIFICATION_CHANNEL_ID
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.concurrent.Executor
-import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 

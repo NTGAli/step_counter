@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,10 +38,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.StepCounterListener
+import com.ntg.stepcounter.components.ReportWidget
+import com.ntg.stepcounter.models.components.ReportWidgetType
+import com.ntg.stepcounter.ui.theme.PRIMARY900
+import com.ntg.stepcounter.ui.theme.SECONDARY500
+import com.ntg.stepcounter.ui.theme.fontBlack24
+import com.ntg.stepcounter.ui.theme.fontBold12
+import com.ntg.stepcounter.ui.theme.fontBold24
+import com.ntg.stepcounter.util.extension.divideNumber
+import com.ntg.stepcounter.util.extension.stepsToCalories
+import com.ntg.stepcounter.util.extension.stepsToKilometers
 import com.ntg.stepcounter.vm.StepViewModel
 import java.lang.Exception
 
@@ -207,17 +219,33 @@ fun BottomSheetTest(stepViewModel: StepViewModel) {
                     .onGloballyPositioned { layoutCoordinates ->
                         val b = layoutCoordinates.size.height
                         contentHeight = b.toFloat()
-                        Log.d("wadaw", "wadwadwadwadwdwd $b --- $contentHeight")
                     }) {
 
 
-                Box(
+                Column(
                     modifier = Modifier
-                        .height(250.dp)
+                        .wrapContentHeight()
                         .fillMaxWidth()
-                        .background(Color(ctx.resources.getColor(R.color.background, null)))
+                        .background(Color(ctx.resources.getColor(R.color.background, null))),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = "steps : ${stepViewModel.getAll().observeAsState().value?.filter { it.inBackground }?.size}")
+
+                    ReportWidget(
+                        modifier = Modifier
+                            .padding(horizontal = 32.dp)
+                            .padding(top = 24.dp),
+                        viewType = ReportWidgetType.Default,
+                        firstText = 12000,
+                        secondText = 146800
+                    )
+
+
+                    Text(modifier = Modifier.padding(top = 32.dp), text = divideNumber(12128), style = fontBlack24(PRIMARY900))
+                    Text(modifier = Modifier.padding(top = 8.dp, bottom = 48.dp), text = stringResource(
+                        id = R.string.km_cal,
+                        stepsToKilometers(12128),
+                        stepsToCalories(12128)
+                    ), style = fontBold12(SECONDARY500))
                 }
             }
         }
@@ -229,7 +257,6 @@ fun BottomSheetTest(stepViewModel: StepViewModel) {
                 maxOffset,
                 scaffoldState.bottomSheetState.requireOffset()
             )
-//            Log.d("SHEEET", "awkldkawdklawjd:::${scaffoldState.bottomSheetState.requireOffset().dp.value} ")
         } catch (e: IllegalStateException) {
             e.printStackTrace()
         }
@@ -247,32 +274,7 @@ private fun calculateRadius(first: Float, end: Float, third: Float): Float {
     return ((normalizedThird.toDouble() / range.toDouble()) * 32).toFloat()
 }
 
-private fun getColorForNumber(number: Int): Triple<Int, Int, Int> {
-    require(number in 0..32) { "Number must be between 0 and 32" }
-
-    val startColor = 0xFFFFFF // #FFFFFF in decimal
-    val endColor = 0xFCFCFF // #FCFCFF in decimal
-
-    val redStart = (startColor shr 16) and 0xFF
-    val greenStart = (startColor shr 8) and 0xFF
-    val blueStart = startColor and 0xFF
-
-    val redEnd = (endColor shr 16) and 0xFF
-    val greenEnd = (endColor shr 8) and 0xFF
-    val blueEnd = endColor and 0xFF
-
-    val interpolatedRed = (redStart + (redEnd - redStart) * number / 32).toInt()
-    val interpolatedGreen = (greenStart + (greenEnd - greenStart) * number / 32).toInt()
-    val interpolatedBlue = (blueStart + (blueEnd - blueStart) * number / 32).toInt()
-
-    val interpolatedColor =
-        (interpolatedRed shl 16) or (interpolatedGreen shl 8) or interpolatedBlue
-
-//    return "#" + Integer.toHexString(interpolatedColor).padStart(6, '0').toUpperCase()
-    return Triple(interpolatedRed, interpolatedGreen, interpolatedBlue)
-}
-
-fun getColorComponentsForNumber(number: Int): RGBColor {
+private fun getColorComponentsForNumber(number: Int): RGBColor {
     require(number in 0..32) { "Number must be between 0 and 32" }
 
     val startColor = RGBColor(255, 255, 255) // #FFFFFF
