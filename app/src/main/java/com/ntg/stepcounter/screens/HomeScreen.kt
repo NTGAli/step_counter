@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetScaffoldState
@@ -34,6 +36,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -41,18 +44,25 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ntg.stepcounter.FullSizeBlur
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.StepCounterListener
 import com.ntg.stepcounter.components.ReportWidget
 import com.ntg.stepcounter.models.components.ReportWidgetType
+import com.ntg.stepcounter.ui.theme.PRIMARY100
+import com.ntg.stepcounter.ui.theme.PRIMARY500
 import com.ntg.stepcounter.ui.theme.PRIMARY900
 import com.ntg.stepcounter.ui.theme.SECONDARY500
 import com.ntg.stepcounter.ui.theme.fontBlack24
 import com.ntg.stepcounter.ui.theme.fontBold12
 import com.ntg.stepcounter.ui.theme.fontBold24
+import com.ntg.stepcounter.ui.theme.fontMedium14
+import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.util.extension.divideNumber
+import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.stepsToCalories
 import com.ntg.stepcounter.util.extension.stepsToKilometers
+import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.vm.StepViewModel
 import java.lang.Exception
 
@@ -136,20 +146,13 @@ fun HomeScreen() {
 @Composable
 fun BottomSheetTest(stepViewModel: StepViewModel) {
 
-    var steps by remember { mutableStateOf("") }
 
 
-    StepCounterListener {
-        if (it != null)
-            stepViewModel.insertStep()
-        Log.d("dwd","wdlwkjkdlkwjdlkwad 2222")
-        try {
-            Log.d("dwd","wdlwkjkdlkwjdlkwad 333 ${it!!.values[0]}")
-            steps = it!!.values[0].toString()
-        }catch (e: Exception){
-            e.printStackTrace()
-        }
-    }.setup(LocalContext.current)
+//    StepCounterListener {
+//        if (it != null)
+//            timber("StepCounterListener ::: ")
+//            stepViewModel.insertStep()
+//    }.setup(LocalContext.current)
 
 
     var aaa by remember { mutableFloatStateOf(0f) }
@@ -157,7 +160,6 @@ fun BottomSheetTest(stepViewModel: StepViewModel) {
     var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
     var contentHeight by remember { mutableFloatStateOf(0f) }
     var topOffset = with(LocalDensity.current) { aaa.toDp() }
-    val density = LocalDensity.current
     val ctx = LocalContext.current
 
 
@@ -180,16 +182,33 @@ fun BottomSheetTest(stepViewModel: StepViewModel) {
         BottomSheetScaffold(
             sheetPeekHeight = sheetPeekHeight,
             topBar = {
-                TopAppBar(modifier = Modifier
-                    .onGloballyPositioned { layoutCoordinates ->
-                        val a = layoutCoordinates.size.height
-                        Log.d("DWD", "awdawdkjlwakdwdw $a")
-                        aaa = a.toFloat()
-                    },
+                TopAppBar(
+                    modifier = Modifier
+                        .onGloballyPositioned { layoutCoordinates ->
+                            val a = layoutCoordinates.size.height
+                            aaa = a.toFloat()
+                        },
                     backgroundColor = Color(topBarColor.red, topBarColor.blue, topBarColor.green),
                     title = {
-                        Text(text = "Wassertemperaturen", fontSize = 20.sp)
+                        Text(
+                            text = stringResource(id = R.string.app_name_farsi),
+                            style = fontMedium14(
+                                SECONDARY500
+                            )
+                        )
 
+                    },
+                    actions = {
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .clip(CircleShape)
+                                .background(PRIMARY100)
+                                .size(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "ع", style = fontRegular12(PRIMARY500))
+                        }
                     },
                     elevation = 0.dp
                 )
@@ -219,14 +238,16 @@ fun BottomSheetTest(stepViewModel: StepViewModel) {
                     .onGloballyPositioned { layoutCoordinates ->
                         val b = layoutCoordinates.size.height
                         contentHeight = b.toFloat()
-                    }) {
+                    })
+            {
 
 
                 Column(
                     modifier = Modifier
                         .wrapContentHeight()
                         .fillMaxWidth()
-                        .background(Color(ctx.resources.getColor(R.color.background, null))),
+                            .background(Color(ctx.resources.getColor(R.color.background, null)))
+                    ,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
@@ -240,14 +261,29 @@ fun BottomSheetTest(stepViewModel: StepViewModel) {
                     )
 
 
-                    Text(modifier = Modifier.padding(top = 32.dp), text = divideNumber(12128), style = fontBlack24(PRIMARY900))
-                    Text(modifier = Modifier.padding(top = 8.dp, bottom = 48.dp), text = stringResource(
-                        id = R.string.km_cal,
-                        stepsToKilometers(12128),
-                        stepsToCalories(12128)
-                    ), style = fontBold12(SECONDARY500))
+                    Text(
+                        modifier = Modifier.padding(top = 32.dp),
+                        text = divideNumber(
+                            stepViewModel.getAll().observeAsState().value?.size.orZero()
+                        ),
+                        style = fontBlack24(PRIMARY900)
+                    )
+                    Text(
+                        modifier = Modifier.padding(top = 8.dp, bottom = 48.dp),
+                        text = stringResource(
+                            id = R.string.km_cal,
+                            stepsToKilometers(
+                                stepViewModel.getAll().observeAsState().value?.size.orZero()
+                            ),
+                            stepsToCalories(
+                                stepViewModel.getAll().observeAsState().value?.size.orZero()
+                            )
+                        ),
+                        style = fontBold12(SECONDARY500)
+                    )
                 }
             }
+
         }
 
 

@@ -119,7 +119,7 @@ dependencies {
 
     implementation("androidx.work:work-runtime-ktx:2.8.1")
 
-
+    implementation("com.github.jakhongirmadaminov:glassmorphic-composables:0.0.4")
 
 }
 

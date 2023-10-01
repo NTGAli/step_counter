@@ -23,6 +23,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.ntg.stepcounter.db.AppDB
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.util.Constants.NOTIFICATION_CHANNEL_ID
+import com.ntg.stepcounter.util.extension.timber
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,75 +39,33 @@ class MyBackgroundService : Service(), SensorEventListener {
     @Inject
     lateinit var appDB: AppDB
 
-    private lateinit var scheduledExecutorService: ScheduledExecutorService
+    private var sensorManager: SensorManager? = null
 
-    private val onCh:(Int) -> Unit = {}
 
     override fun onCreate() {
         super.onCreate()
-//        createNotification(this)
-        Timber.d("ksjkdjzslkjdlkajdlkjwlkdjw 123")
-        Toast.makeText(this,"wwwwwwwwwwwwww",Toast.LENGTH_SHORT).show()
-
-        val notification = createNotification(this)
+        timber("BackgroundService:::onCreate")
+        val notification = createNotification()
         startForeground(1111, notification)
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        // You can return null because you don't need to bind to this service.
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Your background task code goes here.
-        // You can start a new thread or use coroutines for asynchronous tasks.
-        val scope = CoroutineScope(Dispatchers.IO)
-
-//        scheduledExecutorService = Executors.newScheduledThreadPool(1)
-//        scheduledExecutorService.scheduleAtFixedRate({
-//
-//
-//
-//
-//        },1L,1,TimeUnit.SECONDS)
-
+        timber("BackgroundService:::start")
         val sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-//        sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        val stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
-
-
-        if (stepSensor == null) {
-            // This will give a toast message to the user if there is no sensor in the device
-//            Toast.makeText(this, "No sensor detected on this device", Toast.LENGTH_SHORT).show()
-            Log.d("dwd","wdlwkjkdlkwjdlkwad null $stepSensor")
-        } else {
-            // Rate suitable for the user interface
-            sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
+        val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
+        if (stepSensor != null) {
+            sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
         }
-
-        Timber.d("ksjkdjzslkjdlkajdlkjwlkdjw 456")
-
-        StepCounterListener{
-            scope.launch {
-                Toast.makeText(this@MyBackgroundService, "111", Toast.LENGTH_SHORT).show()
-                appDB.stepDao().insert(Step(0, System.currentTimeMillis().toString(), true))
-            }
-        }
-
-
-        // To stop the service when the task is done, call stopSelf().
-//        stopSelf()
-
-
-
-
-        // Return a value to specify how the service should behave.
         return START_NOT_STICKY
     }
 
 
 
-    private fun createNotification(context: Context): Notification {
+    private fun createNotification(): Notification {
         val channelId =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 NOTIFICATION_CHANNEL_ID
@@ -124,7 +83,7 @@ class MyBackgroundService : Service(), SensorEventListener {
         )
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Replace with your notification icon
+            .setSmallIcon(R.drawable.icons8_trainers_1) // Replace with your notification icon
             .setContentTitle("Step Counting Service")
             .setContentText("Counting your steps...")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -149,7 +108,7 @@ class MyBackgroundService : Service(), SensorEventListener {
 
 
     private fun createNotification2(context: Context) {
-        var builder = NotificationCompat.Builder(context, "123")
+        val builder = NotificationCompat.Builder(context, "123")
             .setSmallIcon(androidx.core.R.drawable.ic_call_answer_low)
             .setContentTitle("My notification")
             .setContentText("Much longer text that cannot fit one line...")
@@ -177,17 +136,22 @@ class MyBackgroundService : Service(), SensorEventListener {
     }
 
     override fun onSensorChanged(p0: SensorEvent?) {
-        Log.d("kjwd", "kaljdlkwajdkljwalkdjwk ${p0!!.values[0]}")
         val scope = CoroutineScope(Dispatchers.IO)
-
         scope.launch {
-//            Toast.makeText(this@MyBackgroundService, "111", Toast.LENGTH_SHORT).show()
+            timber("StepCounterListener :::: Background")
             appDB.stepDao().insert(Step(0, System.currentTimeMillis().toString(), true))
         }
     }
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
 
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        timber("BackgroundService:::destroy")
+        sensorManager = null
+        stopSelf()
     }
 }
 
