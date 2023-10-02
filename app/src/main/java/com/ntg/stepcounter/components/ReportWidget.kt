@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,6 +47,7 @@ fun ReportWidget(
     secondText: Int
 ){
 
+    val ctx = LocalContext.current
 
     Box(modifier = modifier
         .clip(RoundedCornerShape(16.dp))
@@ -64,7 +66,7 @@ fun ReportWidget(
 
                 Column(modifier = Modifier.padding(start = 8.dp)) {
                     Text(text = if (viewType == ReportWidgetType.Default) stringResource(id = R.string.your_record) else stringResource(id = R.string.steps), style = fontRegular12(SECONDARY500))
-                    Text(modifier = Modifier.padding(top = 2.dp), text = formatNumber(firstText.toDouble()), style = fontBold12(SECONDARY900))
+                    Text(modifier = Modifier.padding(top = 2.dp), text = ctx.getString(R.string.step_format, formatNumber(firstText.toDouble())), style = fontBold12(SECONDARY900))
 
                 }
             }
@@ -81,12 +83,12 @@ fun ReportWidget(
                 Box(modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
                     .background(PRIMARY100)) {
-                    Icon(modifier = Modifier.padding(8.dp), painter = if (viewType == ReportWidgetType.Group) painterResource(id = R.drawable.users_profiles_minus) else painterResource(id = R.drawable.icons8_trainers_1), contentDescription = null, tint = PRIMARY500)
+                    Icon(modifier = Modifier.padding(8.dp), painter = if (viewType == ReportWidgetType.Group) painterResource(id = R.drawable.users_profiles_minus) else painterResource(id = R.drawable.calendar_02), contentDescription = null, tint = PRIMARY500)
                 }
 
                 Column(modifier = Modifier.padding(start = 8.dp)) {
                     Text(text = if (viewType == ReportWidgetType.Default) stringResource(id = R.string.day) else if (viewType == ReportWidgetType.Group) stringResource(id = R.string.number_of_members) else stringResource(id = R.string.days), style = fontRegular12(SECONDARY500))
-                    Text(modifier = Modifier.padding(top = 2.dp),text = formatNumber(secondText.toDouble()), style = fontBold12(SECONDARY900))
+                    Text(modifier = Modifier.padding(top = 2.dp),text = if (viewType == ReportWidgetType.Default) {if (secondText != -1) ctx.getString(R.string.days_ago, secondText.toString()) else ctx.getString(R.string.no_record)} else secondText.toString() , style = fontBold12(SECONDARY900))
 
                 }
             }

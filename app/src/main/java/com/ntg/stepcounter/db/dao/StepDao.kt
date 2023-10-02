@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.ntg.stepcounter.models.Step
+import com.ntg.stepcounter.models.TopRecord
 
 @Dao
 interface StepDao {
@@ -22,6 +23,16 @@ interface StepDao {
 
     @Query("SELECT * FROM Step")
     fun getAll(): LiveData<List<Step>>
+
+    @Query("SELECT * FROM Step WHERE date =:date")
+    fun getToday(date: String): LiveData<List<Step>>
+
+    @Query("SELECT date, COUNT(*) AS record_count\n" +
+            "FROM Step \n" +
+            "GROUP BY date\n" +
+            "ORDER BY record_count DESC\n" +
+            "LIMIT 1")
+    fun topRecord(): LiveData<TopRecord>
 
 
 }

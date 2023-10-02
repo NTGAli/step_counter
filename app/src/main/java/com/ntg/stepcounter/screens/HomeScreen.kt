@@ -49,6 +49,7 @@ import com.ntg.stepcounter.FullSizeBlur
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.StepCounterListener
 import com.ntg.stepcounter.components.ReportWidget
+import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.components.ReportWidgetType
 import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY500
@@ -59,6 +60,7 @@ import com.ntg.stepcounter.ui.theme.fontBold12
 import com.ntg.stepcounter.ui.theme.fontBold24
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
+import com.ntg.stepcounter.util.extension.daysUntilToday
 import com.ntg.stepcounter.util.extension.divideNumber
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.stepsToCalories
@@ -80,8 +82,13 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
     var topOffset = with(LocalDensity.current) { aaa.toDp() }
     val ctx = LocalContext.current
 
+    val stepsOfToday = stepViewModel.getToday().observeAsState().value?.size.orZero()
+    val topRecord = stepViewModel.topRecord().observeAsState().value
 
-    BoxWithConstraints() {
+
+    timber("akwdlkjawlkdjlkwjadlk ${stepViewModel.getAll().observeAsState().value}")
+
+    BoxWithConstraints {
         val sheetHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() - topOffset }
         val sheetPeekHeight =
             with(LocalDensity.current) { constraints.maxHeight.toDp() - contentHeight.toDp() - topOffset }
@@ -174,15 +181,15 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                             .padding(horizontal = 32.dp)
                             .padding(top = 24.dp),
                         viewType = ReportWidgetType.Default,
-                        firstText = 12000,
-                        secondText = 146800
+                        firstText = topRecord?.record_count.orZero(),
+                        secondText = if (topRecord?.date != null) daysUntilToday(topRecord.date).toInt() else -1
                     )
 
 
                     Text(
                         modifier = Modifier.padding(top = 32.dp),
                         text = divideNumber(
-                            stepViewModel.getAll().observeAsState().value?.size.orZero()
+                            stepsOfToday
                         ),
                         style = fontBlack24(PRIMARY900)
                     )
@@ -191,10 +198,10 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                         text = stringResource(
                             id = R.string.km_cal,
                             stepsToKilometers(
-                                stepViewModel.getAll().observeAsState().value?.size.orZero()
+                                stepsOfToday
                             ),
                             stepsToCalories(
-                                stepViewModel.getAll().observeAsState().value?.size.orZero()
+                                stepsOfToday
                             )
                         ),
                         style = fontBold12(SECONDARY500)
@@ -239,6 +246,40 @@ private fun getColorComponentsForNumber(number: Int): RGBColor {
     val interpolatedBlue = startColor.blue + (endColor.blue - startColor.blue) * number / 32
 
     return RGBColor(interpolatedRed, interpolatedGreen, interpolatedBlue)
+}
+
+
+private fun fakeData(stepViewModel: StepViewModel){
+
+//    val data = listOf(
+//        Step(id = 0, timeUnix = null, date = "2023-10-12", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-12", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-12", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-12", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-12", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-13", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-13", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-13", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-15", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-15", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-16", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-17", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
+//        Step(id = 0, timeUnix = null, date = "2023-10-19", inBackground = false),
+//    )
+//
+//    data.forEach {
+//        stepViewModel.insertManually(it)
+//    }
+
 }
 
 

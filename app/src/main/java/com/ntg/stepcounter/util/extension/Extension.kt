@@ -9,6 +9,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import timber.log.Timber
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 
@@ -30,12 +32,12 @@ fun timber(title: String, msg: String) {
 
 fun formatNumber(number: Double): String {
     return when {
-        number < 1000 -> number.toString()
+        number < 1000 -> number.toInt().toString()
         number < 1_000_000 -> {
             if (number % 1000.0 == 0.0) {
-                "${number / 1000} هزار"
+                "${(number / 1000).toInt()} هزار"
             } else {
-                String.format("%.1f هزار", number / 1000.0)
+                String.format("%.1f هزار", number / 1000)
             }
         }
         else -> {
@@ -64,6 +66,19 @@ fun stepsToCalories(steps: Int): String {
     // Conversion factor: On average, walking burns about 0.035 calories per step.
     val calories = steps * 0.035
     return formatNumber("%.2f".format(calories).toDouble())
+}
+
+fun daysUntilToday(targetDateStr: String): Long {
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+    val currentDate = Date()
+    return try {
+        val targetDate = dateFormat.parse(targetDateStr)
+        val difference = currentDate.time - targetDate.time
+        difference / (1000 * 60 * 60 * 24)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        -1 // Return -1 to indicate an error
+    }
 }
 
 @Composable

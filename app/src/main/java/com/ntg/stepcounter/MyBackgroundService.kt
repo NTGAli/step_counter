@@ -29,6 +29,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.util.Date
 import java.util.concurrent.ScheduledExecutorService
 import javax.inject.Inject
 
@@ -139,7 +142,13 @@ class MyBackgroundService : Service(), SensorEventListener {
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             timber("StepCounterListener :::: Background")
-            appDB.stepDao().insert(Step(0, System.currentTimeMillis().toString(), true))
+            appDB.stepDao().insert(Step(0,date = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                LocalDate.now().toString()
+            } else {
+                val currentDate = Date()
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+                dateFormat.format(currentDate)
+            }, timeUnix = System.currentTimeMillis().toString(), inBackground =  true))
         }
     }
 

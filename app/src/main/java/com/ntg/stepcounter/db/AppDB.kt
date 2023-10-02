@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.ntg.stepcounter.db.dao.StepDao
 import com.ntg.stepcounter.models.Step
 
-@Database(entities = [Step::class], version = 2)
+@Database(entities = [Step::class], version = 3)
 abstract class AppDB: RoomDatabase()  {
 
     abstract fun stepDao(): StepDao
