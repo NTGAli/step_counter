@@ -121,6 +121,12 @@ dependencies {
 
     implementation("com.github.jakhongirmadaminov:glassmorphic-composables:0.0.4")
 
+    //ui controller
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.0-alpha")
+
+    //navigation
+    implementation("androidx.navigation:navigation-compose:2.7.2")
+
 }
 
 kapt {

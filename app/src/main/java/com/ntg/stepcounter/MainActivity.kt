@@ -23,7 +23,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.Lifecycle
-import com.ntg.stepcounter.screens.BottomSheetTest
+import com.ntg.stepcounter.nav.AppNavHost
 import com.ntg.stepcounter.ui.theme.StepCounterTheme
 import com.ntg.stepcounter.util.extension.OnLifecycleEvent
 import com.ntg.stepcounter.util.extension.timber
@@ -55,13 +55,17 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         setContent {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 StepCounterTheme {
-                    BottomSheetTest(stepViewModel)
+                    AppNavHost(
+                        stepViewModel = stepViewModel,
+                        onDestinationChangedListener = { nav, des, bundle ->
+
+                        })
                 }
             }
-            HandleLifecycle{
-                if (it == Lifecycle.Event.ON_PAUSE){
+            HandleLifecycle {
+                if (it == Lifecycle.Event.ON_PAUSE) {
                     isInBackground = true
-                }else if (it == Lifecycle.Event.ON_RESUME){
+                } else if (it == Lifecycle.Event.ON_RESUME) {
                     isInBackground = false
                 }
             }
@@ -69,7 +73,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     }
 
     override fun onSensorChanged(p0: SensorEvent?) {
-        if (!isInBackground){
+        if (!isInBackground) {
             timber("StepCounterListener :::: Forground")
             stepViewModel.insertStep()
         }
@@ -80,24 +84,9 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    StepCounterTheme {
-        Greeting("Android")
-    }
-}
 
 @Composable
-private fun HandleLifecycle(onEventChange:(Lifecycle.Event) -> Unit = {}) {
+private fun HandleLifecycle(onEventChange: (Lifecycle.Event) -> Unit = {}) {
     val ctx = LocalContext.current
     val serviceIntent = Intent(ctx, MyBackgroundService::class.java)
 

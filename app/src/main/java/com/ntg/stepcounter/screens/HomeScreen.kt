@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.ntg.stepcounter.FullSizeBlur
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.StepCounterListener
@@ -70,90 +71,7 @@ import java.lang.Exception
 //@OptIn(ExperimentalMaterial3Api::class)
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun HomeScreen() {
-
-    val scope = rememberCoroutineScope()
-    val scaffoldState = rememberBottomSheetScaffoldState()
-    BottomSheetScaffold(
-        topBar = {
-            TopAppBar(title = {
-                Text(text = "Bottom sheet scaffold")
-            })
-        },
-
-        sheetContent = {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(128.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Swipe up to expand sheet")
-            }
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(64.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Sheet content")
-                Spacer(Modifier.height(20.dp))
-                Button(
-                    onClick = {
-//                        scope.launch { scaffoldState.bottomSheetState.hide() }
-                    }
-                ) {
-                    Text("Click to collapse sheet")
-                    Divider(Modifier.width(500.dp))
-                }
-            }
-        },
-        scaffoldState = scaffoldState,
-//        floatingActionButton = {
-//            var clickCount by remember { mutableStateOf(0) }
-//            FloatingActionButton(
-//                onClick = {
-//                    // show snackbar as a suspend function
-//                    scope.launch {
-//                        scaffoldState.snackbarHostState.showSnackbar("Snackbar #${++clickCount}")
-//                    }
-//                }
-//            ) {
-//                Icon(Icons.Default.Favorite, contentDescription = "Localized description")
-//            }
-//        }
-//        ,
-//        floatingActionButtonPosition = FabPosition.End,
-        sheetPeekHeight = 500.dp
-    ) { innerPadding ->
-        LazyColumn(contentPadding = innerPadding) {
-            items(100) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .background(Color.Gray)
-                )
-            }
-        }
-    }
-
-
-}
-
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun BottomSheetTest(stepViewModel: StepViewModel) {
-
-
-
-//    StepCounterListener {
-//        if (it != null)
-//            timber("StepCounterListener ::: ")
-//            stepViewModel.insertStep()
-//    }.setup(LocalContext.current)
-
+fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewModel) {
 
     var aaa by remember { mutableFloatStateOf(0f) }
     var radius by remember { mutableFloatStateOf(32f) }
@@ -246,7 +164,7 @@ fun BottomSheetTest(stepViewModel: StepViewModel) {
                     modifier = Modifier
                         .wrapContentHeight()
                         .fillMaxWidth()
-                            .background(Color(ctx.resources.getColor(R.color.background, null)))
+                        .background(Color(ctx.resources.getColor(R.color.background, null)))
                     ,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -299,8 +217,8 @@ fun BottomSheetTest(stepViewModel: StepViewModel) {
 
     }
 
-
 }
+
 
 private fun calculateRadius(first: Float, end: Float, third: Float): Float {
     if (third > end) return 32f
@@ -323,15 +241,5 @@ private fun getColorComponentsForNumber(number: Int): RGBColor {
     return RGBColor(interpolatedRed, interpolatedGreen, interpolatedBlue)
 }
 
-private fun loadData(context: Context) {
-
-    // In this function we will retrieve data
-    val sharedPreferences = context.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
-    val savedNumber = sharedPreferences.getFloat("key1", 0f)
-
-    // Log.d is used for debugging purposes
-    Log.d("MainActivity", "$savedNumber")
-
-}
 
 data class RGBColor(val red: Int, val green: Int, val blue: Int)
