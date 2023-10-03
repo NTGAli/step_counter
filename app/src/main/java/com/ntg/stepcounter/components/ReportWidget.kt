@@ -88,7 +88,7 @@ fun ReportWidget(
 
                 Column(modifier = Modifier.padding(start = 8.dp)) {
                     Text(text = if (viewType == ReportWidgetType.Default) stringResource(id = R.string.day) else if (viewType == ReportWidgetType.Group) stringResource(id = R.string.number_of_members) else stringResource(id = R.string.days), style = fontRegular12(SECONDARY500))
-                    Text(modifier = Modifier.padding(top = 2.dp),text = if (viewType == ReportWidgetType.Default) {if (secondText != -1) ctx.getString(R.string.days_ago, secondText.toString()) else ctx.getString(R.string.no_record)} else secondText.toString() , style = fontBold12(SECONDARY900))
+                    Text(modifier = Modifier.padding(top = 2.dp),text = if (viewType == ReportWidgetType.Default) {if (secondText != -1) ctx.getString(R.string.days_ago, secondText.toString()) else ctx.getString(R.string.no_record)} else if (viewType == ReportWidgetType.Profile){ if (secondText != -1) ctx.getString(R.string.days_format, secondText.toString()) else "-"} else secondText.toString() , style = fontBold12(SECONDARY900))
 
                 }
             }

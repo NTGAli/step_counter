@@ -5,9 +5,24 @@
     <string name="day">روز</string>
     <string name="number_of_members">تعداد اعضا</string>
     <string name="days">روز ها</string>
+    <string name="days_format">%s روز</string>
     <string name="km_cal">%s کیلومتر | %s کالری</string>
     <string name="app_name_farsi">قدم های من</string>
     <string name="days_ago">%s روز پیش.</string>
     <string name="step_format">%s قدم</string>
     <string name="no_record">-</string>
+    <string name="profile">پروفایل</string>
+    <string name="student_of">دانشجوی رشته ی %s</string>
+    <string name="prof_of">استاد رشته ی %s</string>
+    <string name="student">دانشجو</string>
+    <string name="prof">استاد</string>
+    <string name="report_workout">گزارش عملکرد</string>
+    <string name="your_achievment">دستاورد های شما</string>
+    <string name="no_achievment">دستاوردی ثبت نشده.</string>
+    <string name="view">مشاهده</string>
+    <string name="your_social_media">شبکه های اجتماعی شما</string>
+    <string name="socila_desc">بقیه می تونن این موارد رو ببینن!</string>
+    <string name="add_new">اضافه کردن +</string>
+    <string name="today">امروز</string>
+    <string name="yestrday">دیروز</string>
 </resources>

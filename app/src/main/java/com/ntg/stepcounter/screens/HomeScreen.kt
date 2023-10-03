@@ -3,6 +3,7 @@ package com.ntg.stepcounter.screens
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -49,8 +50,10 @@ import com.ntg.stepcounter.FullSizeBlur
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.StepCounterListener
 import com.ntg.stepcounter.components.ReportWidget
+import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.components.ReportWidgetType
+import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY500
 import com.ntg.stepcounter.ui.theme.PRIMARY900
@@ -75,6 +78,14 @@ import java.lang.Exception
 @Composable
 fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewModel) {
 
+//    var setFakeDate by remember { mutableStateOf(true) }
+//
+//    if (setFakeDate){
+//        fakeData(stepViewModel)
+//        setFakeDate = false
+//    }
+
+
     var aaa by remember { mutableFloatStateOf(0f) }
     var radius by remember { mutableFloatStateOf(32f) }
     var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
@@ -85,8 +96,6 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
     val stepsOfToday = stepViewModel.getToday().observeAsState().value?.size.orZero()
     val topRecord = stepViewModel.topRecord().observeAsState().value
 
-
-    timber("akwdlkjawlkdjlkwjadlk ${stepViewModel.getAll().observeAsState().value}")
 
     BoxWithConstraints {
         val sheetHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() - topOffset }
@@ -129,6 +138,9 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                                 .padding(end = 8.dp)
                                 .clip(CircleShape)
                                 .background(PRIMARY100)
+                                .clickable {
+                                    navHostController.navigate(Screens.ProfileScreen.name)
+                                }
                                 .size(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -171,8 +183,7 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                     modifier = Modifier
                         .wrapContentHeight()
                         .fillMaxWidth()
-                        .background(Color(ctx.resources.getColor(R.color.background, null)))
-                    ,
+                        .background(Color(ctx.resources.getColor(R.color.background, null))),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
@@ -227,7 +238,7 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
 }
 
 
-private fun calculateRadius(first: Float, end: Float, third: Float): Float {
+fun calculateRadius(first: Float, end: Float, third: Float): Float {
     if (third > end) return 32f
     if (third < first) return 0f
     val range = end - first
@@ -235,7 +246,7 @@ private fun calculateRadius(first: Float, end: Float, third: Float): Float {
     return ((normalizedThird.toDouble() / range.toDouble()) * 32).toFloat()
 }
 
-private fun getColorComponentsForNumber(number: Int): RGBColor {
+fun getColorComponentsForNumber(number: Int): RGBColor {
     require(number in 0..32) { "Number must be between 0 and 32" }
 
     val startColor = RGBColor(255, 255, 255) // #FFFFFF
@@ -249,7 +260,17 @@ private fun getColorComponentsForNumber(number: Int): RGBColor {
 }
 
 
-private fun fakeData(stepViewModel: StepViewModel){
+private fun fakeData(stepViewModel: StepViewModel) {
+
+    val fakeDate = arrayListOf<Step>()
+
+
+    for (i in 0 until 6000)
+        fakeDate.add(Step(id = 0, timeUnix = null, date = "2023-10-2", inBackground = false))
+
+    fakeDate.forEach {
+        stepViewModel.insertManually(it)
+    }
 
 //    val data = listOf(
 //        Step(id = 0, timeUnix = null, date = "2023-10-12", inBackground = false),
@@ -283,4 +304,3 @@ private fun fakeData(stepViewModel: StepViewModel){
 }
 
 
-data class RGBColor(val red: Int, val green: Int, val blue: Int)

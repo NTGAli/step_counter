@@ -50,6 +50,8 @@ class StepViewModel @Inject constructor(
 
     fun getAll() = appDB.stepDao().getAll()
 
+    fun numberOfDate() = appDB.stepDao().numberOfDate()
+
     fun getToday(): LiveData<List<Step>> {
         val dateOfToday = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             LocalDate.now().toString()

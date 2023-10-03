@@ -34,5 +34,10 @@ interface StepDao {
             "LIMIT 1")
     fun topRecord(): LiveData<TopRecord>
 
+    @Query("SELECT COUNT(DISTINCT date)\n" +
+            "FROM step")
+    fun numberOfDate(): LiveData<Int>
+
+
 
 }

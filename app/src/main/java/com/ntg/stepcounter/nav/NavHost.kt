@@ -12,7 +12,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.ntg.stepcounter.screens.HomeScreen
+import com.ntg.stepcounter.screens.ProfileScreen
 import com.ntg.stepcounter.vm.StepViewModel
+import com.ntg.stepcounter.vm.UserDataViewModel
 
 @Composable
 fun AppNavHost(
@@ -20,6 +22,7 @@ fun AppNavHost(
     navController: NavHostController = rememberNavController(),
     startDestination: String = Screens.HomeScreen.name,
     stepViewModel: StepViewModel,
+    userDataViewModel: UserDataViewModel,
     onDestinationChangedListener: (NavController, NavDestination, Bundle?) -> Unit
 ) {
 
@@ -35,14 +38,14 @@ fun AppNavHost(
         modifier = modifier,
         navController = navController,
         startDestination = startDestination,
-        enterTransition = { EnterTransition.None },
-        exitTransition = { ExitTransition.None }
     ) {
 
-        composable(Screens.HomeScreen.name, enterTransition = { ->
-            EnterTransition.None
-        }) {
+        composable(Screens.HomeScreen.name) {
             HomeScreen(navController, stepViewModel)
+        }
+
+        composable(Screens.ProfileScreen.name) {
+            ProfileScreen(navController, stepViewModel, userDataViewModel)
         }
 
     }
