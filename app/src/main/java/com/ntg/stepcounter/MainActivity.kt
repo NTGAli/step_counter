@@ -27,6 +27,7 @@ import com.ntg.stepcounter.nav.AppNavHost
 import com.ntg.stepcounter.ui.theme.StepCounterTheme
 import com.ntg.stepcounter.util.extension.OnLifecycleEvent
 import com.ntg.stepcounter.util.extension.timber
+import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
     private val stepViewModel: StepViewModel by viewModels()
     private val userDataViewModel: UserDataViewModel by viewModels()
+    private val socialNetworkViewModel: SocialNetworkViewModel by viewModels()
     private var sensorManager: SensorManager? = null
     private var isInBackground = false
 
@@ -60,6 +62,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                     AppNavHost(
                         stepViewModel = stepViewModel,
                         userDataViewModel = userDataViewModel,
+                        socialNetworkViewModel = socialNetworkViewModel,
                         onDestinationChangedListener = { nav, des, bundle ->
 
                         })

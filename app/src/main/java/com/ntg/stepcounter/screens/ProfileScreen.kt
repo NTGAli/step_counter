@@ -53,6 +53,7 @@ import com.ntg.stepcounter.components.DateItem
 import com.ntg.stepcounter.components.ReportWidget
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.components.ReportWidgetType
+import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.Background
 import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY500
@@ -338,7 +339,9 @@ fun ProfileScreen(
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 24.dp),
                                 text = stringResource(id = R.string.add_new)
-                            )
+                            ){
+                                navHostController.navigate(Screens.SocialScreen.name)
+                            }
 
                         }
                     }

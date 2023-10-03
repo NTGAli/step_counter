@@ -25,4 +25,10 @@
     <string name="add_new">اضافه کردن +</string>
     <string name="today">امروز</string>
     <string name="yestrday">دیروز</string>
+    <string name="socila_network">شبکه اجتماعی</string>
+    <string name="scoial_name">نام شبکه ی اجتماعی</string>
+    <string name="id_or_page_name">آیدی یا نام پیج</string>
+    <string name="save">ذخیره</string>
+    <string name="select_social">یک شبکه ی اجتماعی انتخاب کنید</string>
+    <string name="page_id_empty">نام پیج نمی تواند خالی باشد</string>
 </resources>

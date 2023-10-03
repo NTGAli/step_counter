@@ -1,8 +1,6 @@
 package com.ntg.stepcounter.nav
 
 import android.os.Bundle
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -13,6 +11,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.ntg.stepcounter.screens.HomeScreen
 import com.ntg.stepcounter.screens.ProfileScreen
+import com.ntg.stepcounter.screens.SocialListScreen
+import com.ntg.stepcounter.screens.SocialScreen
+import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
 
@@ -23,6 +24,7 @@ fun AppNavHost(
     startDestination: String = Screens.HomeScreen.name,
     stepViewModel: StepViewModel,
     userDataViewModel: UserDataViewModel,
+    socialNetworkViewModel: SocialNetworkViewModel,
     onDestinationChangedListener: (NavController, NavDestination, Bundle?) -> Unit
 ) {
 
@@ -46,6 +48,14 @@ fun AppNavHost(
 
         composable(Screens.ProfileScreen.name) {
             ProfileScreen(navController, stepViewModel, userDataViewModel)
+        }
+
+        composable(Screens.SocialScreen.name) {
+            SocialScreen(navController, socialNetworkViewModel)
+        }
+
+        composable(Screens.SocialListScreen.name) {
+            SocialListScreen(navController, socialNetworkViewModel)
         }
 
     }

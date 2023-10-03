@@ -1,11 +1,9 @@
 package com.ntg.stepcounter.components
 
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,7 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.ntg.mywords.model.components.AppbarItem
+import com.ntg.stepcounter.models.components.AppbarItem
 import com.ntg.mywords.model.components.PopupItem
 import com.ntg.stepcounter.ui.theme.*
 
@@ -55,7 +53,7 @@ fun Appbar(
                     Text(
                         title,
                         maxLines = 1,
-                        style = fontBold14(SECONDARY900)
+                        style = fontBold14(SECONDARY500)
                     )
                 },
                 navigationIcon = {
@@ -63,7 +61,7 @@ fun Appbar(
 
                         IconButton(onClick = { navigationOnClick.invoke() }) {
                             Icon(
-                                imageVector = Icons.Rounded.KeyboardArrowLeft,
+                                imageVector = Icons.Rounded.KeyboardArrowRight,
                                 contentDescription = "navigation",
                                 tint = navigateIconColor
                             )
@@ -89,6 +87,8 @@ fun Appbar(
                         }
                     }
                 },
+                backgroundColor = Background,
+                elevation = 0.dp
 //                colors = TopAppBarDefaults.topAppBarColors(
 ////                        MaterialTheme.colorScheme.background
 //                ),

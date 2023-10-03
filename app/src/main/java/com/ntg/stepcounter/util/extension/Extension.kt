@@ -1,5 +1,7 @@
 package com.ntg.stepcounter.util.extension
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberUpdatedState
@@ -28,6 +30,10 @@ fun timber(msg: String) {
 
 fun timber(title: String, msg: String) {
     Timber.d("$title ----------> $msg")
+}
+
+fun Context.toast(mag: String){
+    Toast.makeText(this, mag, Toast.LENGTH_SHORT).show()
 }
 
 fun formatNumber(number: Double): String {
