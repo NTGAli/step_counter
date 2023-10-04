@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ntg.stepcounter.screens.HomeScreen
 import com.ntg.stepcounter.screens.ProfileScreen
+import com.ntg.stepcounter.screens.SettingsScreen
 import com.ntg.stepcounter.screens.SocialListScreen
 import com.ntg.stepcounter.screens.SocialScreen
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
@@ -63,6 +64,10 @@ fun AppNavHost(
 
         composable(Screens.SocialListScreen.name) {
             SocialListScreen(navController, socialNetworkViewModel)
+        }
+
+        composable(Screens.SettingsScreen.name) {
+            SettingsScreen(navController)
         }
 
     }

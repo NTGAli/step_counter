@@ -4,5 +4,6 @@ enum class Screens {
     HomeScreen,
     ProfileScreen,
     SocialScreen,
-    SocialListScreen
+    SocialListScreen,
+    SettingsScreen
 }

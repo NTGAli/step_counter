@@ -147,7 +147,9 @@ fun ProfileScreen(
 
                     },
                     actions = {
-                        IconButton(onClick = {}) {
+                        IconButton(onClick = {
+                            navHostController.navigate(Screens.SettingsScreen.name)
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.settings),
                                 contentDescription = null

@@ -33,4 +33,17 @@
     <string name="page_id_empty">نام پیج نمی تواند خالی باشد</string>
     <string name="edit">ویرایش</string>
     <string name="delete">حذف</string>
+    <string name="settings">تنظیمات</string>
+    <string name="account">حساب کاربری</string>
+    <string name="change_account">تغیر اطلاعات حساب کاربری</string>
+    <string name="phone_number">شماره موبایل</string>
+    <string name="privacy">حریم خصوصی</string>
+    <string name="show_report_to_others">نمایش گزارش عملکرد برای دیگران</string>
+    <string name="privacy_policies">سیاست های حریم خصوصی</string>
+    <string name="advance">پیشرفته</string>
+    <string name="step_auto_detect">تشخیص خودکار راه رفتن</string>
+    <string name="other">سایر</string>
+    <string name="terms_and_conditions">قوانین و مقررات</string>
+    <string name="contact_us">ارتباط باما</string>
+    <string name="report_problem">گزارش مشکل</string>
 </resources>
