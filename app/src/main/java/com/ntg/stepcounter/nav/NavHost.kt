@@ -6,9 +6,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.ntg.stepcounter.screens.HomeScreen
 import com.ntg.stepcounter.screens.ProfileScreen
 import com.ntg.stepcounter.screens.SocialListScreen
@@ -47,11 +49,16 @@ fun AppNavHost(
         }
 
         composable(Screens.ProfileScreen.name) {
-            ProfileScreen(navController, stepViewModel, userDataViewModel)
+            ProfileScreen(navController, stepViewModel, userDataViewModel, socialNetworkViewModel)
         }
 
-        composable(Screens.SocialScreen.name) {
-            SocialScreen(navController, socialNetworkViewModel)
+        composable(Screens.SocialScreen.name+ "?id={id}",
+            arguments = listOf(navArgument("id")
+            {
+                type = NavType.IntType
+                defaultValue = -1
+            })) {
+            SocialScreen(navController, socialNetworkViewModel, it.arguments?.getInt("id"))
         }
 
         composable(Screens.SocialListScreen.name) {

@@ -22,10 +22,16 @@ import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ExtendedFloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarHostState
+import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -34,6 +40,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +58,7 @@ import com.ntg.stepcounter.R
 import com.ntg.stepcounter.components.CustomButton
 import com.ntg.stepcounter.components.DateItem
 import com.ntg.stepcounter.components.ReportWidget
+import com.ntg.stepcounter.components.SocialItem
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.components.ReportWidgetType
 import com.ntg.stepcounter.nav.Screens
@@ -73,15 +81,20 @@ import com.ntg.stepcounter.util.extension.divideNumber
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.stepsToCalories
 import com.ntg.stepcounter.util.extension.stepsToKilometers
+import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ProfileScreen(
     navHostController: NavHostController,
     stepViewModel: StepViewModel,
-    userDataViewModel: UserDataViewModel
+    userDataViewModel: UserDataViewModel,
+    socialNetworkViewModel: SocialNetworkViewModel
 ) {
     var aaa by remember { mutableFloatStateOf(0f) }
     var radius by remember { mutableFloatStateOf(32f) }
@@ -97,6 +110,7 @@ fun ProfileScreen(
     if (dateSelected.isEmpty() && totalStep.orEmpty().isNotEmpty()) dateSelected =
         totalStep.orEmpty()[0].date
 
+    val socials = socialNetworkViewModel.getAll().observeAsState().value
 
     BoxWithConstraints {
         val sheetHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() - topOffset }
@@ -328,18 +342,40 @@ fun ProfileScreen(
 //                            val list = arrayListOf<Int>()
 //                            for (i in 0..100)
 //                                list.add(i)
-//                            LazyColumn(modifier = Modifier.height(200.dp), content = {
-//                                items(list){
-//                                    Text(text = it.toString())
-//                                }
-//                            })
+                            LazyColumn(
+                                modifier = Modifier
+                                    .height((socials?.size.orZero() * 37).dp)
+                                    .padding(top = 8.dp), content = {
+                                    items(socials.orEmpty()) {social ->
+                                        SocialItem(
+                                            modifier = Modifier.padding(horizontal = 16.dp),
+                                            id = social.id,
+                                            title = social.name,
+                                            itemClick = {
+                                                navHostController.navigate(Screens.SocialScreen.name + "?id=$it")
+                                            },
+                                            edit = {
+                                                navHostController.navigate(Screens.SocialScreen.name + "?id=$it")
+                                            },
+                                            delete = {
+                                                socialNetworkViewModel.delete(social)
+                                            }
+                                        )
+                                    }
+                                })
 
                             CustomButton(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 24.dp),
-                                text = stringResource(id = R.string.add_new)
-                            ){
+                                text = stringResource(id = R.string.add_new),
+                                style = if (socials.orEmpty()
+                                        .isEmpty()
+                                ) ButtonStyle.Contained else ButtonStyle.TextOnly
+                            ) {
+                                socialNetworkViewModel.socialNetworks.forEach {
+                                    it.isSelected = false
+                                }
                                 navHostController.navigate(Screens.SocialScreen.name)
                             }
 
@@ -355,7 +391,7 @@ fun ProfileScreen(
             },
             scaffoldState = scaffoldState,
             sheetElevation = radius.dp / 2,
-            sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp)
+            sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp),
         ) {
             Box(
                 Modifier

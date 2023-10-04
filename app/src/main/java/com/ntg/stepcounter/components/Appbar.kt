@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,6 +14,7 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -113,14 +116,19 @@ fun Popup(modifier: Modifier = Modifier, popupItems: List<PopupItem>, onClick: (
 
     Box(modifier = modifier) {
         IconButton(
+            modifier = Modifier
+                .size(16.dp)
+                .clip(RoundedCornerShape(4.dp)),
             onClick = { expanded = true }
         ) {
             Icon(
+//                modifier = Modifier.size(16.dp),
                 imageVector = Icons.Rounded.MoreVert,
                 tint = SECONDARY500,
                 contentDescription = "action appbar"
             )
         }
+
 
 
 
@@ -136,20 +144,27 @@ fun Popup(modifier: Modifier = Modifier, popupItems: List<PopupItem>, onClick: (
             ) {
 
                 popupItems.forEach {
-                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    DropdownMenuItem(
+                        onClick = {
+                            expanded = false
+                            onClick.invoke(it.id)
+                        }
+                    ) {
                         Row {
                             Icon(
                                 painter = it.icon,
                                 contentDescription = it.title,
                                 tint = SECONDARY500
                             )
-                            Text(it.title, style = fontRegular14(SECONDARY500))
+                            Text(
+                                modifier = Modifier.padding(start = 8.dp),
+                                text = it.title,
+                                style = fontRegular14(SECONDARY500)
+                            )
 
                         }
                     }
                 }
-
-
             }
 
         }

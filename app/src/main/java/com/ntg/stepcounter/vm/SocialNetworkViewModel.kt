@@ -42,6 +42,7 @@ class SocialNetworkViewModel @Inject constructor(
     fun update(social: Social) = viewModelScope.launch { appDB.socialDao().update(social) }
     fun delete(social: Social) = viewModelScope.launch { appDB.socialDao().delete(social) }
     fun getAll() = appDB.socialDao().getSocials()
+    fun getSocial(id: Int) = appDB.socialDao().getSocial(id)
 
 
 }
