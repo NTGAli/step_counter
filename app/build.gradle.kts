@@ -20,7 +20,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "API_TOKEN", project.extra["API_TOKEN"].toString())
     }
+
 
     buildTypes {
         release {
@@ -43,6 +45,9 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.4"
+    }
+    buildFeatures {
+        buildConfig = true
     }
     packaging {
         resources {

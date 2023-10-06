@@ -2,6 +2,7 @@ package com.ntg.stepcounter.di
 
 import android.content.Context
 import androidx.room.Room
+import com.ntg.stepcounter.api.AuthorizeInterceptor
 import com.ntg.stepcounter.api.LoggingInterceptor
 import com.ntg.stepcounter.db.AppDB
 import com.ntg.stepcounter.models.UserStore
@@ -32,6 +33,7 @@ class AppModule {
             .readTimeout(15, TimeUnit.SECONDS)
             .connectTimeout(15, TimeUnit.SECONDS)
             .addInterceptor(LoggingInterceptor().httpLoggingInterceptor())
+            .addInterceptor(AuthorizeInterceptor())
             .build()
     }
 
