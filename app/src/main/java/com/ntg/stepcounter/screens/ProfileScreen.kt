@@ -32,6 +32,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -107,6 +108,8 @@ fun ProfileScreen(
     var dateSelected by remember { mutableStateOf("") }
     val status = userDataViewModel.getUserStatus().collectAsState(initial = "").value
 
+    val isOpenToView = userDataViewModel.isShowReport().collectAsState(initial = true).value
+
     if (dateSelected.isEmpty() && totalStep.orEmpty().isNotEmpty()) dateSelected =
         totalStep.orEmpty()[0].date
 
@@ -117,11 +120,9 @@ fun ProfileScreen(
         val sheetPeekHeight =
             with(LocalDensity.current) { constraints.maxHeight.toDp() - contentHeight.toDp() - topOffset }
         val scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState()
-
         val maxOffset =
             LocalDensity.current.run { (sheetHeight - sheetPeekHeight + topOffset).toPx() }
         val minOffset = LocalDensity.current.run { topOffset.toPx() }
-
         topBarColor = getColorComponentsForNumber(radius.toInt())
 
 
@@ -190,55 +191,84 @@ fun ProfileScreen(
                                 .background(Background)
                         )
                         {
-                            Text(
+
+                            Row(
                                 modifier = Modifier.padding(top = 24.dp, start = 16.dp),
-                                text = stringResource(id = R.string.report_workout),
-                                style = fontMedium14(
-                                    SECONDARY500
-                                )
-                            )
-                            LazyRow(
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp)
-                                    .padding(top = 16.dp)
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                itemsIndexed(
-                                    totalStep.orEmpty().distinctBy { it.date }) { index, it ->
-                                    DateItem(
-                                        modifier = Modifier.padding(end = 8.dp),
-                                        date = it.date,
-                                        isSelected = if (dateSelected.isNotEmpty()) dateSelected == it.date else index == 0
-                                    ) { date ->
-                                        dateSelected = date
-                                    }
+                                Text(
+                                    text = stringResource(id = R.string.report_workout),
+                                    style = fontMedium14(
+                                        SECONDARY500
+                                    )
+                                )
+                                if (!isOpenToView) {
+                                    Icon(
+                                        modifier = Modifier.padding(start = 4.dp),
+                                        painter = painterResource(id = R.drawable.lock_02),
+                                        contentDescription = null
+                                    )
                                 }
                             }
 
-                            Text(
-                                modifier = Modifier.padding(top = 24.dp, start = 16.dp),
-                                text = if (daysUntilToday(dateSelected) == 0L) {
-                                    stringResource(id = R.string.today)
-                                } else if (daysUntilToday(dateSelected) == 1L) {
-                                    stringResource(id = R.string.yestrday)
-                                } else {
-                                    stringResource(
-                                        id = R.string.days_ago,
-                                        daysUntilToday(dateSelected)
-                                    )
-                                }, style = fontMedium12(SECONDARY500)
-                            )
+                            if (totalStep.orEmpty().isNotEmpty()) {
+                                LazyRow(
+                                    modifier = Modifier
+                                        .padding(horizontal = 16.dp)
+                                        .padding(top = 16.dp)
+                                ) {
+                                    itemsIndexed(
+                                        totalStep.orEmpty().distinctBy { it.date }) { index, it ->
+                                        DateItem(
+                                            modifier = Modifier.padding(end = 8.dp),
+                                            date = it.date,
+                                            isSelected = if (dateSelected.isNotEmpty()) dateSelected == it.date else index == 0
+                                        ) { date ->
+                                            dateSelected = date
+                                        }
+                                    }
+                                }
 
-                            Text(
-                                modifier = Modifier.padding(
-                                    top = 2.dp,
-                                    start = 16.dp,
-                                    bottom = 24.dp
-                                ),
-                                text = stringResource(
-                                    id = R.string.step_format,
-                                    totalStep.orEmpty().filter { it.date == dateSelected }.size
-                                ), style = fontMedium12(SECONDARY500)
-                            )
+                                Text(
+                                    modifier = Modifier.padding(top = 24.dp, start = 16.dp),
+                                    text = if (daysUntilToday(dateSelected) == 0L) {
+                                        stringResource(id = R.string.today)
+                                    } else if (daysUntilToday(dateSelected) == 1L) {
+                                        stringResource(id = R.string.yestrday)
+                                    } else {
+                                        stringResource(
+                                            id = R.string.days_ago,
+                                            daysUntilToday(dateSelected)
+                                        )
+                                    }, style = fontMedium12(SECONDARY500)
+                                )
+
+                                Text(
+                                    modifier = Modifier.padding(
+                                        top = 2.dp,
+                                        start = 16.dp,
+                                        bottom = 24.dp
+                                    ),
+                                    text = stringResource(
+                                        id = R.string.step_format,
+                                        totalStep.orEmpty().filter { it.date == dateSelected }.size
+                                    ), style = fontMedium12(SECONDARY500)
+                                )
+                            } else {
+                                Text(
+                                    modifier = Modifier.padding(
+                                        top = 8.dp,
+                                        bottom = 24.dp,
+                                        start = 16.dp
+                                    ),
+                                    text = stringResource(id = R.string.no_record_yest),
+                                    style = fontMedium12(
+                                        SECONDARY500
+                                    )
+                                )
+                            }
+
+
                         }
                     }
 
@@ -348,7 +378,7 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .height((socials?.size.orZero() * 37).dp)
                                     .padding(top = 8.dp), content = {
-                                    items(socials.orEmpty()) {social ->
+                                    items(socials.orEmpty()) { social ->
                                         SocialItem(
                                             modifier = Modifier.padding(horizontal = 16.dp),
                                             id = social.id,
@@ -491,18 +521,4 @@ fun ProfileScreen(
         }
 
     }
-}
-
-@Composable
-fun Items() {
-    val list = listOf(12, 2, 2, 22, 2, 2, 2, 2, 2)
-    LazyRow(content = {
-        item {
-            LazyColumn(content = {
-                items(list) {
-                    Text(text = it.toString())
-                }
-            })
-        }
-    })
 }

@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.ntg.stepcounter.ui.theme.SECONDARY100
 import com.ntg.stepcounter.ui.theme.SECONDARY500
+import com.ntg.stepcounter.ui.theme.SECONDARY600
 import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.ui.theme.fontRegular14
 
@@ -39,7 +40,9 @@ fun ItemOption(
     text: String,
     subText: String? = null,
     divider: Boolean = true,
+    enableSwitch: Boolean = false,
     loading: MutableState<Boolean> = remember { mutableStateOf(false) },
+    switchChecked: MutableState<Boolean> = remember { mutableStateOf(true) },
     onClick: (String) -> Unit
 ) {
 
@@ -76,19 +79,6 @@ fun ItemOption(
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                if (painter != null) {
-                    Spacer(modifier = Modifier.padding(start = 32.dp))
-                    Icon(
-                        modifier = Modifier
-                            .width(48.dp)
-                            .height(48.dp)
-                            .padding(end = 8.dp)
-                            .padding(vertical = 12.dp), painter = painter, contentDescription = "ic"
-                    )
-                }
-
-
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -97,15 +87,20 @@ fun ItemOption(
 
                     Text(
                         text = text,
-                        style = fontRegular14(SECONDARY500)
+                        style = fontRegular14(SECONDARY600)
                     )
 
                     if (subText != null) {
                         Text(
+                            modifier = Modifier.padding(top = 2.dp),
                             text = subText,
                             style = fontRegular12(SECONDARY500)
                         )
                     }
+                }
+
+                if (enableSwitch){
+                    Switch(modifier = Modifier.padding(end = 16.dp),switchChecked)
                 }
 
             }

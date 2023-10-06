@@ -20,6 +20,8 @@ class UserStore(private val context: Context) {
         private val STATUS = stringPreferencesKey("status")
         private val FIELD_STUDY = stringPreferencesKey("field_study")
         private val IS_VERIFIED = booleanPreferencesKey("isVerified")
+        private val SHOW_REPORT = booleanPreferencesKey("showReport")
+        private val AUTO_DETECT = booleanPreferencesKey("auto_detect")
     }
 
     val getUserToken: Flow<String> = context.dataStore.data.map { preferences ->
@@ -49,6 +51,15 @@ class UserStore(private val context: Context) {
     val fieldStudy: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[FIELD_STUDY] ?: ""
     }
+
+    val showReport: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[SHOW_REPORT] ?: true
+    }
+
+    val isAutoDetect: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[AUTO_DETECT] ?: true
+    }
+
 
     suspend fun saveToken(token: String) {
         context.dataStore.edit { preferences ->
@@ -90,6 +101,18 @@ class UserStore(private val context: Context) {
     suspend fun isVerified(isVerified: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[IS_VERIFIED] = isVerified
+        }
+    }
+
+    suspend fun isShowReport(isShow: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[SHOW_REPORT] = isShow
+        }
+    }
+
+    suspend fun isAutoDetect(isAuto: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[AUTO_DETECT] = isAuto
         }
     }
 }

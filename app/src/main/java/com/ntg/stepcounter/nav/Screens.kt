@@ -5,5 +5,7 @@ enum class Screens {
     ProfileScreen,
     SocialScreen,
     SocialListScreen,
-    SettingsScreen
+    SettingsScreen,
+    AccountScreen,
+    PhoneNumberScreen
 }

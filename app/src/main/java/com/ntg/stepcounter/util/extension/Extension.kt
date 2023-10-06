@@ -1,6 +1,8 @@
 package com.ntg.stepcounter.util.extension
 
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -9,6 +11,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import com.ntg.stepcounter.R
 import timber.log.Timber
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -102,5 +105,19 @@ fun OnLifecycleEvent(onEvent: (owner: LifecycleOwner, event: Lifecycle.Event) ->
         onDispose {
             lifecycle.removeObserver(observer)
         }
+    }
+}
+
+fun Context.sendMail(to: String, subject: String) {
+    try {
+        val intent = Intent(Intent.ACTION_SEND)
+        intent.type = "vnd.android.cursor.item/email" // or "message/rfc822"
+        intent.putExtra(Intent.EXTRA_EMAIL, arrayOf(to))
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+        startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        this.toast(getString(R.string.sth_wrong))
+    } catch (t: Throwable) {
+        this.toast(getString(R.string.sth_wrong))
     }
 }

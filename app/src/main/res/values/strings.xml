@@ -46,4 +46,14 @@
     <string name="terms_and_conditions">قوانین و مقررات</string>
     <string name="contact_us">ارتباط باما</string>
     <string name="report_problem">گزارش مشکل</string>
+    <string name="account_pending">حساب کاربری شما نیاز به تایید یا بررسی دارد</string>
+    <string name="first_last_name">نام و نام خانوادگی</string>
+    <string name="student_id">شماره دانشجویی</string>
+    <string name="field_study">رشته تحصیلی</string>
+    <string name="grade">مقطع تحصیلی</string>
+    <string name="auto_detect_desc">درصورت غیرفعال بودن، زمانی که برنامه بسته باشد قدم های شما محاسبه نخواهد شد.</string>
+    <string name="show_other_desc">درصورت فعال بودن، سایر افراد می توانند قسمت گزارش عملکرد شما را ببینند.</string>
+    <string name="sth_wrong">خطایی رخ داده!</string>
+    <string name="support_email">alintg@outlook.com</string>
+    <string name="no_record_yest">هنوز فعالیتی ثبت نشده!</string>
 </resources>

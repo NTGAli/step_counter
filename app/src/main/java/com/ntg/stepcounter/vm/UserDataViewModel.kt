@@ -16,6 +16,9 @@ class UserDataViewModel @Inject constructor(
     fun getUsername() = userStore.getUserName
     fun getUserStatus() = userStore.getStatus
     fun getFieldStudy() = userStore.fieldStudy
+    fun isVerified() = userStore.isVerified
+    fun isShowReport() = userStore.showReport
+    fun isAutoDetect() = userStore.isAutoDetect
 
     fun setUsername(username: String) = viewModelScope.launch {
         userStore.saveUsername(username)
@@ -27,6 +30,14 @@ class UserDataViewModel @Inject constructor(
 
     fun setFieldStudy(fieldStudy: String) = viewModelScope.launch {
         userStore.saveFiledStudy(fieldStudy)
+    }
+
+    fun isShowReport(showReport: Boolean) = viewModelScope.launch {
+        userStore.isShowReport(showReport)
+    }
+
+    fun isAutoDetect(isAuto: Boolean) = viewModelScope.launch {
+        userStore.isAutoDetect(isAuto)
     }
 
 }

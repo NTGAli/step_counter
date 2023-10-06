@@ -11,7 +11,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.ntg.stepcounter.screens.AccountScreen
 import com.ntg.stepcounter.screens.HomeScreen
+import com.ntg.stepcounter.screens.PhoneNumberScreen
 import com.ntg.stepcounter.screens.ProfileScreen
 import com.ntg.stepcounter.screens.SettingsScreen
 import com.ntg.stepcounter.screens.SocialListScreen
@@ -67,7 +69,15 @@ fun AppNavHost(
         }
 
         composable(Screens.SettingsScreen.name) {
-            SettingsScreen(navController)
+            SettingsScreen(navController, userDataViewModel)
+        }
+
+        composable(Screens.AccountScreen.name) {
+            AccountScreen(navController, userDataViewModel)
+        }
+
+        composable(Screens.PhoneNumberScreen.name) {
+            PhoneNumberScreen(navController, userDataViewModel)
         }
 
     }

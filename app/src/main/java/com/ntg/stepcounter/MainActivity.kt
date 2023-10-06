@@ -15,6 +15,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -68,7 +69,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                         })
                 }
             }
-            HandleLifecycle {
+            HandleLifecycle(
+                startOnBackground = userDataViewModel.isAutoDetect()
+                    .collectAsState(initial = true).value
+            ) {
                 if (it == Lifecycle.Event.ON_PAUSE) {
                     isInBackground = true
                 } else if (it == Lifecycle.Event.ON_RESUME) {
@@ -92,7 +96,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
 
 @Composable
-private fun HandleLifecycle(onEventChange: (Lifecycle.Event) -> Unit = {}) {
+private fun HandleLifecycle(
+    startOnBackground: Boolean,
+    onEventChange: (Lifecycle.Event) -> Unit = {}
+) {
     val ctx = LocalContext.current
     val serviceIntent = Intent(ctx, MyBackgroundService::class.java)
 
@@ -118,7 +125,9 @@ private fun HandleLifecycle(onEventChange: (Lifecycle.Event) -> Unit = {}) {
         }
 
         Lifecycle.Event.ON_PAUSE -> {
-            ctx.startService(serviceIntent)
+            if (startOnBackground) {
+                ctx.startService(serviceIntent)
+            }
         }
 
         Lifecycle.Event.ON_DESTROY -> {
