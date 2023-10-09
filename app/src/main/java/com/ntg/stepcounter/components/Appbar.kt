@@ -59,9 +59,8 @@ fun Appbar(
                         style = fontBold14(SECONDARY500)
                     )
                 },
-                navigationIcon = {
-                    if (enableNavigation) {
-
+                navigationIcon = if (enableNavigation) {
+                    {
                         IconButton(onClick = { navigationOnClick.invoke() }) {
                             Icon(
                                 imageVector = Icons.Rounded.KeyboardArrowRight,
@@ -69,10 +68,8 @@ fun Appbar(
                                 tint = navigateIconColor
                             )
                         }
-
                     }
-
-                },
+                } else null,
                 actions = {
                     actions.forEach { appbarItem ->
                         IconButton(onClick = { actionOnClick.invoke(appbarItem.id) }) {

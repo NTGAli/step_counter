@@ -15,6 +15,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.api.NetworkResult
+import com.ntg.stepcounter.models.Failure
+import com.ntg.stepcounter.models.Result
+import com.ntg.stepcounter.models.Success
 import kotlinx.coroutines.CoroutineDispatcher
 import retrofit2.HttpException
 import retrofit2.Response
@@ -128,6 +131,41 @@ fun Context.sendMail(to: String, subject: String) {
         this.toast(getString(R.string.sth_wrong))
     }
 }
+
+fun String.isValidIranMobileNumber(): Boolean {
+    val regex = Regex("^09\\d{9}$")
+    return !regex.matches(this)
+}
+
+fun notEmptyOrNull(
+    value: String?,
+    errorMessage: String = "error!"
+): Result<String> =
+    if (value != "" && value != null) {
+        Success(value)
+    } else {
+        Failure(errorMessage)
+    }
+
+fun notEmptyOrNull(
+    value: Int?,
+    errorMessage: String = "error!"
+): Result<Int> =
+    if (value != -1 && value != null) {
+        Success(value)
+    } else {
+        Failure(errorMessage)
+    }
+
+fun notNull(
+    value: Any?,
+    errorMessage: String = "error!"
+): Result<Any> =
+    if (value != null) {
+        Success(value)
+    } else {
+        Failure(errorMessage)
+    }
 
 suspend fun <T> safeApiCall(
     dispatcher: CoroutineDispatcher,

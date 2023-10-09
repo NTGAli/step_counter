@@ -32,6 +32,14 @@ class UserDataViewModel @Inject constructor(
         userStore.saveFiledStudy(fieldStudy)
     }
 
+    fun setUserId(userId: String) = viewModelScope.launch {
+        userStore.saveUserID(userId)
+    }
+
+    fun setPhone(phone: String) = viewModelScope.launch {
+        userStore.savePhoneNumber(phone)
+    }
+
     fun isShowReport(showReport: Boolean) = viewModelScope.launch {
         userStore.isShowReport(showReport)
     }

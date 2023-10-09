@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class Step(
     @PrimaryKey(autoGenerate = true)
     val id: Int,
-    val timeUnix: String? = null,
+    val count: Int? = null,
     val date: String,
     val inBackground: Boolean = false
 )

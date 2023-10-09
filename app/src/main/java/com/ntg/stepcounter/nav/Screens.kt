@@ -7,5 +7,10 @@ enum class Screens {
     SocialListScreen,
     SettingsScreen,
     AccountScreen,
-    PhoneNumberScreen
+    PhoneNumberScreen,
+    LoginScreen,
+    RegisterScreen,
+    SignInScreen,
+    ProfRegisterScreen,
+    FieldStudiesScreen
 }

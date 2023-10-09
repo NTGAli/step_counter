@@ -12,12 +12,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ntg.stepcounter.screens.AccountScreen
+import com.ntg.stepcounter.screens.FieldStudiesScreen
 import com.ntg.stepcounter.screens.HomeScreen
+import com.ntg.stepcounter.screens.LoginScreen
 import com.ntg.stepcounter.screens.PhoneNumberScreen
+import com.ntg.stepcounter.screens.ProfRegisterScreen
 import com.ntg.stepcounter.screens.ProfileScreen
+import com.ntg.stepcounter.screens.RegisterScreen
 import com.ntg.stepcounter.screens.SettingsScreen
+import com.ntg.stepcounter.screens.SignInScreen
 import com.ntg.stepcounter.screens.SocialListScreen
 import com.ntg.stepcounter.screens.SocialScreen
+import com.ntg.stepcounter.vm.LoginViewModel
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
@@ -26,10 +32,11 @@ import com.ntg.stepcounter.vm.UserDataViewModel
 fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = Screens.HomeScreen.name,
+    startDestination: String = Screens.LoginScreen.name,
     stepViewModel: StepViewModel,
     userDataViewModel: UserDataViewModel,
     socialNetworkViewModel: SocialNetworkViewModel,
+    loginViewModel: LoginViewModel,
     onDestinationChangedListener: (NavController, NavDestination, Bundle?) -> Unit
 ) {
 
@@ -79,6 +86,52 @@ fun AppNavHost(
         composable(Screens.PhoneNumberScreen.name) {
             PhoneNumberScreen(navController, userDataViewModel)
         }
+
+        composable(Screens.LoginScreen.name) {
+            LoginScreen(navController, loginViewModel)
+        }
+
+        composable(
+            Screens.SignInScreen.name+ "?phone={phone}&state={state}",
+            arguments = listOf(
+                navArgument("phone")
+            {
+                type = NavType.StringType
+                defaultValue = ""
+            },
+                navArgument("state")
+            {
+                type = NavType.StringType
+                defaultValue = ""
+            })) {
+            SignInScreen(navController, loginViewModel, userDataViewModel , it.arguments?.getString("phone"), it.arguments?.getString("state"))
+        }
+
+        composable(Screens.RegisterScreen.name+ "?phone={phone}",
+            arguments = listOf(navArgument("phone")
+            {
+                type = NavType.StringType
+                defaultValue = ""
+            })) {
+            RegisterScreen(navController, loginViewModel, userDataViewModel, it.arguments?.getString("phone"))
+        }
+
+
+        composable(Screens.ProfRegisterScreen.name+ "?phone={phone}",
+            arguments = listOf(navArgument("phone")
+            {
+                type = NavType.StringType
+                defaultValue = ""
+            })) {
+            ProfRegisterScreen(navController, loginViewModel, userDataViewModel, it.arguments?.getString("phone"))
+        }
+
+
+        composable(Screens.FieldStudiesScreen.name) {
+            FieldStudiesScreen(navController, loginViewModel)
+        }
+
+
 
     }
 

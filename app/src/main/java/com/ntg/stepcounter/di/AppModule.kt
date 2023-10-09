@@ -2,6 +2,7 @@ package com.ntg.stepcounter.di
 
 import android.content.Context
 import androidx.room.Room
+import com.ntg.stepcounter.api.ApiService
 import com.ntg.stepcounter.api.AuthorizeInterceptor
 import com.ntg.stepcounter.api.LoggingInterceptor
 import com.ntg.stepcounter.db.AppDB
@@ -45,6 +46,12 @@ class AppModule {
             .client(httpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideApiService(retrofit: Retrofit): ApiService{
+        return retrofit.create(ApiService::class.java)
     }
 
     @Provides

@@ -26,7 +26,6 @@ class StepViewModel @Inject constructor(
 
     fun insertStep() = viewModelScope.launch {
 
-
         val dateOfToday = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             LocalDate.now().toString()
         } else {
@@ -34,12 +33,13 @@ class StepViewModel @Inject constructor(
             val dateFormat = SimpleDateFormat("yyyy-MM-dd")
             dateFormat.format(currentDate)
         }
-        appDB.stepDao().insert(
-            Step(
-                0,
-                date = dateOfToday, timeUnix = System.currentTimeMillis().toString()
-            )
-        )
+
+//        appDB.stepDao().insert(
+//            Step(
+//                0,
+//                date = dateOfToday
+//            )
+//        )
     }
 
     fun insertManually(step: Step){

@@ -21,6 +21,9 @@ interface StepDao {
     @Update
     suspend fun update(step: Step)
 
+    @Query("UPDATE Step SET count = count + 1 WHERE date = :date")
+    suspend fun updateCount(date: String?)
+
     @Query("SELECT * FROM Step")
     fun getAll(): LiveData<List<Step>>
 

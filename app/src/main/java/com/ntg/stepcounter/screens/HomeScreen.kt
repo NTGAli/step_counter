@@ -262,15 +262,15 @@ fun getColorComponentsForNumber(number: Int): RGBColor {
 
 private fun fakeData(stepViewModel: StepViewModel) {
 
-    val fakeDate = arrayListOf<Step>()
-
-
-    for (i in 0 until 6000)
-        fakeDate.add(Step(id = 0, timeUnix = null, date = "2023-10-2", inBackground = false))
-
-    fakeDate.forEach {
-        stepViewModel.insertManually(it)
-    }
+//    val fakeDate = arrayListOf<Step>()
+//
+//
+//    for (i in 0 until 6000)
+//        fakeDate.add(Step(id = 0, timeUnix = null, date = "2023-10-2", inBackground = false))
+//
+//    fakeDate.forEach {
+//        stepViewModel.insertManually(it)
+//    }
 
 //    val data = listOf(
 //        Step(id = 0, timeUnix = null, date = "2023-10-12", inBackground = false),

@@ -56,4 +56,19 @@
     <string name="sth_wrong">خطایی رخ داده!</string>
     <string name="support_email">alintg@outlook.com</string>
     <string name="no_record_yest">هنوز فعالیتی ثبت نشده!</string>
+    <string name="next">بعدی</string>
+    <string name="register">ثبت نام</string>
+    <string name="sign_in">ورود</string>
+    <string name="full_name">نام و نام خانوادگی</string>
+    <string name="im_prof">استاد هستم</string>
+    <string name="wrong_format_phone">شماره تلفن اشتباه است</string>
+    <string name="phone_can_not_empty">شماره تلفن نمی تواند خالی باشد.</string>
+    <string name="prof_id">کد استاد</string>
+    <string name="im_student">دانشجو هستم</string>
+    <string name="bachelor">کارشناسی</string>
+    <string name="master">کارشناسی ارشد</string>
+    <string name="phd">دکتری</string>
+    <string name="full_name_empty">نام و نام خانوادگی نمی تواند خالی باشد.</string>
+    <string name="student_id_empty">شماره دانشجویی نمی تواند خالی باشد.</string>
+    <string name="fos_empty">یک رشته ی تحصیلی انتخاب کنید</string>
 </resources>
