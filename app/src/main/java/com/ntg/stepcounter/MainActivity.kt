@@ -85,13 +85,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 }
             }
 
-            userDataViewModel.setPhone("09399085012")
+            userDataViewModel.setUserId("9853200003")
 
-            userDataViewModel.getPhoneNumber().collectAsState(initial = "").let {
-
-                timber("ahdjwkhdjakwhdjkhwakjhdkw 22 ${it.value}")
+            userDataViewModel.getUserId().collectAsState(initial = "").let {
                 if (it.value.isNotEmpty()){
-                    timber("ahdjwkhdjakwhdjkhwakjhdkw 11")
                     syncSteps(stepViewModel, LocalLifecycleOwner.current, it.value)
                 }
             }
@@ -111,7 +108,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 }
 
 private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, userPhone: String) {
-    timber("ahdjwkhdjakwhdjkhwakjhdkw")
     stepViewModel.needToSyncSteps().observe(owner) {
         it.forEach { step ->
             if (step != null && (step.date != dateOfToday() || (step.date == dateOfToday() && (step.count.orZero() - step.synced.orZero() >= 10)))) {
@@ -129,6 +125,7 @@ private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, userP
                             timber("StepSync ::: Success ::: ${it.data?.data}")
                             if (it.data?.data?.date != null && it.data.data.count != null){
                                 stepViewModel.updateSync(it.data.data.date, it.data.data.count)
+                                stepViewModel.clearSummaries()
                             }
                         }
                     }
@@ -170,11 +167,7 @@ private fun HandleLifecycle(
 
         Lifecycle.Event.ON_PAUSE -> {
             if (startOnBackground) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    ctx.startForegroundService(serviceIntent)
-                } else {
-                    ctx.startService(serviceIntent)
-                }
+                ctx.startService(serviceIntent)
             }
         }
 

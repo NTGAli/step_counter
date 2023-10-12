@@ -8,7 +8,6 @@ import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,7 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ntg.mywords.model.components.ButtonSize
 import com.ntg.mywords.model.components.ButtonStyle
-import com.ntg.mywords.model.components.ButtonType
+import com.ntg.stepcounter.models.components.ButtonType
 import com.ntg.stepcounter.ui.theme.*
 
 @Composable
@@ -99,23 +98,24 @@ fun CustomButton(
 //            }
         }
         ButtonType.Secondary -> {
-//            when (style) {
-//                ButtonStyle.Contained -> {
-//                    background = MaterialTheme.colorScheme.surfaceVariant
-//                    borderColor = MaterialTheme.colorScheme.surfaceVariant
-//                    textColor = MaterialTheme.colorScheme.onSurfaceVariant
-//                }
-//                ButtonStyle.Outline -> {
-//                    background = Color.Transparent
-//                    borderColor = Secondary500
-//                    textColor = Secondary500
-//                }
-//                ButtonStyle.TextOnly -> {
-//                    background = Color.Transparent
-//                    borderColor = Color.Transparent
-//                    textColor = Secondary500
-//                }
-//            }
+            when (style) {
+                ButtonStyle.Contained -> {
+                    background = SECONDARY500
+                    borderColor = SECONDARY500
+                    textColor = Color.White
+                    loadingColor = Color.White
+                }
+                ButtonStyle.Outline -> {
+                    background = Color.Transparent
+                    borderColor = SECONDARY500
+                    textColor = Color.White
+                }
+                ButtonStyle.TextOnly -> {
+                    background = Color.Transparent
+                    borderColor = Color.Transparent
+                    textColor = SECONDARY500
+                }
+            }
         }
         ButtonType.Warning -> {
 //            when (style) {

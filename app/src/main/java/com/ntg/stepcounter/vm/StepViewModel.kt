@@ -34,6 +34,9 @@ class StepViewModel @Inject constructor(
     private var syncResult: MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>> = MutableLiveData()
     private var summaries: MutableLiveData<NetworkResult<ResponseBody<SummariesRes?>>> = MutableLiveData()
 
+    fun clearSummaries(){
+        summaries = MutableLiveData()
+    }
 
     fun insertStep() = viewModelScope.launch {
 
@@ -106,7 +109,7 @@ class StepViewModel @Inject constructor(
     }
 
     fun summariesData(uid: String, fetch: Boolean): MutableLiveData<NetworkResult<ResponseBody<SummariesRes?>>> {
-        if (fetch){
+        if (fetch || summaries.value == null){
             viewModelScope.launch {
                 summaries = safeApiCall(Dispatchers.IO){
                     apiService.summariesData(uid)

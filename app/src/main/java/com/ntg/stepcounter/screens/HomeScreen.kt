@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomSheetScaffold
@@ -28,6 +29,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
@@ -52,7 +54,9 @@ import com.ntg.stepcounter.FullSizeBlur
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.StepCounterListener
 import com.ntg.stepcounter.api.NetworkResult
+import com.ntg.stepcounter.components.Record
 import com.ntg.stepcounter.components.ReportWidget
+import com.ntg.stepcounter.components.Title
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.components.ReportWidgetType
@@ -69,18 +73,20 @@ import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.util.extension.daysUntilToday
 import com.ntg.stepcounter.util.extension.divideNumber
+import com.ntg.stepcounter.util.extension.orDefault
+import com.ntg.stepcounter.util.extension.orNull
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.stepsToCalories
 import com.ntg.stepcounter.util.extension.stepsToKilometers
 import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.vm.StepViewModel
+import com.ntg.stepcounter.vm.UserDataViewModel
 import java.lang.Exception
 
 
-//@OptIn(ExperimentalMaterial3Api::class)
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewModel) {
+fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewModel, userDataViewModel: UserDataViewModel) {
 
     var aaa by remember { mutableFloatStateOf(0f) }
     var radius by remember { mutableFloatStateOf(32f) }
@@ -95,16 +101,23 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
 
     val stepsOfToday = stepViewModel.getToday().observeAsState().value?.count.orZero()
     val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
-    stepViewModel.summariesData("", summaries == null).observe(owner){
-        when(it){
-            is NetworkResult.Error -> {
 
-            }
-            is NetworkResult.Loading -> {
+    userDataViewModel.getUserId().collectAsState(initial = "").value.let {userId ->
+        stepViewModel.summariesData(userId, summaries == null).observe(owner) {
+            when (it) {
+                is NetworkResult.Error -> {
 
-            }
-            is NetworkResult.Success -> {
-                summaries = it.data?.data
+                }
+
+                is NetworkResult.Loading -> {
+                    timber("SUMMARISE ::: Loadign")
+                }
+
+                is NetworkResult.Success -> {
+                    summaries = it.data?.data
+                    timber("sejfkhaldwjhdjkawhdkjwahkdj ${it.data?.data?.rank}")
+
+                }
             }
         }
     }
@@ -163,18 +176,86 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
             },
             sheetContent = {
 
-                val list = arrayListOf<Int>()
-                for (i in 0..100)
-                    list.add(i)
-                LazyColumn(modifier = Modifier
-                    .requiredHeight(sheetHeight)
-                    .background(Color.White), content = {
+                Column(modifier = Modifier.padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
 
-                    items(list) {
-                        Text(modifier = Modifier.fillMaxWidth(), text = it.toString())
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 16.dp, bottom = 24.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(PRIMARY100)
+                            .padding(horizontal = 32.dp, vertical = 4.dp),
+                        text = if (summaries?.rank != null) stringResource(
+                            id = R.string.your_rank_format,
+                            summaries?.rank.orEmpty()
+                        ) else stringResource(id = R.string.no_record_format),
+                        style = fontRegular12(PRIMARY900)
+                    )
+
+                    Title(modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_today), action = stringResource(
+                        id = R.string.see_all
+                    )) {
+                        
                     }
+                    LazyColumn(content = {
+                        itemsIndexed(summaries?.today.orEmpty()) { index, it ->
+                            Record(
+                                modifier = Modifier.padding(top = 8.dp),
+                                uid = it.uid,
+                                record = index,
+                                title = it.title.orEmpty(),
+                                steps = it.steps
+                            ){
 
-                })
+                            }
+                        }
+                    })
+
+
+                    Title(modifier = Modifier
+                        .padding(top = 24.dp, bottom = 8.dp)
+                        .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_rank_base_fos), action = stringResource(
+                        id = R.string.see_all
+                    )) {
+
+                    }
+                    LazyColumn(content = {
+                        itemsIndexed(summaries?.fos.orEmpty()) { index, it ->
+                            Record(
+                                modifier = Modifier.padding(top = 8.dp),
+                                uid = it.uid,
+                                record = index,
+                                title = it.title.orEmpty(),
+                                steps = it.steps
+                            ){
+
+                            }
+                        }
+                    })
+
+                    Title(modifier = Modifier
+                        .padding(top = 24.dp, bottom = 8.dp)
+                        .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_rank_base_user), action = stringResource(
+                        id = R.string.see_all
+                    )) {
+
+                    }
+                    LazyColumn(modifier = Modifier.padding(bottom = 64.dp), content = {
+                        itemsIndexed(summaries?.all.orEmpty()) { index, it ->
+                            Record(
+                                modifier = Modifier.padding(top = 8.dp),
+                                uid = it.uid,
+                                record = index,
+                                title = it.title.orEmpty(),
+                                steps = it.steps
+                            ){
+
+                            }
+                        }
+                    })
+                }
+
             },
             scaffoldState = scaffoldState,
             sheetElevation = radius.dp / 2,

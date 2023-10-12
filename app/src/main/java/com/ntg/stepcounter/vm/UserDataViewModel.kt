@@ -15,6 +15,7 @@ class UserDataViewModel @Inject constructor(
 
     fun getUsername() = userStore.getUserName
     fun getPhoneNumber() = userStore.getPhoneNumber
+    fun getUserId() = userStore.getUserID
     fun getUserStatus() = userStore.getStatus
     fun getFieldStudy() = userStore.fieldStudy
     fun isVerified() = userStore.isVerified

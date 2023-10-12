@@ -55,7 +55,7 @@ fun AppNavHost(
     ) {
 
         composable(Screens.HomeScreen.name) {
-            HomeScreen(navController, stepViewModel)
+            HomeScreen(navController, stepViewModel, userDataViewModel)
         }
 
         composable(Screens.ProfileScreen.name) {
