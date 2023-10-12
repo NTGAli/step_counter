@@ -21,12 +21,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.nav.AppNavHost
 import com.ntg.stepcounter.ui.theme.StepCounterTheme
 import com.ntg.stepcounter.util.extension.OnLifecycleEvent
+import com.ntg.stepcounter.util.extension.dateOfToday
+import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.vm.LoginViewModel
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
@@ -52,11 +57,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         if (stepSensor == null) {
             // This will give a toast message to the user if there is no sensor in the device
         } else {
-            // Rate suitable for the user interface
             sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
         }
-
-
 
         super.onCreate(savedInstanceState)
         setContent {
@@ -82,6 +84,17 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                     isInBackground = false
                 }
             }
+
+            userDataViewModel.setPhone("09399085012")
+
+            userDataViewModel.getPhoneNumber().collectAsState(initial = "").let {
+
+                timber("ahdjwkhdjakwhdjkhwakjhdkw 22 ${it.value}")
+                if (it.value.isNotEmpty()){
+                    timber("ahdjwkhdjakwhdjkhwakjhdkw 11")
+                    syncSteps(stepViewModel, LocalLifecycleOwner.current, it.value)
+                }
+            }
         }
     }
 
@@ -94,6 +107,34 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
+    }
+}
+
+private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, userPhone: String) {
+    timber("ahdjwkhdjakwhdjkhwakjhdkw")
+    stepViewModel.needToSyncSteps().observe(owner) {
+        it.forEach { step ->
+            if (step != null && (step.date != dateOfToday() || (step.date == dateOfToday() && (step.count.orZero() - step.synced.orZero() >= 10)))) {
+                stepViewModel.syncStep(userPhone, step).observe(owner) {
+                    when (it) {
+                        is NetworkResult.Error -> {
+                            timber("StepSync ::: ERR")
+                        }
+
+                        is NetworkResult.Loading -> {
+                            timber("StepSync ::: Loading")
+                        }
+
+                        is NetworkResult.Success -> {
+                            timber("StepSync ::: Success ::: ${it.data?.data}")
+                            if (it.data?.data?.date != null && it.data.data.count != null){
+                                stepViewModel.updateSync(it.data.data.date, it.data.data.count)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -129,7 +170,11 @@ private fun HandleLifecycle(
 
         Lifecycle.Event.ON_PAUSE -> {
             if (startOnBackground) {
-                ctx.startService(serviceIntent)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    ctx.startForegroundService(serviceIntent)
+                } else {
+                    ctx.startService(serviceIntent)
+                }
             }
         }
 

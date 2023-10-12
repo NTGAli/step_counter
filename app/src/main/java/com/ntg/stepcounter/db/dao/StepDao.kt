@@ -22,24 +22,31 @@ interface StepDao {
     suspend fun update(step: Step)
 
     @Query("UPDATE Step SET count = count + 1 WHERE date = :date")
-    suspend fun updateCount(date: String?)
+    suspend fun updateCount(date: String?): Int
+
+    @Query("UPDATE Step SET synced =:sync WHERE date = :date")
+    suspend fun updateSync(date: String, sync: Int)
+
+    @Query("SELECT SUM(count) FROM Step")
+    fun getAllSteps(): LiveData<Int>
 
     @Query("SELECT * FROM Step")
-    fun getAll(): LiveData<List<Step>>
+    fun getAllDate(): LiveData<List<Step>>
 
     @Query("SELECT * FROM Step WHERE date =:date")
-    fun getToday(date: String): LiveData<List<Step>>
+    fun getToday(date: String): LiveData<Step>
 
-    @Query("SELECT date, COUNT(*) AS record_count\n" +
-            "FROM Step \n" +
-            "GROUP BY date\n" +
-            "ORDER BY record_count DESC\n" +
-            "LIMIT 1")
-    fun topRecord(): LiveData<TopRecord>
+    @Query("SELECT date, MAX(count) AS record_count FROM Step")
+    fun topRecord(): LiveData<TopRecord?>?
 
     @Query("SELECT COUNT(DISTINCT date)\n" +
             "FROM step")
     fun numberOfDate(): LiveData<Int>
+
+    @Query("SELECT *\n" +
+            "FROM Step\n" +
+            "WHERE count != synced")
+    fun getUnSyncedSteps(): LiveData<List<Step?>>
 
 
 

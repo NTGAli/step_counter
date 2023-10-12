@@ -42,17 +42,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavHostController
 import com.ntg.stepcounter.FullSizeBlur
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.StepCounterListener
+import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.ReportWidget
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.components.ReportWidgetType
+import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY500
@@ -78,23 +82,32 @@ import java.lang.Exception
 @Composable
 fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewModel) {
 
-//    var setFakeDate by remember { mutableStateOf(true) }
-//
-//    if (setFakeDate){
-//        fakeData(stepViewModel)
-//        setFakeDate = false
-//    }
-
-
     var aaa by remember { mutableFloatStateOf(0f) }
     var radius by remember { mutableFloatStateOf(32f) }
     var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
     var contentHeight by remember { mutableFloatStateOf(0f) }
-    var topOffset = with(LocalDensity.current) { aaa.toDp() }
+    val topOffset = with(LocalDensity.current) { aaa.toDp() }
+    var summaries by remember {
+        mutableStateOf<SummariesRes?>(null)
+    }
     val ctx = LocalContext.current
+    val owner = LocalLifecycleOwner.current
 
-    val stepsOfToday = stepViewModel.getToday().observeAsState().value?.size.orZero()
-    val topRecord = stepViewModel.topRecord().observeAsState().value
+    val stepsOfToday = stepViewModel.getToday().observeAsState().value?.count.orZero()
+    val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
+    stepViewModel.summariesData("", summaries == null).observe(owner){
+        when(it){
+            is NetworkResult.Error -> {
+
+            }
+            is NetworkResult.Loading -> {
+
+            }
+            is NetworkResult.Success -> {
+                summaries = it.data?.data
+            }
+        }
+    }
 
 
     BoxWithConstraints {
@@ -106,9 +119,7 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
         val maxOffset =
             LocalDensity.current.run { (sheetHeight - sheetPeekHeight + topOffset).toPx() }
         val minOffset = LocalDensity.current.run { topOffset.toPx() }
-
         topBarColor = getColorComponentsForNumber(radius.toInt())
-        Log.d("dwdkj", "dwajdlkawd ${maxOffset} ---- ${minOffset}")
 
 
 
@@ -198,7 +209,11 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
 
 
                     Text(
-                        modifier = Modifier.padding(top = 32.dp),
+                        modifier = Modifier
+                            .padding(top = 32.dp)
+                            .clickable {
+                                stepViewModel.insertStep()
+                            },
                         text = divideNumber(
                             stepsOfToday
                         ),

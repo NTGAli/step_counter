@@ -2,6 +2,10 @@ package com.ntg.stepcounter.api
 
 import com.ntg.stepcounter.models.FieldOfStudy
 import com.ntg.stepcounter.models.ResponseBody
+import com.ntg.stepcounter.models.Step
+import com.ntg.stepcounter.models.res.StepSynced
+import com.ntg.stepcounter.models.res.SummariesRes
+import com.ntg.stepcounter.models.res.SummaryRes
 import retrofit2.Response
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -30,5 +34,19 @@ interface ApiService {
         @Field("fos_id") fosId: String,
         @Field("grad_id") gradId: String,
     ): Response<ResponseBody<String?>>
+
+    @FormUrlEncoded
+    @POST("userStep.php")
+    suspend fun syncSteps(
+        @Field("uid") uid: String,
+        @Field("date") date: String,
+        @Field("steps") steps: Int?,
+    ): Response<ResponseBody<StepSynced?>>
+
+    @FormUrlEncoded
+    @POST("rankData.php")
+    suspend fun summariesData(
+        @Field("uid") uid: String
+    ): Response<ResponseBody<SummariesRes?>>
 
 }

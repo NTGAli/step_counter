@@ -32,7 +32,7 @@ import com.ntg.stepcounter.vm.UserDataViewModel
 fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = Screens.LoginScreen.name,
+    startDestination: String = Screens.HomeScreen.name,
     stepViewModel: StepViewModel,
     userDataViewModel: UserDataViewModel,
     socialNetworkViewModel: SocialNetworkViewModel,

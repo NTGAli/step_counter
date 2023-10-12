@@ -1,6 +1,5 @@
 package com.ntg.stepcounter.screens
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -22,17 +20,10 @@ import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ExtendedFloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.SnackbarDuration
-import androidx.compose.material.SnackbarHostState
-import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -41,7 +32,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,26 +58,18 @@ import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY500
 import com.ntg.stepcounter.ui.theme.PRIMARY900
 import com.ntg.stepcounter.ui.theme.SECONDARY100
-import com.ntg.stepcounter.ui.theme.SECONDARY200
 import com.ntg.stepcounter.ui.theme.SECONDARY500
 import com.ntg.stepcounter.ui.theme.SECONDARY900
 import com.ntg.stepcounter.ui.theme.fontBlack24
-import com.ntg.stepcounter.ui.theme.fontBold12
 import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.ui.theme.fontRegular14
 import com.ntg.stepcounter.util.extension.daysUntilToday
-import com.ntg.stepcounter.util.extension.divideNumber
 import com.ntg.stepcounter.util.extension.orZero
-import com.ntg.stepcounter.util.extension.stepsToCalories
-import com.ntg.stepcounter.util.extension.stepsToKilometers
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -104,14 +86,15 @@ fun ProfileScreen(
     var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
     val ctx = LocalContext.current
 
-    val totalStep = stepViewModel.getAll().observeAsState().value
+    val totalSteps = stepViewModel.getAllSteps().observeAsState().value
+    val allDate = stepViewModel.getAllDate().observeAsState().value
     var dateSelected by remember { mutableStateOf("") }
     val status = userDataViewModel.getUserStatus().collectAsState(initial = "").value
 
     val isOpenToView = userDataViewModel.isShowReport().collectAsState(initial = true).value
 
-    if (dateSelected.isEmpty() && totalStep.orEmpty().isNotEmpty()) dateSelected =
-        totalStep.orEmpty()[0].date
+    if (dateSelected.isEmpty() && allDate.orEmpty().isNotEmpty()) dateSelected =
+        allDate.orEmpty()[0].date
 
     val socials = socialNetworkViewModel.getAll().observeAsState().value
 
@@ -211,14 +194,14 @@ fun ProfileScreen(
                                 }
                             }
 
-                            if (totalStep.orEmpty().isNotEmpty()) {
+                            if (allDate.orEmpty().isNotEmpty()) {
                                 LazyRow(
                                     modifier = Modifier
                                         .padding(horizontal = 16.dp)
                                         .padding(top = 16.dp)
                                 ) {
                                     itemsIndexed(
-                                        totalStep.orEmpty().distinctBy { it.date }) { index, it ->
+                                        allDate.orEmpty().distinctBy { it.date }) { index, it ->
                                         DateItem(
                                             modifier = Modifier.padding(end = 8.dp),
                                             date = it.date,
@@ -251,7 +234,7 @@ fun ProfileScreen(
                                     ),
                                     text = stringResource(
                                         id = R.string.step_format,
-                                        totalStep.orEmpty().filter { it.date == dateSelected }.size
+                                        allDate.orEmpty().first { it.date == dateSelected }.count.orZero()
                                     ), style = fontMedium12(SECONDARY500)
                                 )
                             } else {
@@ -448,7 +431,7 @@ fun ProfileScreen(
                             .padding(horizontal = 32.dp)
                             .padding(top = 24.dp),
                         viewType = ReportWidgetType.Profile,
-                        firstText = totalStep?.size.orZero(),
+                        firstText = totalSteps.orZero(),
                         secondText = stepViewModel.numberOfDate().observeAsState().value ?: -1
                     )
 

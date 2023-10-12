@@ -3,6 +3,7 @@ package com.ntg.stepcounter.util.extension
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -25,6 +26,7 @@ import timber.log.Timber
 import java.io.IOException
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
 
@@ -166,6 +168,14 @@ fun notNull(
     } else {
         Failure(errorMessage)
     }
+
+fun dateOfToday(): String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    LocalDate.now().toString()
+} else {
+    val currentDate = Date()
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+    dateFormat.format(currentDate)
+}
 
 suspend fun <T> safeApiCall(
     dispatcher: CoroutineDispatcher,

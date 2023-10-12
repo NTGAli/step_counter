@@ -142,13 +142,19 @@ class MyBackgroundService : Service(), SensorEventListener {
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             timber("StepCounterListener :::: Background")
-            appDB.stepDao().insert(Step(0,date = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val dateOfToday = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 LocalDate.now().toString()
             } else {
                 val currentDate = Date()
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd")
                 dateFormat.format(currentDate)
-            }, timeUnix = System.currentTimeMillis().toString(), inBackground =  true))
+            }
+            val rowsUpdated = appDB.stepDao().updateCount(dateOfToday)
+            if (rowsUpdated == 0) {
+                // If no rows were updated, insert a new row with count = 1
+                val newEntity = Step(0,date = dateOfToday, count =  1) // Replace with your entity constructor
+                appDB.stepDao().insert(newEntity)
+            }
         }
     }
 
