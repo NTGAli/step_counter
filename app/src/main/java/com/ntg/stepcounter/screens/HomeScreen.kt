@@ -196,7 +196,6 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                         .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_today), action = stringResource(
                         id = R.string.see_all
                     )) {
-                        
                     }
                     LazyColumn(content = {
                         itemsIndexed(summaries?.today.orEmpty()) { index, it ->
@@ -207,7 +206,7 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                                 title = it.title.orEmpty(),
                                 steps = it.steps
                             ){
-
+                                navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
                             }
                         }
                     })

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -24,12 +25,15 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,19 +44,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.ntg.mywords.model.components.ButtonStyle
 import com.ntg.stepcounter.R
-import com.ntg.stepcounter.components.CustomButton
+import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.DateItem
 import com.ntg.stepcounter.components.ReportWidget
-import com.ntg.stepcounter.components.SocialItem
+import com.ntg.stepcounter.components.SocialView
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.components.ReportWidgetType
-import com.ntg.stepcounter.nav.Screens
+import com.ntg.stepcounter.models.res.SocialRes
 import com.ntg.stepcounter.ui.theme.Background
 import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY500
@@ -64,39 +69,101 @@ import com.ntg.stepcounter.ui.theme.fontBlack24
 import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
-import com.ntg.stepcounter.ui.theme.fontRegular14
 import com.ntg.stepcounter.util.extension.daysUntilToday
+import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
+import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ProfileScreen(
+fun UserProfileScreen(
     navHostController: NavHostController,
     stepViewModel: StepViewModel,
     userDataViewModel: UserDataViewModel,
-    socialNetworkViewModel: SocialNetworkViewModel
+    socialNetworkViewModel: SocialNetworkViewModel,
+    uid: String
 ) {
-    var aaa by remember { mutableFloatStateOf(0f) }
-    var radius by remember { mutableFloatStateOf(32f) }
-    var topOffset = with(LocalDensity.current) { aaa.toDp() }
-    var contentHeight by remember { mutableFloatStateOf(0f) }
-    var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
+
+    var totalSteps by remember {
+        mutableIntStateOf(0)
+    }
+
+    var userName by remember {
+        mutableStateOf("")
+    }
+
+    var userBio by remember {
+        mutableStateOf("")
+    }
+
+    var totalDays by remember {
+        mutableIntStateOf(0)
+    }
+
+    var isVerified by remember {
+        mutableStateOf(false)
+    }
+
+    val isLock = remember {
+        mutableStateOf(false)
+    }
+
+    var socials by remember {
+        mutableStateOf(listOf<SocialRes>())
+    }
+
     val ctx = LocalContext.current
 
-    val totalSteps = stepViewModel.getAllSteps().observeAsState().value
+    userDataViewModel.getUserProfile(uid).observe(LocalLifecycleOwner.current) {
+        when (it) {
+            is NetworkResult.Error -> {
+
+            }
+
+            is NetworkResult.Loading -> {
+
+            }
+
+            is NetworkResult.Success -> {
+                totalSteps = it.data?.data?.steps.orZero()
+                totalDays = it.data?.data?.totalDays.orZero()
+                userName = it.data?.data?.fullName.orEmpty()
+                isVerified = it.data?.data?.isVerified.orFalse()
+                isLock.value = it.data?.data?.isLock.orFalse()
+                socials = it.data?.data?.socials.orEmpty()
+                val gradeId = it.data?.data?.gradeId.orZero()
+                userBio = ctx.getString(
+                    R.string.student_format,
+                    when (gradeId) {
+                        1 -> ctx.getString(R.string.bachelor)
+                        2 -> ctx.getString(
+                            R.string.master
+                        )
+                        else -> ctx.getString(R.string.doctor)
+                    },
+                    it.data?.data?.fosName.orEmpty()
+                )
+            }
+        }
+    }
+
+
+    var aaa by remember { mutableFloatStateOf(0f) }
+    var radius by remember { mutableFloatStateOf(32f) }
+    val topOffset = with(LocalDensity.current) { aaa.toDp() }
+    var contentHeight by remember { mutableFloatStateOf(0f) }
+    var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
+
     val allDate = stepViewModel.getAllDate().observeAsState().value
     var dateSelected by remember { mutableStateOf("") }
-    val status = userDataViewModel.getUserStatus().collectAsState(initial = "").value
 
-    val isOpenToView = userDataViewModel.isShowReport().collectAsState(initial = true).value
 
     if (dateSelected.isEmpty() && allDate.orEmpty().isNotEmpty()) dateSelected =
         allDate.orEmpty()[0].date
 
-    val socials = socialNetworkViewModel.getAll().observeAsState().value
 
     BoxWithConstraints {
         val sheetHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() - topOffset }
@@ -128,19 +195,15 @@ fun ProfileScreen(
                                 SECONDARY500
                             )
                         )
-
                     },
-                    actions = {
+                    elevation = 0.dp,
+                    navigationIcon = {
                         IconButton(onClick = {
-                            navHostController.navigate(Screens.SettingsScreen.name)
+                            navHostController.popBackStack()
                         }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.settings),
-                                contentDescription = null
-                            )
+                            Icon(imageVector = Icons.Rounded.ChevronRight, contentDescription = null)
                         }
-                    },
-                    elevation = 0.dp
+                    }
                 )
             },
             sheetContent = {
@@ -175,26 +238,25 @@ fun ProfileScreen(
                         )
                         {
 
-                            Row(
+                            Text(
                                 modifier = Modifier.padding(top = 24.dp, start = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.report_workout),
-                                    style = fontMedium14(
-                                        SECONDARY500
-                                    )
+                                text = stringResource(id = R.string.report_workout),
+                                style = fontMedium14(
+                                    SECONDARY500
                                 )
-                                if (!isOpenToView) {
-                                    Icon(
-                                        modifier = Modifier.padding(start = 4.dp),
-                                        painter = painterResource(id = R.drawable.lock_02),
-                                        contentDescription = null
-                                    )
-                                }
-                            }
+                            )
 
-                            if (allDate.orEmpty().isNotEmpty()) {
+                            if (isLock.value){
+
+                                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    
+                                    Icon(modifier = Modifier.size(24.dp), painter = painterResource(id = R.drawable.lock_02), contentDescription = null)
+                                    Text(modifier = Modifier.padding(top = 16.dp, bottom = 24.dp), text = stringResource(id = R.string.lock_to_view), style = fontRegular12(
+                                        SECONDARY500))
+                                    
+                                }
+
+                            } else if (allDate.orEmpty().isNotEmpty()) {
                                 LazyRow(
                                     modifier = Modifier
                                         .padding(horizontal = 16.dp)
@@ -234,7 +296,8 @@ fun ProfileScreen(
                                     ),
                                     text = stringResource(
                                         id = R.string.step_format,
-                                        allDate.orEmpty().first { it.date == dateSelected }.count.orZero()
+                                        allDate.orEmpty()
+                                            .first { it.date == dateSelected }.count.orZero()
                                     ), style = fontMedium12(SECONDARY500)
                                 )
                             } else {
@@ -271,7 +334,7 @@ fun ProfileScreen(
                         ) {
                             Text(
                                 modifier = Modifier.padding(top = 16.dp, start = 16.dp),
-                                text = stringResource(id = R.string.your_achievment),
+                                text = stringResource(id = R.string.achievments),
                                 style = fontMedium14(SECONDARY500)
                             )
                             Text(
@@ -281,52 +344,10 @@ fun ProfileScreen(
                                     SECONDARY500
                                 )
                             )
-//                            val list = arrayListOf<Int>()
-//                            for (i in 0..100)
-//                                list.add(i)
-//                            LazyColumn(modifier = Modifier.height(200.dp), content = {
-//                                items(list){
-//                                    Text(text = it.toString())
-//                                }
-//                            })
 
                             Divider(modifier = Modifier.height(16.dp), color = Background)
                         }
                     }
-
-
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                                .padding(top = 8.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .border(
-                                    width = 1.dp,
-                                    color = SECONDARY100,
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .background(Background),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                modifier = Modifier
-                                    .padding(start = 16.dp)
-                                    .padding(vertical = 16.dp)
-                                    .weight(1f),
-                                text = stringResource(id = R.string.your_achievment),
-                                style = fontRegular14(SECONDARY500)
-                            )
-                            CustomButton(
-                                modifier = Modifier.padding(end = 8.dp),
-                                text = stringResource(id = R.string.view),
-                                style = ButtonStyle.TextOnly
-                            )
-                        }
-                    }
-
-
 
                     item {
                         Column(
@@ -344,63 +365,33 @@ fun ProfileScreen(
                         ) {
                             Text(
                                 modifier = Modifier.padding(top = 16.dp, start = 16.dp),
-                                text = stringResource(id = R.string.your_social_media),
+                                text = stringResource(id = R.string.socilas_network),
                                 style = fontMedium14(SECONDARY500)
                             )
-                            Text(
-                                modifier = Modifier.padding(top = 4.dp, start = 16.dp),
-                                text = stringResource(id = R.string.socila_desc),
-                                style = fontRegular12(
-                                    SECONDARY500
-                                )
-                            )
-//                            val list = arrayListOf<Int>()
-//                            for (i in 0..100)
-//                                list.add(i)
-                            LazyColumn(
-                                modifier = Modifier
-                                    .height((socials?.size.orZero() * 37).dp)
-                                    .padding(top = 8.dp), content = {
-                                    items(socials.orEmpty()) { social ->
-                                        SocialItem(
-                                            modifier = Modifier.padding(horizontal = 16.dp),
-                                            id = social.id,
-                                            title = social.name,
-                                            itemClick = {
-                                                navHostController.navigate(Screens.SocialScreen.name + "?id=$it")
-                                            },
-                                            edit = {
-                                                navHostController.navigate(Screens.SocialScreen.name + "?id=$it")
-                                            },
-                                            delete = {
-                                                socialNetworkViewModel.delete(social)
-                                            }
-                                        )
-                                    }
-                                })
 
-                            CustomButton(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 24.dp),
-                                text = stringResource(id = R.string.add_new),
-                                style = if (socials.orEmpty()
-                                        .isEmpty()
-                                ) ButtonStyle.Contained else ButtonStyle.TextOnly
-                            ) {
-                                socialNetworkViewModel.socialNetworks.forEach {
-                                    it.isSelected = false
+                            if (socials.isEmpty()){
+                                Text(
+                                    modifier = Modifier
+                                        .padding(vertical = 16.dp)
+                                        .fillMaxWidth(),
+                                    text = stringResource(id = R.string.empty_social),
+                                    style = fontRegular12(
+                                        SECONDARY500
+                                    ),
+                                    textAlign = TextAlign.Center
+                                )
+                            }else{
+                                LazyRow(modifier = Modifier.padding(16.dp)){
+                                    items(socials){
+                                        SocialView(title = it.title.orEmpty(), url = it.url.orEmpty(), onClick = {})
+                                    }
                                 }
-                                navHostController.navigate(Screens.SocialScreen.name)
                             }
+
+
 
                         }
                     }
-
-//                    items(list){
-//                        Text(modifier = Modifier.fillMaxWidth(), text = it.toString())
-//                    }
-
 
                 }
             },
@@ -432,7 +423,7 @@ fun ProfileScreen(
                             .padding(top = 24.dp),
                         viewType = ReportWidgetType.Profile,
                         firstText = totalSteps.orZero(),
-                        secondText = stepViewModel.numberOfDate().observeAsState().value ?: -1
+                        secondText = totalDays
                     )
 
 
@@ -441,15 +432,16 @@ fun ProfileScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = userDataViewModel.getUsername()
-                                .collectAsState(initial = "").value,
+                            text = userName,
                             style = fontBlack24(PRIMARY900)
                         )
-                        Image(
-                            modifier = Modifier.padding(start = 8.dp),
-                            painter = painterResource(id = R.drawable.icons8_approval_2),
-                            contentDescription = null
-                        )
+                        if (isVerified) {
+                            Image(
+                                modifier = Modifier.padding(start = 8.dp),
+                                painter = painterResource(id = R.drawable.icons8_approval_2),
+                                contentDescription = null
+                            )
+                        }
                     }
 
 
@@ -461,19 +453,7 @@ fun ProfileScreen(
                     ) {
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                            text =
-                            when (status) {
-                                "1" -> {
-                                    ctx.getString(R.string.student)
-                                }
-
-                                "2" -> {
-                                    ctx.getString(R.string.prof)
-                                }
-
-                                else -> status
-                            }
-                            ,
+                            text = userBio,
                             style = fontRegular12(SECONDARY900)
                         )
                     }

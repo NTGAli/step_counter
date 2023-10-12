@@ -6,6 +6,7 @@ import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.res.StepSynced
 import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.models.res.SummaryRes
+import com.ntg.stepcounter.models.res.UserProfile
 import retrofit2.Response
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -49,4 +50,10 @@ interface ApiService {
         @Field("uid") uid: String
     ): Response<ResponseBody<SummariesRes?>>
 
+
+    @FormUrlEncoded
+    @POST("userProfile.php")
+    suspend fun userProfile(
+        @Field("uid") uid: String
+    ): Response<ResponseBody<UserProfile?>>
 }

@@ -77,4 +77,10 @@
     <string name="see_all">مشاهده همه</string>
     <string name="top_rank_base_fos">بیشترین رکورد بر اساس رشته</string>
     <string name="top_rank_base_user">بیشترین رکورد بر اساس افراد</string>
+    <string name="student_format">دانشجوی %s رشته ی %s</string>
+    <string name="doctor">دکتری</string>
+    <string name="empty_social">موردی اضافه نکرده!</string>
+    <string name="socilas_network">شبکه های اجتماعی</string>
+    <string name="achievments">دست آوردها</string>
+    <string name="lock_to_view">این مورد برای نمایش قفل شده است</string>
 </resources>

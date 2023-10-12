@@ -1,17 +1,26 @@
 package com.ntg.stepcounter.vm
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ntg.stepcounter.api.ApiService
+import com.ntg.stepcounter.api.NetworkResult
+import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.UserStore
+import com.ntg.stepcounter.models.res.UserProfile
+import com.ntg.stepcounter.util.extension.safeApiCall
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class UserDataViewModel @Inject constructor(
-    private val userStore: UserStore
+    private val userStore: UserStore,
+    private val apiService: ApiService
 ): ViewModel() {
 
+    private var userProfile: MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> = MutableLiveData()
 
     fun getUsername() = userStore.getUserName
     fun getPhoneNumber() = userStore.getPhoneNumber
@@ -49,5 +58,15 @@ class UserDataViewModel @Inject constructor(
     fun isAutoDetect(isAuto: Boolean) = viewModelScope.launch {
         userStore.isAutoDetect(isAuto)
     }
+
+    fun getUserProfile(uid: String): MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> {
+        viewModelScope.launch {
+            userProfile = safeApiCall(Dispatchers.IO){
+                apiService.userProfile(uid)
+            } as MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>>
+        }
+        return userProfile
+    }
+
 
 }

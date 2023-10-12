@@ -23,6 +23,7 @@ import com.ntg.stepcounter.screens.SettingsScreen
 import com.ntg.stepcounter.screens.SignInScreen
 import com.ntg.stepcounter.screens.SocialListScreen
 import com.ntg.stepcounter.screens.SocialScreen
+import com.ntg.stepcounter.screens.UserProfileScreen
 import com.ntg.stepcounter.vm.LoginViewModel
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
@@ -129,6 +130,16 @@ fun AppNavHost(
 
         composable(Screens.FieldStudiesScreen.name) {
             FieldStudiesScreen(navController, loginViewModel)
+        }
+
+
+        composable(Screens.UserProfileScreen.name+ "?uid={uid}",
+            arguments = listOf(navArgument("uid")
+            {
+                type = NavType.StringType
+                defaultValue = ""
+            })) {
+            UserProfileScreen(navController, stepViewModel, userDataViewModel, socialNetworkViewModel, it.arguments?.getString("uid").orEmpty())
         }
 
 
