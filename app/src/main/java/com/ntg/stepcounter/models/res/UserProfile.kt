@@ -9,6 +9,7 @@ data class UserProfile(
     val isLock: Boolean? = false,
     val fosName: String? = null,
     val totalClaps: Int? = 0,
+    val isClap: Boolean? = false,
     val socials: List<SocialRes>? = null,
 
 

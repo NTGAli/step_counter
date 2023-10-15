@@ -3,15 +3,20 @@ package com.ntg.stepcounter.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -19,10 +24,12 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetScaffoldState
+import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -50,14 +57,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.DateItem
+import com.ntg.stepcounter.components.Loading
 import com.ntg.stepcounter.components.ReportWidget
 import com.ntg.stepcounter.components.SocialView
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.components.ReportWidgetType
 import com.ntg.stepcounter.models.res.SocialRes
+import com.ntg.stepcounter.models.res.StepRes
 import com.ntg.stepcounter.ui.theme.Background
 import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY500
@@ -66,6 +80,7 @@ import com.ntg.stepcounter.ui.theme.SECONDARY100
 import com.ntg.stepcounter.ui.theme.SECONDARY500
 import com.ntg.stepcounter.ui.theme.SECONDARY900
 import com.ntg.stepcounter.ui.theme.fontBlack24
+import com.ntg.stepcounter.ui.theme.fontBold14
 import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
@@ -99,7 +114,15 @@ fun UserProfileScreen(
         mutableStateOf("")
     }
 
+    var userId by remember {
+        mutableStateOf("")
+    }
+
     var totalDays by remember {
+        mutableIntStateOf(0)
+    }
+
+    var totalClaps by remember {
         mutableIntStateOf(0)
     }
 
@@ -107,7 +130,15 @@ fun UserProfileScreen(
         mutableStateOf(false)
     }
 
+    var loading by remember {
+        mutableStateOf(false)
+    }
+
     val isLock = remember {
+        mutableStateOf(false)
+    }
+
+    var isClap by remember {
         mutableStateOf(false)
     }
 
@@ -115,39 +146,76 @@ fun UserProfileScreen(
         mutableStateOf(listOf<SocialRes>())
     }
 
+    var steps by remember {
+        mutableStateOf(listOf<StepRes>())
+    }
+
     val ctx = LocalContext.current
 
-    userDataViewModel.getUserProfile(uid).observe(LocalLifecycleOwner.current) {
-        when (it) {
-            is NetworkResult.Error -> {
+    userDataViewModel.getUserId().collectAsState(initial = "").value.let {
+        userId = it
+    }
 
-            }
+    if (userName.isEmpty()){
 
-            is NetworkResult.Loading -> {
+        userDataViewModel.getUserProfile(uid, userId).observe(LocalLifecycleOwner.current) {
+            when (it) {
+                is NetworkResult.Error -> {
 
-            }
+                }
 
-            is NetworkResult.Success -> {
-                totalSteps = it.data?.data?.steps.orZero()
-                totalDays = it.data?.data?.totalDays.orZero()
-                userName = it.data?.data?.fullName.orEmpty()
-                isVerified = it.data?.data?.isVerified.orFalse()
-                isLock.value = it.data?.data?.isLock.orFalse()
-                socials = it.data?.data?.socials.orEmpty()
-                val gradeId = it.data?.data?.gradeId.orZero()
-                userBio = ctx.getString(
-                    R.string.student_format,
-                    when (gradeId) {
-                        1 -> ctx.getString(R.string.bachelor)
-                        2 -> ctx.getString(
-                            R.string.master
-                        )
-                        else -> ctx.getString(R.string.doctor)
-                    },
-                    it.data?.data?.fosName.orEmpty()
-                )
+                is NetworkResult.Loading -> {
+                    loading = true
+                }
+
+                is NetworkResult.Success -> {
+                    timber("akwdjkalwjdklwajdlkawjdlkwjd")
+                    totalSteps = it.data?.data?.steps.orZero()
+                    totalDays = it.data?.data?.totalDays.orZero()
+                    totalClaps = it.data?.data?.totalClaps.orZero()
+                    userName = it.data?.data?.fullName.orEmpty()
+                    isVerified = it.data?.data?.isVerified.orFalse()
+                    isLock.value = it.data?.data?.isLock.orFalse()
+                    isClap = it.data?.data?.isClap.orFalse()
+                    socials = it.data?.data?.socials.orEmpty()
+                    val gradeId = it.data?.data?.gradeId.orZero()
+                    userBio = ctx.getString(
+                        R.string.student_format,
+                        when (gradeId) {
+                            1 -> ctx.getString(R.string.bachelor)
+                            2 -> ctx.getString(
+                                R.string.master
+                            )
+
+                            else -> ctx.getString(R.string.doctor)
+                        },
+                        it.data?.data?.fosName.orEmpty()
+                    )
+                    loading = false
+                }
             }
         }
+
+
+    }
+
+    if (!isLock.value) {
+
+        userDataViewModel.getUserSteps(uid).observe(LocalLifecycleOwner.current) {
+            when (it) {
+                is NetworkResult.Error -> {
+
+                }
+
+                is NetworkResult.Loading -> {
+                }
+
+                is NetworkResult.Success -> {
+                    steps = it.data?.data.orEmpty()
+                }
+            }
+        }
+
     }
 
 
@@ -157,12 +225,11 @@ fun UserProfileScreen(
     var contentHeight by remember { mutableFloatStateOf(0f) }
     var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
 
-    val allDate = stepViewModel.getAllDate().observeAsState().value
     var dateSelected by remember { mutableStateOf("") }
 
 
-    if (dateSelected.isEmpty() && allDate.orEmpty().isNotEmpty()) dateSelected =
-        allDate.orEmpty()[0].date
+    if (dateSelected.isEmpty() && steps.isNotEmpty()) dateSelected =
+        steps[0].date
 
 
     BoxWithConstraints {
@@ -174,6 +241,7 @@ fun UserProfileScreen(
             LocalDensity.current.run { (sheetHeight - sheetPeekHeight + topOffset).toPx() }
         val minOffset = LocalDensity.current.run { topOffset.toPx() }
         topBarColor = getColorComponentsForNumber(radius.toInt())
+
 
 
 
@@ -201,7 +269,10 @@ fun UserProfileScreen(
                         IconButton(onClick = {
                             navHostController.popBackStack()
                         }) {
-                            Icon(imageVector = Icons.Rounded.ChevronRight, contentDescription = null)
+                            Icon(
+                                imageVector = Icons.Rounded.ChevronRight,
+                                contentDescription = null
+                            )
                         }
                     }
                 )
@@ -246,24 +317,36 @@ fun UserProfileScreen(
                                 )
                             )
 
-                            if (isLock.value){
+                            if (isLock.value) {
 
-                                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    
-                                    Icon(modifier = Modifier.size(24.dp), painter = painterResource(id = R.drawable.lock_02), contentDescription = null)
-                                    Text(modifier = Modifier.padding(top = 16.dp, bottom = 24.dp), text = stringResource(id = R.string.lock_to_view), style = fontRegular12(
-                                        SECONDARY500))
-                                    
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+
+                                    Icon(
+                                        modifier = Modifier.size(24.dp),
+                                        painter = painterResource(id = R.drawable.lock_02),
+                                        contentDescription = null
+                                    )
+                                    Text(
+                                        modifier = Modifier.padding(top = 16.dp, bottom = 24.dp),
+                                        text = stringResource(id = R.string.lock_to_view),
+                                        style = fontRegular12(
+                                            SECONDARY500
+                                        )
+                                    )
+
                                 }
 
-                            } else if (allDate.orEmpty().isNotEmpty()) {
+                            } else if (steps.isNotEmpty()) {
                                 LazyRow(
                                     modifier = Modifier
                                         .padding(horizontal = 16.dp)
                                         .padding(top = 16.dp)
                                 ) {
                                     itemsIndexed(
-                                        allDate.orEmpty().distinctBy { it.date }) { index, it ->
+                                        steps.distinctBy { it.date }) { index, it ->
                                         DateItem(
                                             modifier = Modifier.padding(end = 8.dp),
                                             date = it.date,
@@ -296,8 +379,8 @@ fun UserProfileScreen(
                                     ),
                                     text = stringResource(
                                         id = R.string.step_format,
-                                        allDate.orEmpty()
-                                            .first { it.date == dateSelected }.count.orZero()
+                                        steps
+                                            .first { it.date == dateSelected }.steps.orZero()
                                     ), style = fontMedium12(SECONDARY500)
                                 )
                             } else {
@@ -369,7 +452,7 @@ fun UserProfileScreen(
                                 style = fontMedium14(SECONDARY500)
                             )
 
-                            if (socials.isEmpty()){
+                            if (socials.isEmpty()) {
                                 Text(
                                     modifier = Modifier
                                         .padding(vertical = 16.dp)
@@ -380,14 +463,16 @@ fun UserProfileScreen(
                                     ),
                                     textAlign = TextAlign.Center
                                 )
-                            }else{
-                                LazyRow(modifier = Modifier.padding(16.dp)){
-                                    items(socials){
-                                        SocialView(title = it.title.orEmpty(), url = it.url.orEmpty(), onClick = {})
+                            } else {
+                                LazyRow(modifier = Modifier.padding(16.dp)) {
+                                    items(socials) {
+                                        SocialView(
+                                            title = it.title.orEmpty(),
+                                            url = it.url.orEmpty(),
+                                            onClick = {})
                                     }
                                 }
                             }
-
 
 
                         }
@@ -398,6 +483,47 @@ fun UserProfileScreen(
             scaffoldState = scaffoldState,
             sheetElevation = radius.dp / 2,
             sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp),
+            floatingActionButton = {
+                Box(
+                    modifier = Modifier
+//                    .align(Alignment.BottomCenter)
+//                    .padding(bottom = 24.dp)
+                    , contentAlignment = Alignment.Center
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .wrapContentSize(),
+                        onClick = {
+                            if (!isClap && userId.isNotEmpty()) {
+                                userDataViewModel.clap(userId, uid)
+                                isClap = true
+                                totalClaps+=1
+                            }
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        elevation = 4.dp,
+                        backgroundColor = if (isClap) PRIMARY100 else MaterialTheme.colors.surface
+                    ) {
+
+                        Row(
+                            modifier = Modifier.padding(horizontal = 24.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = totalClaps.toString(),
+                                style = fontBold14(if (isClap) PRIMARY500 else SECONDARY500)
+                            )
+                            Image(
+                                modifier = Modifier
+                                    .padding(start = 8.dp)
+                                    .padding(vertical = 8.dp),
+                                painter = painterResource(id = R.drawable.claping),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                }
+            }
         ) {
             Box(
                 Modifier
@@ -464,6 +590,10 @@ fun UserProfileScreen(
         }
 
 
+        if (loading){
+            Loading()
+        }
+
         try {
             radius = calculateRadius(
                 minOffset,
@@ -474,5 +604,80 @@ fun UserProfileScreen(
             e.printStackTrace()
         }
 
+
+    }
+}
+
+@Composable
+fun LottieExample() {
+
+    var isPlaying by remember {
+        mutableStateOf(true)
+    }
+    var speed by remember {
+        mutableFloatStateOf(1f)
+    }
+
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec
+            .RawRes(R.raw.clap_back)
+    )
+
+    val progress by animateLottieCompositionAsState(
+        composition,
+        iterations = LottieConstants.IterateForever,
+        isPlaying = isPlaying,
+        speed = speed,
+        restartOnPlay = false
+
+    )
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        LottieAnimation(
+            composition,
+            progress,
+            modifier = Modifier
+                .size(164.dp)
+        )
+    }
+}
+
+
+@Composable
+fun ClapHand() {
+
+    var isPlaying by remember {
+        mutableStateOf(true)
+    }
+    var speed by remember {
+        mutableFloatStateOf(1f)
+    }
+
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec
+            .RawRes(R.raw.clap)
+    )
+
+    val progress by animateLottieCompositionAsState(
+        composition,
+        iterations = LottieConstants.IterateForever,
+        isPlaying = isPlaying,
+        speed = speed,
+        restartOnPlay = false
+
+    )
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        LottieAnimation(
+            composition,
+            progress,
+            modifier = Modifier
+        )
     }
 }

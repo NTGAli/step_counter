@@ -151,6 +151,8 @@ dependencies {
     // OK Http
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
+    // lottie
+    implementation("com.airbnb.android:lottie-compose:4.0.0")
 
 
 }

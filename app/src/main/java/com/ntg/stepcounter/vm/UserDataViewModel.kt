@@ -7,6 +7,7 @@ import com.ntg.stepcounter.api.ApiService
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.UserStore
+import com.ntg.stepcounter.models.res.StepRes
 import com.ntg.stepcounter.models.res.UserProfile
 import com.ntg.stepcounter.util.extension.safeApiCall
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +22,9 @@ class UserDataViewModel @Inject constructor(
 ): ViewModel() {
 
     private var userProfile: MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> = MutableLiveData()
+    private var userSteps: MutableLiveData<NetworkResult<ResponseBody<List<StepRes>?>>> = MutableLiveData()
+    private var clapResult: MutableLiveData<NetworkResult<ResponseBody<Any?>>> = MutableLiveData()
+
 
     fun getUsername() = userStore.getUserName
     fun getPhoneNumber() = userStore.getPhoneNumber
@@ -59,13 +63,31 @@ class UserDataViewModel @Inject constructor(
         userStore.isAutoDetect(isAuto)
     }
 
-    fun getUserProfile(uid: String): MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> {
-        viewModelScope.launch {
-            userProfile = safeApiCall(Dispatchers.IO){
-                apiService.userProfile(uid)
-            } as MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>>
-        }
+    fun getUserProfile(uid: String, userId: String): MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> {
+            viewModelScope.launch {
+                userProfile = safeApiCall(Dispatchers.IO){
+                    apiService.userProfile(uid, userId)
+                } as MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>>
+            }
         return userProfile
+    }
+
+
+    fun getUserSteps(uid: String): MutableLiveData<NetworkResult<ResponseBody<List<StepRes>?>>> {
+        viewModelScope.launch {
+            userSteps = safeApiCall(Dispatchers.IO){
+                apiService.userSteps(uid)
+            } as MutableLiveData<NetworkResult<ResponseBody<List<StepRes>?>>>
+        }
+        return userSteps
+    }
+
+
+    fun clap(uid: String, forUid: String): MutableLiveData<NetworkResult<ResponseBody<Any?>>> {
+        viewModelScope.launch {
+            apiService.clap(uid, forUid)
+        }
+        return clapResult
     }
 
 

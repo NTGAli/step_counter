@@ -1,8 +1,8 @@
 package com.ntg.stepcounter
 
 import android.Manifest
+import android.R.id
 import android.app.Notification
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
@@ -15,29 +15,42 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ServiceLifecycleDispatcher
 import com.ntg.stepcounter.db.AppDB
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.util.Constants.NOTIFICATION_CHANNEL_ID
+import com.ntg.stepcounter.util.extension.dateOfToday
 import com.ntg.stepcounter.util.extension.timber
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import timber.log.Timber
+import okhttp3.internal.notify
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Date
-import java.util.concurrent.ScheduledExecutorService
 import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class MyBackgroundService : Service(), SensorEventListener {
+class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
+
+    private lateinit var notificationManager: NotificationManager
+    private lateinit var notification: Notification
+    private lateinit var notificationBuilder: NotificationCompat.Builder
+    private val mServiceLifecycleDispatcher = ServiceLifecycleDispatcher(this)
+    private val channelId =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NOTIFICATION_CHANNEL_ID
+        } else {
+            // If running on older Android versions, use a default channel ID
+            ""
+        }
 
     @Inject
     lateinit var appDB: AppDB
@@ -48,8 +61,10 @@ class MyBackgroundService : Service(), SensorEventListener {
     override fun onCreate() {
         super.onCreate()
         timber("BackgroundService:::onCreate")
-        val notification = createNotification()
-        startForeground(1111, notification)
+        notification = createNotification()
+//        notificationManager.notify(1414, notification)
+        startForeground(1414, notification)
+
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -58,24 +73,35 @@ class MyBackgroundService : Service(), SensorEventListener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         timber("BackgroundService:::start")
+        mServiceLifecycleDispatcher.onServicePreSuperOnStart()
         val sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
         if (stepSensor != null) {
             sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
         }
+
+
+        appDB.stepDao().getToday(dateOfToday()).observe(this){
+
+            try {
+                timber("klajwdlkajdlkajwlkdjlwkad ${it.count}")
+                notificationBuilder.setContentText(it.count.toString())
+                notificationManager.notify(1414, notificationBuilder.build())
+//                notification.notify()
+            }catch (e: Exception){
+                e.printStackTrace()
+            }
+
+        }
+
         return START_NOT_STICKY
     }
 
 
 
+
     private fun createNotification(): Notification {
-        val channelId =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                NOTIFICATION_CHANNEL_ID
-            } else {
-                // If running on older Android versions, use a default channel ID
-                ""
-            }
+
 
         val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -85,27 +111,28 @@ class MyBackgroundService : Service(), SensorEventListener {
             PendingIntent.FLAG_MUTABLE
         )
 
-        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+        notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.icons8_trainers_1) // Replace with your notification icon
-            .setContentTitle("Step Counting Service")
-            .setContentText("Counting your steps...")
+//            .setContentTitle("Step Counting Service")
+//            .setContentText("Counting your steps...")
+            .setContentTitle("قدم شمار")
+            .setContentText("در حال شمارش ..")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent) // Set the PendingIntent when the notification is clicked
             .setOngoing(true) // Makes the notification persistent
             .setAutoCancel(false) // Prevents the notification from being dismissed when clicked
-
-        // Create a notification channel (if needed) for Android Oreo and later
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager =
+//
+//        // Create a notification channel (if needed) for Android Oreo and later
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            notificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channel = NotificationChannel(
-                channelId,
-                "Step Counting Service",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
-
+//            val channel = NotificationChannel(
+//                channelId,
+//                "Step Counting Service",
+//                NotificationManager.IMPORTANCE_DEFAULT
+//            )
+//            notificationManager.createNotificationChannel(channel)
+//        }
         return notificationBuilder.build()
     }
 
@@ -168,6 +195,9 @@ class MyBackgroundService : Service(), SensorEventListener {
         sensorManager = null
         stopSelf()
     }
+
+    override val lifecycle: Lifecycle
+        get() = mServiceLifecycleDispatcher.lifecycle
 }
 
 
