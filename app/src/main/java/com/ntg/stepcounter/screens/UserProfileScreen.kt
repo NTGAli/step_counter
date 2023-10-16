@@ -96,9 +96,7 @@ import com.ntg.stepcounter.vm.UserDataViewModel
 @Composable
 fun UserProfileScreen(
     navHostController: NavHostController,
-    stepViewModel: StepViewModel,
     userDataViewModel: UserDataViewModel,
-    socialNetworkViewModel: SocialNetworkViewModel,
     uid: String
 ) {
 

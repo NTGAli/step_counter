@@ -54,6 +54,8 @@ import com.ntg.stepcounter.FullSizeBlur
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.StepCounterListener
 import com.ntg.stepcounter.api.NetworkResult
+import com.ntg.stepcounter.components.EmptyWidget
+import com.ntg.stepcounter.components.Loading
 import com.ntg.stepcounter.components.Record
 import com.ntg.stepcounter.components.ReportWidget
 import com.ntg.stepcounter.components.Title
@@ -96,6 +98,13 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
     var summaries by remember {
         mutableStateOf<SummariesRes?>(null)
     }
+    var loading by remember {
+        mutableStateOf(false)
+    }
+
+    var error by remember {
+        mutableStateOf(false)
+    }
     val ctx = LocalContext.current
     val owner = LocalLifecycleOwner.current
 
@@ -106,17 +115,19 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
         stepViewModel.summariesData(userId, summaries == null).observe(owner) {
             when (it) {
                 is NetworkResult.Error -> {
-
+                    timber("SUMMARISE ::: ERR :: ${it.message}")
+                    loading = false
+                    error = true
                 }
 
                 is NetworkResult.Loading -> {
-                    timber("SUMMARISE ::: Loadign")
+                    timber("SUMMARISE ::: Loading")
+                    loading = true
                 }
 
                 is NetworkResult.Success -> {
                     summaries = it.data?.data
-                    timber("sejfkhaldwjhdjkawhdkjwahkdj ${it.data?.data?.rank}")
-
+                    loading = false
                 }
             }
         }
@@ -175,85 +186,109 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                 )
             },
             sheetContent = {
+                if (loading){
+                    Loading(isFull = false)
+                }else if(error){
 
-                Column(modifier = Modifier.padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-
-                    Text(
-                        modifier = Modifier
-                            .padding(top = 16.dp, bottom = 24.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(PRIMARY100)
-                            .padding(horizontal = 32.dp, vertical = 4.dp),
-                        text = if (summaries?.rank != null) stringResource(
-                            id = R.string.your_rank_format,
-                            summaries?.rank.orEmpty()
-                        ) else stringResource(id = R.string.no_record_format),
-                        style = fontRegular12(PRIMARY900)
-                    )
-
-                    Title(modifier = Modifier
-                        .padding(bottom = 8.dp)
-                        .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_today), action = stringResource(
-                        id = R.string.see_all
-                    )) {
-                    }
-                    LazyColumn(content = {
-                        itemsIndexed(summaries?.today.orEmpty()) { index, it ->
-                            Record(
-                                modifier = Modifier.padding(top = 8.dp),
-                                uid = it.uid,
-                                record = index,
-                                title = it.title.orEmpty(),
-                                steps = it.steps
-                            ){
-                                navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
-                            }
-                        }
-                    })
-
-
-                    Title(modifier = Modifier
-                        .padding(top = 24.dp, bottom = 8.dp)
-                        .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_rank_base_fos), action = stringResource(
-                        id = R.string.see_all
-                    )) {
-
-                    }
-                    LazyColumn(content = {
-                        itemsIndexed(summaries?.fos.orEmpty()) { index, it ->
-                            Record(
-                                modifier = Modifier.padding(top = 8.dp),
-                                uid = it.uid,
-                                record = index,
-                                title = it.title.orEmpty(),
-                                steps = it.steps
-                            ){
-
-                            }
-                        }
-                    })
-
-                    Title(modifier = Modifier
-                        .padding(top = 24.dp, bottom = 8.dp)
-                        .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_rank_base_user), action = stringResource(
-                        id = R.string.see_all
-                    )) {
-
-                    }
-                    LazyColumn(modifier = Modifier.padding(bottom = 64.dp), content = {
-                        itemsIndexed(summaries?.all.orEmpty()) { index, it ->
-                            Record(
-                                modifier = Modifier.padding(top = 8.dp),
-                                uid = it.uid,
-                                record = index,
-                                title = it.title.orEmpty(),
-                                steps = it.steps
-                            ){
-
-                            }
-                        }
-                    })
                 }
+                else{
+                    Column(modifier = Modifier
+                        .height(sheetHeight)
+                        .padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally)
+                    {
+
+                        Text(
+                            modifier = Modifier
+                                .padding(top = 16.dp, bottom = 24.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(PRIMARY100)
+                                .padding(horizontal = 32.dp, vertical = 4.dp),
+                            text = if (summaries?.rank != null) stringResource(
+                                id = R.string.your_rank_format,
+                                summaries?.rank.orEmpty()
+                            ) else stringResource(id = R.string.no_record_format),
+                            style = fontRegular12(PRIMARY900)
+                        )
+
+                        Title(modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_today), action = stringResource(
+                            id = R.string.see_all
+                        )) {
+                        }
+                        if (summaries?.today.orEmpty().isNotEmpty()){
+                            LazyColumn(content = {
+                                itemsIndexed(summaries?.today.orEmpty()) { index, it ->
+                                    Record(
+                                        modifier = Modifier.padding(top = 8.dp),
+                                        uid = it.uid,
+                                        record = index,
+                                        title = it.title.orEmpty(),
+                                        steps = it.steps
+                                    ){
+                                        navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
+                                    }
+                                }
+                            })
+                        }else{
+                            EmptyWidget(title = ctx.getString(R.string.no_record_today))
+                        }
+
+
+                        Title(modifier = Modifier
+                            .padding(top = 24.dp, bottom = 8.dp)
+                            .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_rank_base_fos), action = stringResource(
+                            id = R.string.see_all
+                        )) {
+
+                        }
+
+                        if (summaries?.fos.orEmpty().isNotEmpty()){
+                            LazyColumn(content = {
+                                itemsIndexed(summaries?.fos.orEmpty()) { index, it ->
+                                    Record(
+                                        modifier = Modifier.padding(top = 8.dp),
+                                        uid = it.uid,
+                                        record = index,
+                                        title = it.title.orEmpty(),
+                                        steps = it.steps
+                                    ){
+                                        navHostController.navigate(Screens.FieldOfStudyDetailsScreen.name + "?uid=$it&rank=${index+1}")
+                                    }
+                                }
+                            })
+                        }else{
+                            EmptyWidget(title = ctx.getString(R.string.no_fos_record))
+                        }
+
+                        Title(modifier = Modifier
+                            .padding(top = 24.dp, bottom = 8.dp)
+                            .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_rank_base_user), action = stringResource(
+                            id = R.string.see_all
+                        )) {
+
+                        }
+
+                        if (summaries?.all.orEmpty().isNotEmpty()){
+                            LazyColumn(modifier = Modifier.padding(bottom = 64.dp), content = {
+                                itemsIndexed(summaries?.all.orEmpty()) { index, it ->
+                                    Record(
+                                        modifier = Modifier.padding(top = 8.dp),
+                                        uid = it.uid,
+                                        record = index,
+                                        title = it.title.orEmpty(),
+                                        steps = it.steps
+                                    ){
+                                        navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
+                                    }
+                                }
+                            })
+                        }else{
+                            EmptyWidget(title = ctx.getString(R.string.no_fos_record))
+                        }
+                    }
+                }
+
 
             },
             scaffoldState = scaffoldState,

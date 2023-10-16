@@ -61,7 +61,7 @@ fun ReportWidget(
                 Box(modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
                     .background(PRIMARY100)) {
-                    Icon(modifier = Modifier.padding(8.dp),painter = if (viewType == ReportWidgetType.Group) painterResource(id = R.drawable.users_profiles_minus) else painterResource(id = R.drawable.icons8_trainers_1), contentDescription = null, tint = PRIMARY500)
+                    Icon(modifier = Modifier.padding(8.dp),painter = painterResource(id = R.drawable.icons8_trainers_1), contentDescription = null, tint = PRIMARY500)
                 }
 
                 Column(modifier = Modifier.padding(start = 8.dp)) {

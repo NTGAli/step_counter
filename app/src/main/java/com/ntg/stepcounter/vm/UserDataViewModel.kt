@@ -7,8 +7,10 @@ import com.ntg.stepcounter.api.ApiService
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.UserStore
+import com.ntg.stepcounter.models.res.FosDetailsRes
 import com.ntg.stepcounter.models.res.StepRes
 import com.ntg.stepcounter.models.res.UserProfile
+import com.ntg.stepcounter.models.res.UserRes
 import com.ntg.stepcounter.util.extension.safeApiCall
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +24,8 @@ class UserDataViewModel @Inject constructor(
 ): ViewModel() {
 
     private var userProfile: MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> = MutableLiveData()
+    private var fodDetails: MutableLiveData<NetworkResult<ResponseBody<FosDetailsRes?>>> = MutableLiveData()
+    private var usersFos: MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> = MutableLiveData()
     private var userSteps: MutableLiveData<NetworkResult<ResponseBody<List<StepRes>?>>> = MutableLiveData()
     private var clapResult: MutableLiveData<NetworkResult<ResponseBody<Any?>>> = MutableLiveData()
 
@@ -70,6 +74,25 @@ class UserDataViewModel @Inject constructor(
                 } as MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>>
             }
         return userProfile
+    }
+
+
+    fun getFosDetails(fosId: String): MutableLiveData<NetworkResult<ResponseBody<FosDetailsRes?>>> {
+        viewModelScope.launch {
+            fodDetails = safeApiCall(Dispatchers.IO){
+                apiService.fosDetails(fosId)
+            } as MutableLiveData<NetworkResult<ResponseBody<FosDetailsRes?>>>
+        }
+        return fodDetails
+    }
+
+    fun userOfFos(fosId: String): MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> {
+        viewModelScope.launch {
+            usersFos = safeApiCall(Dispatchers.IO){
+                apiService.userOfFos(fosId)
+            } as MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>>
+        }
+        return usersFos
     }
 
 

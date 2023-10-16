@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ntg.stepcounter.screens.AccountScreen
+import com.ntg.stepcounter.screens.FieldOfStudyDetailsScreen
 import com.ntg.stepcounter.screens.FieldStudiesScreen
 import com.ntg.stepcounter.screens.HomeScreen
 import com.ntg.stepcounter.screens.LoginScreen
@@ -63,12 +64,14 @@ fun AppNavHost(
             ProfileScreen(navController, stepViewModel, userDataViewModel, socialNetworkViewModel)
         }
 
-        composable(Screens.SocialScreen.name+ "?id={id}",
+        composable(
+            Screens.SocialScreen.name + "?id={id}",
             arguments = listOf(navArgument("id")
             {
                 type = NavType.IntType
                 defaultValue = -1
-            })) {
+            })
+        ) {
             SocialScreen(navController, socialNetworkViewModel, it.arguments?.getInt("id"))
         }
 
@@ -93,38 +96,59 @@ fun AppNavHost(
         }
 
         composable(
-            Screens.SignInScreen.name+ "?phone={phone}&state={state}",
+            Screens.SignInScreen.name + "?phone={phone}&state={state}",
             arguments = listOf(
                 navArgument("phone")
-            {
-                type = NavType.StringType
-                defaultValue = ""
-            },
+                {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
                 navArgument("state")
-            {
-                type = NavType.StringType
-                defaultValue = ""
-            })) {
-            SignInScreen(navController, loginViewModel, userDataViewModel , it.arguments?.getString("phone"), it.arguments?.getString("state"))
+                {
+                    type = NavType.StringType
+                    defaultValue = ""
+                })
+        ) {
+            SignInScreen(
+                navController,
+                loginViewModel,
+                userDataViewModel,
+                it.arguments?.getString("phone"),
+                it.arguments?.getString("state")
+            )
         }
 
-        composable(Screens.RegisterScreen.name+ "?phone={phone}",
+        composable(
+            Screens.RegisterScreen.name + "?phone={phone}",
             arguments = listOf(navArgument("phone")
             {
                 type = NavType.StringType
                 defaultValue = ""
-            })) {
-            RegisterScreen(navController, loginViewModel, userDataViewModel, it.arguments?.getString("phone"))
+            })
+        ) {
+            RegisterScreen(
+                navController,
+                loginViewModel,
+                userDataViewModel,
+                it.arguments?.getString("phone")
+            )
         }
 
 
-        composable(Screens.ProfRegisterScreen.name+ "?phone={phone}",
+        composable(
+            Screens.ProfRegisterScreen.name + "?phone={phone}",
             arguments = listOf(navArgument("phone")
             {
                 type = NavType.StringType
                 defaultValue = ""
-            })) {
-            ProfRegisterScreen(navController, loginViewModel, userDataViewModel, it.arguments?.getString("phone"))
+            })
+        ) {
+            ProfRegisterScreen(
+                navController,
+                loginViewModel,
+                userDataViewModel,
+                it.arguments?.getString("phone")
+            )
         }
 
 
@@ -133,15 +157,43 @@ fun AppNavHost(
         }
 
 
-        composable(Screens.UserProfileScreen.name+ "?uid={uid}",
+        composable(
+            Screens.UserProfileScreen.name + "?uid={uid}",
             arguments = listOf(navArgument("uid")
             {
                 type = NavType.StringType
                 defaultValue = ""
-            })) {
-            UserProfileScreen(navController, stepViewModel, userDataViewModel, socialNetworkViewModel, it.arguments?.getString("uid").orEmpty())
+            })
+        ) {
+            UserProfileScreen(
+                navController,
+                userDataViewModel,
+                it.arguments?.getString("uid").orEmpty()
+            )
         }
 
+
+        composable(
+            Screens.FieldOfStudyDetailsScreen.name + "?uid={uid}&rank={rank}",
+            arguments = listOf(
+                navArgument("uid")
+            {
+                type = NavType.StringType
+                defaultValue = ""
+            },
+                navArgument("rank")
+                {
+                    type = NavType.StringType
+                    defaultValue = ""
+                })
+        ) {
+            FieldOfStudyDetailsScreen(
+                navController,
+                userDataViewModel,
+                it.arguments?.getString("uid").orEmpty(),
+                it.arguments?.getString("rank").orEmpty()
+            )
+        }
 
 
     }

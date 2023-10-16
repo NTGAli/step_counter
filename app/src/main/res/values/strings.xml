@@ -83,4 +83,8 @@
     <string name="socilas_network">شبکه های اجتماعی</string>
     <string name="achievments">دست آوردها</string>
     <string name="lock_to_view">این مورد برای نمایش قفل شده است</string>
+    <string name="rank_formar">رتبه: %s</string>
+    <string name="members">اعضا</string>
+    <string name="no_record_today">رکوردی برای امروز ثبت نشده.</string>
+    <string name="no_fos_record">موردی هنوز ثبت نشده.</string>
 </resources>

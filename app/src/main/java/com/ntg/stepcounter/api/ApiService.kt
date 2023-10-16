@@ -3,11 +3,13 @@ package com.ntg.stepcounter.api
 import com.ntg.stepcounter.models.FieldOfStudy
 import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.Step
+import com.ntg.stepcounter.models.res.FosDetailsRes
 import com.ntg.stepcounter.models.res.StepRes
 import com.ntg.stepcounter.models.res.StepSynced
 import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.models.res.SummaryRes
 import com.ntg.stepcounter.models.res.UserProfile
+import com.ntg.stepcounter.models.res.UserRes
 import retrofit2.Response
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -58,6 +60,18 @@ interface ApiService {
         @Field("uid") uid: String,
         @Field("userId") userId: String,
     ): Response<ResponseBody<UserProfile?>>
+
+    @FormUrlEncoded
+    @POST("FiledOfStudyData.php")
+    suspend fun fosDetails(
+        @Field("fosId") fosId: String,
+    ): Response<ResponseBody<FosDetailsRes?>>
+
+    @FormUrlEncoded
+    @POST("UserOfFieldStudy.php")
+    suspend fun userOfFos(
+        @Field("fosId") fosId: String,
+    ): Response<ResponseBody<List<UserRes>?>>
 
     @FormUrlEncoded
     @POST("userDataSteps.php")
