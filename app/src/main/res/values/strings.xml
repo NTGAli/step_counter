@@ -87,4 +87,7 @@
     <string name="members">اعضا</string>
     <string name="no_record_today">رکوردی برای امروز ثبت نشده.</string>
     <string name="no_fos_record">موردی هنوز ثبت نشده.</string>
+    <string name="fiald_to_fetch_data">خطا در دریافت داده ها</string>
+    <string name="no_internet">اینترنت شما قطع می باشد</string>
+    <string name="try_again">تلاش مجدد</string>
 </resources>
