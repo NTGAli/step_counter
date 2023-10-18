@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -65,9 +66,11 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.DateItem
+import com.ntg.stepcounter.components.ErrorMessage
 import com.ntg.stepcounter.components.Loading
 import com.ntg.stepcounter.components.ReportWidget
 import com.ntg.stepcounter.components.SocialView
+import com.ntg.stepcounter.models.ErrorStatus
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.components.ReportWidgetType
 import com.ntg.stepcounter.models.res.SocialRes
@@ -84,6 +87,7 @@ import com.ntg.stepcounter.ui.theme.fontBold14
 import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
+import com.ntg.stepcounter.util.extension.checkInternet
 import com.ntg.stepcounter.util.extension.daysUntilToday
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
@@ -148,18 +152,32 @@ fun UserProfileScreen(
         mutableStateOf(listOf<StepRes>())
     }
 
+    var error by remember {
+        mutableStateOf(false)
+    }
+
+    var tryAgain by remember {
+        mutableStateOf(false)
+    }
+
+    var internetConnection by remember {
+        mutableStateOf(true)
+    }
+
     val ctx = LocalContext.current
+
+    internetConnection = ctx.checkInternet()
 
     userDataViewModel.getUserId().collectAsState(initial = "").value.let {
         userId = it
     }
 
-    if (userName.isEmpty()){
+    if (userName.isEmpty() && internetConnection || tryAgain){
 
         userDataViewModel.getUserProfile(uid, userId).observe(LocalLifecycleOwner.current) {
             when (it) {
                 is NetworkResult.Error -> {
-
+                    error = true
                 }
 
                 is NetworkResult.Loading -> {
@@ -197,12 +215,12 @@ fun UserProfileScreen(
 
     }
 
-    if (!isLock.value) {
+    if (!isLock.value && internetConnection || tryAgain) {
 
         userDataViewModel.getUserSteps(uid).observe(LocalLifecycleOwner.current) {
             when (it) {
                 is NetworkResult.Error -> {
-
+                    error = true
                 }
 
                 is NetworkResult.Loading -> {
@@ -590,6 +608,18 @@ fun UserProfileScreen(
 
         if (loading){
             Loading()
+        }
+
+        if (!internetConnection){
+            ErrorMessage(modifier = Modifier.fillMaxHeight(), status = ErrorStatus.Internet) {
+                internetConnection = true
+                error = false
+            }
+        }else if (error){
+            ErrorMessage(modifier = Modifier.fillMaxHeight(), status = ErrorStatus.Failed) {
+                tryAgain = true
+                error = false
+            }
         }
 
         try {

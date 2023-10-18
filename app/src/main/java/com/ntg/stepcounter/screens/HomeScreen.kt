@@ -1,6 +1,7 @@
 package com.ntg.stepcounter.screens
 
 import android.content.Context
+import android.net.ConnectivityManager
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -48,6 +49,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavHostController
 import com.ntg.stepcounter.FullSizeBlur
@@ -55,10 +57,12 @@ import com.ntg.stepcounter.R
 import com.ntg.stepcounter.StepCounterListener
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.EmptyWidget
+import com.ntg.stepcounter.components.ErrorMessage
 import com.ntg.stepcounter.components.Loading
 import com.ntg.stepcounter.components.Record
 import com.ntg.stepcounter.components.ReportWidget
 import com.ntg.stepcounter.components.Title
+import com.ntg.stepcounter.models.ErrorStatus
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.components.ReportWidgetType
@@ -73,6 +77,7 @@ import com.ntg.stepcounter.ui.theme.fontBold12
 import com.ntg.stepcounter.ui.theme.fontBold24
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
+import com.ntg.stepcounter.util.extension.checkInternet
 import com.ntg.stepcounter.util.extension.daysUntilToday
 import com.ntg.stepcounter.util.extension.divideNumber
 import com.ntg.stepcounter.util.extension.orDefault
@@ -105,29 +110,43 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
     var error by remember {
         mutableStateOf(false)
     }
+
+    var tryAgain by remember {
+        mutableStateOf(false)
+    }
+
+    var internetConnection by remember {
+        mutableStateOf(true)
+    }
+
+
     val ctx = LocalContext.current
     val owner = LocalLifecycleOwner.current
 
     val stepsOfToday = stepViewModel.getToday().observeAsState().value?.count.orZero()
     val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
 
-    userDataViewModel.getUserId().collectAsState(initial = "").value.let {userId ->
-        stepViewModel.summariesData(userId, summaries == null).observe(owner) {
-            when (it) {
-                is NetworkResult.Error -> {
-                    timber("SUMMARISE ::: ERR :: ${it.message}")
-                    loading = false
-                    error = true
-                }
+    internetConnection = ctx.checkInternet()
 
-                is NetworkResult.Loading -> {
-                    timber("SUMMARISE ::: Loading")
-                    loading = true
-                }
+    if (internetConnection){
+        userDataViewModel.getUserId().collectAsState(initial = "").value.let {userId ->
+            stepViewModel.summariesData(userId, summaries == null || tryAgain ).observe(owner) {
+                when (it) {
+                    is NetworkResult.Error -> {
+                        timber("SUMMARISE ::: ERR :: ${it.message}")
+                        loading = false
+                        error = true
+                    }
 
-                is NetworkResult.Success -> {
-                    summaries = it.data?.data
-                    loading = false
+                    is NetworkResult.Loading -> {
+                        timber("SUMMARISE ::: Loading")
+                        loading = true
+                    }
+
+                    is NetworkResult.Success -> {
+                        summaries = it.data?.data
+                        loading = false
+                    }
                 }
             }
         }
@@ -188,8 +207,17 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
             sheetContent = {
                 if (loading){
                     Loading(isFull = false)
-                }else if(error){
-
+                }else if (!internetConnection){
+                    ErrorMessage(modifier = Modifier.padding(top = 32.dp), status = ErrorStatus.Internet) {
+                        internetConnection = true
+                        error = false
+                    }
+                } else if(error){
+                    tryAgain = false
+                    ErrorMessage(modifier = Modifier.padding(top = 32.dp), status = ErrorStatus.Failed) {
+                        tryAgain = true
+                        error = false
+                    }
                 }
                 else{
                     Column(modifier = Modifier

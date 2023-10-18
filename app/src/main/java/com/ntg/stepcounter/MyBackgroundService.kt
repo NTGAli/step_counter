@@ -75,24 +75,24 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
         timber("BackgroundService:::start")
         mServiceLifecycleDispatcher.onServicePreSuperOnStart()
         val sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-        val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
+        val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         if (stepSensor != null) {
             sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
         }
 
 
-        appDB.stepDao().getToday(dateOfToday()).observe(this){
-
-            try {
-                timber("klajwdlkajdlkajwlkdjlwkad ${it.count}")
-                notificationBuilder.setContentText(it.count.toString())
-                notificationManager.notify(1414, notificationBuilder.build())
-//                notification.notify()
-            }catch (e: Exception){
-                e.printStackTrace()
-            }
-
-        }
+//        appDB.stepDao().getToday(dateOfToday()).observe(this){
+//
+//            try {
+//                timber("klajwdlkajdlkajwlkdjlwkad ${it.count}")
+//                notificationBuilder.setContentText(it.count.toString())
+//                notificationManager.notify(1414, notificationBuilder.build())
+////                notification.notify()
+//            }catch (e: Exception){
+//                e.printStackTrace()
+//            }
+//
+//        }
 
         return START_NOT_STICKY
     }
@@ -166,6 +166,14 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
     }
 
     override fun onSensorChanged(p0: SensorEvent?) {
+
+        try {
+            notificationBuilder.setContentText(p0?.values?.firstOrNull().toString())
+            notificationManager.notify(1414, notificationBuilder.build())
+        }catch (e: Exception){
+            e.printStackTrace()
+        }
+
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             timber("StepCounterListener :::: Background")

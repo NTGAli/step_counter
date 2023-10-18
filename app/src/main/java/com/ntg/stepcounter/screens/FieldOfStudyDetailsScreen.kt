@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -55,15 +56,18 @@ import androidx.navigation.NavHostController
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.DateItem
+import com.ntg.stepcounter.components.ErrorMessage
 import com.ntg.stepcounter.components.Loading
 import com.ntg.stepcounter.components.Record
 import com.ntg.stepcounter.components.ReportWidget
 import com.ntg.stepcounter.components.SocialView
+import com.ntg.stepcounter.models.ErrorStatus
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.components.ReportWidgetType
 import com.ntg.stepcounter.models.res.SocialRes
 import com.ntg.stepcounter.models.res.StepRes
 import com.ntg.stepcounter.models.res.UserRes
+import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.Background
 import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY500
@@ -76,6 +80,7 @@ import com.ntg.stepcounter.ui.theme.fontBold14
 import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
+import com.ntg.stepcounter.util.extension.checkInternet
 import com.ntg.stepcounter.util.extension.daysUntilToday
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
@@ -120,18 +125,32 @@ fun FieldOfStudyDetailsScreen(
         mutableStateOf(listOf<UserRes>())
     }
 
+    var error by remember {
+        mutableStateOf(false)
+    }
+
+    var tryAgain by remember {
+        mutableStateOf(false)
+    }
+
+    var internetConnection by remember {
+        mutableStateOf(true)
+    }
+
     val ctx = LocalContext.current
+
+    internetConnection = ctx.checkInternet()
 
     userDataViewModel.getUserId().collectAsState(initial = "").value.let {
         userId = it
     }
 
-    if (fosName.isEmpty()){
+    if (fosName.isEmpty() && internetConnection || tryAgain){
 
         userDataViewModel.getFosDetails(uid).observe(LocalLifecycleOwner.current) {
             when (it) {
                 is NetworkResult.Error -> {
-
+                    error = true
                 }
 
                 is NetworkResult.Loading -> {
@@ -154,11 +173,12 @@ fun FieldOfStudyDetailsScreen(
 
     }
 
-    if (users.isEmpty()){
+    if (users.isEmpty() && internetConnection || tryAgain){
         userDataViewModel.userOfFos(uid).observe(LocalLifecycleOwner.current){
             when(it){
                 is NetworkResult.Error -> {
                     timber("UsersOfFos ::: ERR")
+                    error = true
                 }
                 is NetworkResult.Loading -> {
                     timber("UsersOfFos ::: Loading")
@@ -247,7 +267,9 @@ fun FieldOfStudyDetailsScreen(
                             record = it.rank.orZero()-1,
                             title = it.fullName.orEmpty(),
                             steps = it.steps.orZero(),
-                            onClick = {}
+                            onClick = {
+                                navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
+                            }
                         )
                     }
 
@@ -320,6 +342,19 @@ fun FieldOfStudyDetailsScreen(
         if (loading){
             Loading()
         }
+
+        if (!internetConnection){
+            ErrorMessage(modifier = Modifier.fillMaxHeight(), status = ErrorStatus.Internet) {
+                internetConnection = true
+                error = false
+            }
+        }else if (error){
+            ErrorMessage(modifier = Modifier.fillMaxHeight(), status = ErrorStatus.Failed) {
+                tryAgain = true
+                error = false
+            }
+        }
+
 
         try {
             radius = calculateRadius(

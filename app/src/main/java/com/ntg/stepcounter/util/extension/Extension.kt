@@ -3,6 +3,8 @@ package com.ntg.stepcounter.util.extension
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.widget.Toast
 import androidx.compose.runtime.Composable
@@ -176,6 +178,10 @@ fun dateOfToday(): String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 
     val currentDate = Date()
     val dateFormat = SimpleDateFormat("yyyy-MM-dd")
     dateFormat.format(currentDate)
+}
+
+fun Context.checkInternet(): Boolean {
+    return (this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).activeNetworkInfo != null
 }
 
 suspend fun <T> safeApiCall(
