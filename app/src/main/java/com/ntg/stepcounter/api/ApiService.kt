@@ -3,6 +3,7 @@ package com.ntg.stepcounter.api
 import com.ntg.stepcounter.models.FieldOfStudy
 import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.Step
+import com.ntg.stepcounter.models.res.AccountStateRes
 import com.ntg.stepcounter.models.res.FosDetailsRes
 import com.ntg.stepcounter.models.res.StepRes
 import com.ntg.stepcounter.models.res.StepSynced
@@ -96,4 +97,10 @@ interface ApiService {
         @Field("uid") uid: String,
         @Field("for") forUid: String
     )
+
+    @FormUrlEncoded
+    @POST("accountSate.php")
+    suspend fun accountSate(
+        @Field("uid") uid: String
+    ): Response<ResponseBody<AccountStateRes?>>
 }

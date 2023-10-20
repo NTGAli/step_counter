@@ -34,6 +34,7 @@ import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.StepCounterTheme
 import com.ntg.stepcounter.util.extension.OnLifecycleEvent
 import com.ntg.stepcounter.util.extension.dateOfToday
+import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.vm.LoginViewModel
@@ -106,7 +107,24 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 if (it.value.isNotEmpty()){
                     syncSteps(stepViewModel, LocalLifecycleOwner.current, it.value)
                 }
+
+                userDataViewModel.accountState(it.value).observe(LocalLifecycleOwner.current){
+                    when(it){
+                        is NetworkResult.Error -> {
+
+                        }
+                        is NetworkResult.Loading -> {
+
+                        }
+                        is NetworkResult.Success -> {
+                            if (it.data?.isSuccess.orFalse()){
+                                userDataViewModel.isVerified(it.data?.data?.isVerified.orFalse())
+                            }
+                        }
+                    }
+                }
             }
+
         }
     }
 

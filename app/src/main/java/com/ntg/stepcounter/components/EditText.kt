@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ntg.stepcounter.ui.theme.ERROR500
 import com.ntg.stepcounter.ui.theme.PRIMARY500
+import com.ntg.stepcounter.ui.theme.SECONDARY300
 import com.ntg.stepcounter.ui.theme.SECONDARY500
 import com.ntg.stepcounter.ui.theme.SECONDARY900
 import com.ntg.stepcounter.ui.theme.TERTIARY500
@@ -72,9 +73,13 @@ fun EditText(
     Column {
         OutlinedTextField(
             modifier = modifier
-                .clickable {
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {
                     onClick.invoke()
                 },
+
             value = text.value,
             onValueChange = {
                 if (maxLength != null && it.length > maxLength) return@OutlinedTextField
@@ -83,12 +88,13 @@ fun EditText(
             },
             label = {
                 if (!label.isNullOrEmpty()) {
-                    Text(text = label, style = fontRegular12(SECONDARY500))
+                    Text(text = label, style = if (enabled) fontRegular12(SECONDARY500) else fontRegular12(
+                        SECONDARY300))
                 }
             },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             readOnly = readOnly,
-            textStyle = fontMedium14(SECONDARY900),
+            textStyle = if (enabled)fontMedium14(SECONDARY900) else fontMedium14(SECONDARY300),
             enabled = enabled,
             shape = RoundedCornerShape(8.dp),
             trailingIcon = {
@@ -136,11 +142,11 @@ fun EditText(
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun EditTextPreview(){
     val error = remember {
-        mutableStateOf(true)
+        mutableStateOf(false)
     }
-    EditText(modifier = Modifier.fillMaxWidth(), label = "test", setError = error, errorMessage = "test error text")
+    EditText(modifier = Modifier.fillMaxWidth(), label = "test", setError = error, errorMessage = "test error text", enabled = true)
 }

@@ -115,11 +115,16 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
         mutableStateOf(false)
     }
 
+    var isVerified by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     val loading = remember {
         mutableStateOf(false)
     }
 
     fosId.value = loginViewModel.fieldOfStudy?.title.orEmpty()
+    isVerified = userDataViewModel.isVerified().collectAsState(initial = false).value
 
 
     if (edit.orFalse() && !applied){
@@ -169,7 +174,8 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
                         .fillMaxWidth()
                         .padding(top = 8.dp),
                     label = stringResource(id = R.string.prof_id),
-                    keyboardType = KeyboardType.Number, text = sId
+                    keyboardType = KeyboardType.Number, text = sId,
+                    enabled = !(isVerified && edit.orFalse())
                 )
 
                 EditText(
@@ -285,18 +291,20 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
                     }
                 }
 
-                CustomButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    text = stringResource(id = R.string.im_student),
-                    size = ButtonSize.XL,
-                    style = ButtonStyle.TextOnly
-                ) {
-                    if (navHostController.previousBackStackEntry?.destination?.route == Screens.SettingsScreen.name){
-                        navHostController.navigate(Screens.RegisterScreen.name + "?phone=$phoneNumber&edit=${true}")
-                    }else{
-                        navHostController.popBackStack()
+                if (!isVerified && edit.orFalse()){
+                    CustomButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        text = stringResource(id = R.string.im_student),
+                        size = ButtonSize.XL,
+                        style = ButtonStyle.TextOnly
+                    ) {
+                        if (navHostController.previousBackStackEntry?.destination?.route == Screens.SettingsScreen.name){
+                            navHostController.navigate(Screens.RegisterScreen.name + "?phone=$phoneNumber&edit=${true}")
+                        }else{
+                            navHostController.popBackStack()
+                        }
                     }
                 }
             }

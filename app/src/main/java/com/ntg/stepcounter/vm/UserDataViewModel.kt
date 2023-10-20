@@ -7,6 +7,7 @@ import com.ntg.stepcounter.api.ApiService
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.UserStore
+import com.ntg.stepcounter.models.res.AccountStateRes
 import com.ntg.stepcounter.models.res.FosDetailsRes
 import com.ntg.stepcounter.models.res.StepRes
 import com.ntg.stepcounter.models.res.UserProfile
@@ -27,6 +28,7 @@ class UserDataViewModel @Inject constructor(
     private var fodDetails: MutableLiveData<NetworkResult<ResponseBody<FosDetailsRes?>>> = MutableLiveData()
     private var usersFos: MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> = MutableLiveData()
     private var userSteps: MutableLiveData<NetworkResult<ResponseBody<List<StepRes>?>>> = MutableLiveData()
+    private var accountStateDate: MutableLiveData<NetworkResult<ResponseBody<AccountStateRes?>>> = MutableLiveData()
     private var clapResult: MutableLiveData<NetworkResult<ResponseBody<Any?>>> = MutableLiveData()
 
 
@@ -55,6 +57,10 @@ class UserDataViewModel @Inject constructor(
 
     fun setUserId(userId: String) = viewModelScope.launch {
         userStore.saveUserID(userId)
+    }
+
+    fun isVerified(isVerified: Boolean) = viewModelScope.launch {
+        userStore.isVerified(isVerified)
     }
 
     fun setPhone(phone: String) = viewModelScope.launch {
@@ -113,6 +119,16 @@ class UserDataViewModel @Inject constructor(
             } as MutableLiveData<NetworkResult<ResponseBody<List<StepRes>?>>>
         }
         return userSteps
+    }
+
+
+    fun accountState(uid: String): MutableLiveData<NetworkResult<ResponseBody<AccountStateRes?>>> {
+        viewModelScope.launch {
+            accountStateDate = safeApiCall(Dispatchers.IO){
+                apiService.accountSate(uid)
+            } as MutableLiveData<NetworkResult<ResponseBody<AccountStateRes?>>>
+        }
+        return accountStateDate
     }
 
 

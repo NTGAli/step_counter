@@ -232,7 +232,8 @@ fun RegisterScreen(
                             .fillMaxWidth()
                             .padding(top = 8.dp),
                         label = stringResource(id = R.string.student_id),
-                        keyboardType = KeyboardType.Number, text = sId
+                        keyboardType = KeyboardType.Number, text = sId,
+                        enabled = !(isVerified && edit.orFalse())
                     )
 
                     EditText(
@@ -337,15 +338,17 @@ fun RegisterScreen(
                         }
                     }
 
-                    CustomButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 4.dp),
-                        text = stringResource(id = R.string.im_prof),
-                        size = ButtonSize.XL,
-                        style = ButtonStyle.TextOnly
-                    ) {
-                        navHostController.navigate(Screens.ProfRegisterScreen.name + "?phone=$phoneNumber&edit=$edit")
+                    if (!isVerified && edit.orFalse()){
+                        CustomButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp),
+                            text = stringResource(id = R.string.im_prof),
+                            size = ButtonSize.XL,
+                            style = ButtonStyle.TextOnly
+                        ) {
+                            navHostController.navigate(Screens.ProfRegisterScreen.name + "?phone=$phoneNumber&edit=$edit")
+                        }
                     }
                 }
 
