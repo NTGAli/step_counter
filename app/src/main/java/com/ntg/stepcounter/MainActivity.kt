@@ -16,8 +16,10 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -28,6 +30,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.nav.AppNavHost
+import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.StepCounterTheme
 import com.ntg.stepcounter.util.extension.OnLifecycleEvent
 import com.ntg.stepcounter.util.extension.dateOfToday
@@ -62,16 +65,29 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
         super.onCreate(savedInstanceState)
         setContent {
+
+            var startDes by remember {
+                mutableStateOf("")
+            }
+
+            userDataViewModel.getUsername().collectAsState(initial = "").value.let {
+                startDes = if (it.isNotEmpty()) Screens.HomeScreen.name
+                else Screens.LoginScreen.name
+            }
+
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 StepCounterTheme {
-                    AppNavHost(
-                        stepViewModel = stepViewModel,
-                        userDataViewModel = userDataViewModel,
-                        socialNetworkViewModel = socialNetworkViewModel,
-                        loginViewModel = loginViewModel,
-                        onDestinationChangedListener = { nav, des, bundle ->
+                    if (startDes.isNotEmpty()){
+                        AppNavHost(
+                            stepViewModel = stepViewModel,
+                            userDataViewModel = userDataViewModel,
+                            socialNetworkViewModel = socialNetworkViewModel,
+                            loginViewModel = loginViewModel,
+                            startDestination = startDes,
+                            onDestinationChangedListener = { nav, des, bundle ->
 
-                        })
+                            })
+                    }
                 }
             }
             HandleLifecycle(
@@ -85,7 +101,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 }
             }
 
-            userDataViewModel.setUserId("9853200003")
 
             userDataViewModel.getUserId().collectAsState(initial = "").let {
                 if (it.value.isNotEmpty()){

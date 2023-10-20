@@ -52,10 +52,17 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
         mutableStateOf(true)
     }
 
+    val userStatus = remember {
+        mutableStateOf("")
+    }
+
     val ctx = LocalContext.current
 
     showToOther.value = userDataViewModel.isShowReport().collectAsState(initial = true).value
     autoDetect.value = userDataViewModel.isAutoDetect().collectAsState(initial = true).value
+    userStatus.value = userDataViewModel.getUserStatus().collectAsState(initial = "").value
+
+    val userPhone = userDataViewModel.getPhoneNumber().collectAsState(initial = "").value
 
     LazyColumn(modifier = Modifier.padding(paddingValues)){
 
@@ -65,7 +72,11 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
                 .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.account), style = fontBold14(SECONDARY500))
 
             ItemOption(text = stringResource(id = R.string.change_account), onClick = {
-                navHostController.navigate(Screens.AccountScreen.name)
+                if (userStatus.value == "1"){
+                    navHostController.navigate(Screens.RegisterScreen.name + "?phone=$userPhone&edit=${true}")
+                }else if (userStatus.value == "2"){
+                    navHostController.navigate(Screens.ProfRegisterScreen.name + "?phone=$userPhone&edit=${true}")
+                }
             })
 
             ItemOption(text = stringResource(id = R.string.phone_number), onClick = {

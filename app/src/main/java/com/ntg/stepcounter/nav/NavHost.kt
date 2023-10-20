@@ -25,6 +25,7 @@ import com.ntg.stepcounter.screens.SignInScreen
 import com.ntg.stepcounter.screens.SocialListScreen
 import com.ntg.stepcounter.screens.SocialScreen
 import com.ntg.stepcounter.screens.UserProfileScreen
+import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.vm.LoginViewModel
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
@@ -119,35 +120,49 @@ fun AppNavHost(
         }
 
         composable(
-            Screens.RegisterScreen.name + "?phone={phone}",
-            arguments = listOf(navArgument("phone")
-            {
-                type = NavType.StringType
-                defaultValue = ""
-            })
+            Screens.RegisterScreen.name + "?phone={phone}&edit={edit}",
+            arguments = listOf(
+                navArgument("phone")
+                {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("edit")
+                {
+                    type = NavType.BoolType
+                    defaultValue = false
+                })
+
         ) {
             RegisterScreen(
                 navController,
                 loginViewModel,
                 userDataViewModel,
-                it.arguments?.getString("phone")
+                it.arguments?.getString("phone"),
+                it.arguments?.getBoolean("edit")
             )
         }
 
 
         composable(
-            Screens.ProfRegisterScreen.name + "?phone={phone}",
+            Screens.ProfRegisterScreen.name + "?phone={phone}&edit={edit}",
             arguments = listOf(navArgument("phone")
             {
                 type = NavType.StringType
                 defaultValue = ""
-            })
+            },
+                navArgument("edit")
+                {
+                    type = NavType.BoolType
+                    defaultValue = false
+                })
         ) {
             ProfRegisterScreen(
                 navController,
                 loginViewModel,
                 userDataViewModel,
-                it.arguments?.getString("phone")
+                it.arguments?.getString("phone"),
+                it.arguments?.getBoolean("edit").orFalse(),
             )
         }
 
@@ -177,10 +192,10 @@ fun AppNavHost(
             Screens.FieldOfStudyDetailsScreen.name + "?uid={uid}&rank={rank}",
             arguments = listOf(
                 navArgument("uid")
-            {
-                type = NavType.StringType
-                defaultValue = ""
-            },
+                {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
                 navArgument("rank")
                 {
                     type = NavType.StringType

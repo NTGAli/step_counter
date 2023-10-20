@@ -1,6 +1,6 @@
 package com.ntg.stepcounter.models
 
 data class FieldOfStudy(
-    val id: Int,
-    val title: String
+    var id: Int? = null,
+    var title: String? = null
 )

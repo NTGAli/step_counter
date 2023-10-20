@@ -19,6 +19,7 @@ import com.ntg.stepcounter.R
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.Appbar
 import com.ntg.stepcounter.components.ItemOption
+import com.ntg.stepcounter.components.Loading
 import com.ntg.stepcounter.models.FieldOfStudy
 import com.ntg.stepcounter.models.components.AppbarItem
 import com.ntg.stepcounter.util.extension.timber
@@ -67,33 +68,42 @@ fun FieldStudiesScreen(
 private fun Content(navHostController: NavHostController, paddingValues: PaddingValues, loginViewModel: LoginViewModel, search: String){
 
     val owner = LocalLifecycleOwner.current
-//    var listOfStudies = remember {
-//        mutableListOf<FieldOfStudy>()
-//    }
+    var loading by remember {
+        mutableStateOf(false)
+    }
+
+    var error by remember {
+        mutableStateOf(false)
+    }
 
     val listOfStudies = remember {
         mutableStateOf(listOf<FieldOfStudy>())
     }
 
+    if (listOfStudies.value.isEmpty()){
         loginViewModel.fieldOfStudies().observe(owner){
             when (it){
                 is NetworkResult.Error -> {
-
+                    error = true
+                    loading = false
                 }
                 is NetworkResult.Loading -> {
-
+                    loading = true
                 }
                 is NetworkResult.Success -> {
                     listOfStudies.value = it.data?.data.orEmpty()
-                    timber("akhfjkahwkjfhkjwaf ${it.data?.data.orEmpty()}")
+                    loading = false
                 }
             }
         }
+    }
 
+
+    if (loading) Loading()
 
     LazyColumn{
-        items(listOfStudies.value.filter { it.title.contains(search) }){
-            ItemOption(text = it.title) {fosSelected ->
+        items(listOfStudies.value.filter { it.title.orEmpty().contains(search) }){
+            ItemOption(text = it.title.orEmpty()) {fosSelected ->
                 loginViewModel.fieldOfStudy = listOfStudies.value.first { it.title == fosSelected }
                 navHostController.popBackStack()
             }

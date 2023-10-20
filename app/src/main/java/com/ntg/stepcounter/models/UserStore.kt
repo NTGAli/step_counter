@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +23,8 @@ class UserStore(private val context: Context) {
         private val IS_VERIFIED = booleanPreferencesKey("isVerified")
         private val SHOW_REPORT = booleanPreferencesKey("showReport")
         private val AUTO_DETECT = booleanPreferencesKey("auto_detect")
+        private val GRADE_ID = intPreferencesKey("grade_id")
+        private val FOS_ID = intPreferencesKey("fos_id")
     }
 
     val getUserToken: Flow<String> = context.dataStore.data.map { preferences ->
@@ -34,6 +37,14 @@ class UserStore(private val context: Context) {
 
     val getUserID: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[USER_ID] ?: ""
+    }
+
+    val getGradeId: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[GRADE_ID] ?: -1
+    }
+
+    val getFosId: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[FOS_ID] ?: -1
     }
 
     val getPhoneNumber: Flow<String> = context.dataStore.data.map { preferences ->
@@ -95,6 +106,18 @@ class UserStore(private val context: Context) {
     suspend fun saveFiledStudy(fieldStudy: String) {
         context.dataStore.edit { preferences ->
             preferences[FIELD_STUDY] = fieldStudy
+        }
+    }
+
+    suspend fun setGradeId(gradeId: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[GRADE_ID] = gradeId
+        }
+    }
+
+    suspend fun setFosId(gradeId: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[FOS_ID] = gradeId
         }
     }
 

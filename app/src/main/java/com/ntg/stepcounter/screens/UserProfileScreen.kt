@@ -120,6 +120,10 @@ fun UserProfileScreen(
         mutableStateOf("")
     }
 
+    var userSate by remember {
+        mutableStateOf("")
+    }
+
     var totalDays by remember {
         mutableIntStateOf(0)
     }
@@ -172,6 +176,10 @@ fun UserProfileScreen(
         userId = it
     }
 
+    userDataViewModel.getUserStatus().collectAsState(initial = "").value.let {
+        userSate = it
+    }
+
     if (userName.isEmpty() && internetConnection || tryAgain){
 
         userDataViewModel.getUserProfile(uid, userId).observe(LocalLifecycleOwner.current) {
@@ -185,7 +193,6 @@ fun UserProfileScreen(
                 }
 
                 is NetworkResult.Success -> {
-                    timber("akwdjkalwjdklwajdlkawjdlkwjd")
                     totalSteps = it.data?.data?.steps.orZero()
                     totalDays = it.data?.data?.totalDays.orZero()
                     totalClaps = it.data?.data?.totalClaps.orZero()
@@ -195,18 +202,26 @@ fun UserProfileScreen(
                     isClap = it.data?.data?.isClap.orFalse()
                     socials = it.data?.data?.socials.orEmpty()
                     val gradeId = it.data?.data?.gradeId.orZero()
-                    userBio = ctx.getString(
-                        R.string.student_format,
-                        when (gradeId) {
-                            1 -> ctx.getString(R.string.bachelor)
-                            2 -> ctx.getString(
-                                R.string.master
-                            )
+                    userBio = when (userSate) {
+                        "1" -> {
+                            ctx.getString(
+                                R.string.student_format,
+                                when (gradeId) {
+                                    1 -> ctx.getString(R.string.bachelor)
+                                    2 -> ctx.getString(
+                                        R.string.master
+                                    )
 
-                            else -> ctx.getString(R.string.doctor)
-                        },
-                        it.data?.data?.fosName.orEmpty()
-                    )
+                                    else -> ctx.getString(R.string.doctor)
+                                },
+                                it.data?.data?.fosName.orEmpty()
+                            )
+                        }
+                        "2" -> {
+                            ctx.getString(R.string.prof_of, it.data?.data?.fosName.orEmpty())
+                        }
+                        else -> ""
+                    }
                     loading = false
                 }
             }
@@ -502,8 +517,6 @@ fun UserProfileScreen(
             floatingActionButton = {
                 Box(
                     modifier = Modifier
-//                    .align(Alignment.BottomCenter)
-//                    .padding(bottom = 24.dp)
                     , contentAlignment = Alignment.Center
                 ) {
                     Card(
@@ -587,17 +600,19 @@ fun UserProfileScreen(
                     }
 
 
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 16.dp, bottom = 48.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(PRIMARY100)
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                            text = userBio,
-                            style = fontRegular12(SECONDARY900)
-                        )
+                    if (userSate.isNotEmpty()){
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 16.dp, bottom = 48.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(PRIMARY100)
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                text = userBio,
+                                style = fontRegular12(SECONDARY900)
+                            )
+                        }
                     }
 
                 }

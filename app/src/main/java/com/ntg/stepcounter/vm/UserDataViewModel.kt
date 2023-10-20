@@ -33,8 +33,10 @@ class UserDataViewModel @Inject constructor(
     fun getUsername() = userStore.getUserName
     fun getPhoneNumber() = userStore.getPhoneNumber
     fun getUserId() = userStore.getUserID
+    fun getGradeId() = userStore.getGradeId
     fun getUserStatus() = userStore.getStatus
     fun getFieldStudy() = userStore.fieldStudy
+    fun getFosId() = userStore.getFosId
     fun isVerified() = userStore.isVerified
     fun isShowReport() = userStore.showReport
     fun isAutoDetect() = userStore.isAutoDetect
@@ -65,6 +67,14 @@ class UserDataViewModel @Inject constructor(
 
     fun isAutoDetect(isAuto: Boolean) = viewModelScope.launch {
         userStore.isAutoDetect(isAuto)
+    }
+
+    fun setGradeId(id: Int) = viewModelScope.launch {
+        userStore.setGradeId(id)
+    }
+
+    fun setFosId(id: Int) = viewModelScope.launch {
+        userStore.setFosId(id)
     }
 
     fun getUserProfile(uid: String, userId: String): MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> {

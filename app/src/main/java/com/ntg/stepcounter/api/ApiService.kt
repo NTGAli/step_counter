@@ -40,6 +40,17 @@ interface ApiService {
     ): Response<ResponseBody<String?>>
 
     @FormUrlEncoded
+    @POST("editUserData.php")
+    suspend fun editUserData(
+        @Field("fullName") fullName: String,
+        @Field("phone") phone: String,
+        @Field("state") state: String,
+        @Field("uid") uid: String,
+        @Field("fos_id") fosId: String,
+        @Field("grad_id") gradId: String,
+    ): Response<ResponseBody<String?>>
+
+    @FormUrlEncoded
     @POST("userStep.php")
     suspend fun syncSteps(
         @Field("uid") uid: String,

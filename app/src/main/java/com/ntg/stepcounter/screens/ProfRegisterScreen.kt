@@ -19,11 +19,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -41,6 +44,7 @@ import com.ntg.stepcounter.components.CustomButton
 import com.ntg.stepcounter.components.EditText
 import com.ntg.stepcounter.components.SampleItem
 import com.ntg.stepcounter.models.Failure
+import com.ntg.stepcounter.models.FieldOfStudy
 import com.ntg.stepcounter.models.Success
 import com.ntg.stepcounter.models.components.AppbarItem
 import com.ntg.stepcounter.models.components.GradeItem
@@ -49,6 +53,7 @@ import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.SECONDARY200
 import com.ntg.stepcounter.util.extension.notEmptyOrNull
 import com.ntg.stepcounter.util.extension.notNull
+import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.util.extension.toast
@@ -61,7 +66,8 @@ fun ProfRegisterScreen(
     navHostController: NavHostController,
     loginViewModel: LoginViewModel,
     userDataViewModel: UserDataViewModel,
-    phoneNumber: String?
+    phoneNumber: String?,
+    edit: Boolean,
 ) {
     Scaffold(
         topBar = {
@@ -77,14 +83,14 @@ fun ProfRegisterScreen(
             )
         },
         content = { innerPadding ->
-            Content(innerPadding, navHostController, loginViewModel, userDataViewModel, phoneNumber)
+            Content(innerPadding, navHostController, loginViewModel, userDataViewModel, phoneNumber, edit)
         }
     )
 
 }
 
 @Composable
-private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHostController, loginViewModel: LoginViewModel, userDataViewModel: UserDataViewModel, phoneNumber: String?) {
+private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHostController, loginViewModel: LoginViewModel, userDataViewModel: UserDataViewModel, phoneNumber: String?,edit: Boolean) {
 
     val ctx = LocalContext.current
     val owner = LocalLifecycleOwner.current
@@ -105,6 +111,10 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
         mutableStateOf("")
     }
 
+    var applied by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     val loading = remember {
         mutableStateOf(false)
     }
@@ -112,14 +122,36 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
     fosId.value = loginViewModel.fieldOfStudy?.title.orEmpty()
 
 
+    if (edit.orFalse() && !applied){
+
+        val fieldStudy = FieldOfStudy()
+
+        userDataViewModel.getUsername().collectAsState(initial = "").value.let {
+            fullName.value = it
+        }
+
+        userDataViewModel.getUserId().collectAsState(initial = "").value.let {
+            sId.value = it
+        }
+
+        userDataViewModel.getFosId().collectAsState(initial = -1).value.let {
+            fieldStudy.id = it
+            loginViewModel.fieldOfStudy = fieldStudy
+        }
+
+        userDataViewModel.getFieldStudy().collectAsState(initial = "").value.let {
+            fieldStudy.title = it
+            loginViewModel.fieldOfStudy = fieldStudy
+        }
+
+        if (fullName.value.isNotEmpty() && loginViewModel.fieldOfStudy != null && fieldStudy.id != -1){
+            applied = true
+        }
+
+    }
+
 
     LazyColumn {
-        item {
-            Appbar(
-                title = stringResource(R.string.register),
-                navigationOnClick = { navHostController.popBackStack() }
-            )
-        }
 
         item {
             Column(modifier = Modifier.padding(horizontal = 32.dp)) {
@@ -157,7 +189,7 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp),
-                    text = stringResource(id = R.string.next),
+                    text = if (edit) stringResource(id = R.string.save) else stringResource(id = R.string.next),
                     size = ButtonSize.XL,
                     loading = loading.value
                 ) {
@@ -176,12 +208,7 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
                                     ctx.getString(R.string.fos_empty)
                                 )
                             }
-                            .then {
-                                notEmptyOrNull(
-                                    gradeId.value,
-                                    ctx.getString(R.string.student_id)
-                                )
-                            }
+
 
                     when (result) {
                         is Failure -> {
@@ -190,35 +217,69 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
 
                         is Success -> {
                             loading.value = true
-                            loginViewModel.register(
-                                phoneNumber.orEmpty(),
-                                fullName.value,
-                                "2",
-                                sId.value,
-                                loginViewModel.fieldOfStudy?.id.toString(),
-                                gradeId.value.toString()
-                            ).observe(owner) {
-                                when (it) {
-                                    is NetworkResult.Error -> {
-                                        ctx.getString(R.string.sth_wrong)
-                                        loading.value = false
-                                    }
 
-                                    is NetworkResult.Loading -> {
-                                    }
+                            if (edit){
+                                loginViewModel.editUserDate(
+                                    phoneNumber.orEmpty(),
+                                    fullName.value,
+                                    "2",
+                                    sId.value,
+                                    loginViewModel.fieldOfStudy?.id.toString(),
+                                    gradeId.value.toString()
+                                ).observe(owner) {
+                                    when (it) {
+                                        is NetworkResult.Error -> {
+                                            ctx.getString(R.string.sth_wrong)
+                                            loading.value = false
+                                        }
 
-                                    is NetworkResult.Success -> {
-                                        userDataViewModel.setUsername(fullName.value)
-                                        userDataViewModel.setUserStatus("1")
-                                        userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
-                                        userDataViewModel.setUserId(sId.value)
-                                        userDataViewModel.setPhone(phoneNumber.orEmpty())
-                                        navHostController.navigate(Screens.HomeScreen.name) {
-                                            popUpTo(0)
+                                        is NetworkResult.Loading -> {
+                                        }
+
+                                        is NetworkResult.Success -> {
+                                            userDataViewModel.setUsername(fullName.value)
+                                            userDataViewModel.setUserStatus("2")
+                                            userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
+                                            userDataViewModel.setUserId(sId.value)
+                                            userDataViewModel.setPhone(phoneNumber.orEmpty())
+                                            navHostController.navigate(Screens.HomeScreen.name) {
+                                                popUpTo(0)
+                                            }
                                         }
                                     }
-                                }
 
+                                }
+                            }else{
+                                loginViewModel.register(
+                                    phoneNumber.orEmpty(),
+                                    fullName.value,
+                                    "2",
+                                    sId.value,
+                                    loginViewModel.fieldOfStudy?.id.toString(),
+                                    gradeId.value.toString()
+                                ).observe(owner) {
+                                    when (it) {
+                                        is NetworkResult.Error -> {
+                                            ctx.getString(R.string.sth_wrong)
+                                            loading.value = false
+                                        }
+
+                                        is NetworkResult.Loading -> {
+                                        }
+
+                                        is NetworkResult.Success -> {
+                                            userDataViewModel.setUsername(fullName.value)
+                                            userDataViewModel.setUserStatus("2")
+                                            userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
+                                            userDataViewModel.setUserId(sId.value)
+                                            userDataViewModel.setPhone(phoneNumber.orEmpty())
+                                            navHostController.navigate(Screens.HomeScreen.name) {
+                                                popUpTo(0)
+                                            }
+                                        }
+                                    }
+
+                                }
                             }
                         }
                     }
@@ -232,7 +293,11 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
                     size = ButtonSize.XL,
                     style = ButtonStyle.TextOnly
                 ) {
-                    navHostController.popBackStack()
+                    if (navHostController.previousBackStackEntry?.destination?.route == Screens.SettingsScreen.name){
+                        navHostController.navigate(Screens.RegisterScreen.name + "?phone=$phoneNumber&edit=${true}")
+                    }else{
+                        navHostController.popBackStack()
+                    }
                 }
             }
 

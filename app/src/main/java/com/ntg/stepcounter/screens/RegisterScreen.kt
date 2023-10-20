@@ -14,15 +14,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.Text
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
@@ -39,13 +44,20 @@ import com.ntg.stepcounter.components.CustomButton
 import com.ntg.stepcounter.components.EditText
 import com.ntg.stepcounter.components.SampleItem
 import com.ntg.stepcounter.models.Failure
+import com.ntg.stepcounter.models.FieldOfStudy
 import com.ntg.stepcounter.models.Success
 import com.ntg.stepcounter.models.components.GradeItem
 import com.ntg.stepcounter.models.then
 import com.ntg.stepcounter.nav.Screens
+import com.ntg.stepcounter.ui.theme.PRIMARY100
+import com.ntg.stepcounter.ui.theme.PRIMARY900
 import com.ntg.stepcounter.ui.theme.SECONDARY200
+import com.ntg.stepcounter.ui.theme.TERTIARY100
+import com.ntg.stepcounter.ui.theme.TERTIARY900
+import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.util.extension.notEmptyOrNull
 import com.ntg.stepcounter.util.extension.notNull
+import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.util.extension.toast
@@ -59,7 +71,8 @@ fun RegisterScreen(
     navHostController: NavHostController,
     loginViewModel: LoginViewModel,
     userDataViewModel: UserDataViewModel,
-    phoneNumber: String?
+    phoneNumber: String?,
+    edit: Boolean?
 ) {
     val sheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden
@@ -88,6 +101,14 @@ fun RegisterScreen(
         mutableStateOf(false)
     }
 
+    var applied by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var isVerified by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     fosId.value = loginViewModel.fieldOfStudy?.title.orEmpty()
 
 
@@ -110,7 +131,43 @@ fun RegisterScreen(
         mutableStateOf("")
     }
 
-    timber("dajwdhwajkhdkjwd ${grade.value}")
+    isVerified = userDataViewModel.isVerified().collectAsState(initial = false).value
+
+
+    if (edit.orFalse() && !applied){
+
+        val fieldStudy = FieldOfStudy()
+
+        userDataViewModel.getUsername().collectAsState(initial = "").value.let {
+            fullName.value = it
+        }
+
+        userDataViewModel.getUserId().collectAsState(initial = "").value.let {
+            sId.value = it
+        }
+
+        userDataViewModel.getGradeId().collectAsState(initial = -1).value.let {gId ->
+            gradeId.value = gId
+            try {
+                grade.value = gradeItems.first { it.id == gId  }.title
+            }catch (e:Exception) {e.printStackTrace()}
+        }
+
+        userDataViewModel.getFosId().collectAsState(initial = -1).value.let {
+            fieldStudy.id = it
+            loginViewModel.fieldOfStudy = fieldStudy
+        }
+
+        userDataViewModel.getFieldStudy().collectAsState(initial = "").value.let {
+            fieldStudy.title = it
+            loginViewModel.fieldOfStudy = fieldStudy
+        }
+
+        if (fullName.value.isNotEmpty() && loginViewModel.fieldOfStudy != null && fieldStudy.id != -1){
+            applied = true
+        }
+
+    }
 
     ModalBottomSheetLayout(sheetState = sheetState, sheetContent = {
 
@@ -142,13 +199,27 @@ fun RegisterScreen(
         LazyColumn{
             item {
                 Appbar(
-                    title = stringResource(R.string.register),
+                    title = if (edit.orFalse()) stringResource(R.string.edit_account_info) else stringResource(R.string.register),
                     navigationOnClick = { navHostController.popBackStack() }
                 )
             }
 
             item {
-                Column(modifier = Modifier.padding(horizontal = 32.dp)) {
+                    Box(modifier = Modifier
+                        .padding(top = 24.dp)
+                        .padding(horizontal = 32.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (isVerified) PRIMARY100 else TERTIARY100)) {
+                        Text(modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp), text = if (isVerified) stringResource(id = R.string.account_verified) else stringResource(id = R.string.account_pending), style = fontMedium12(
+                            if (isVerified) PRIMARY900 else TERTIARY900
+                        )
+                        )
+                    }
+            }
+
+            item {
+                Column(modifier = Modifier.padding(horizontal = 32.dp).padding(top = 16.dp)) {
 
                     EditText(
                         modifier = Modifier
@@ -186,12 +257,12 @@ fun RegisterScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 24.dp),
-                        text = stringResource(id = R.string.next),
+                        text = if (edit.orFalse()) stringResource(id = R.string.save) else stringResource(id = R.string.next),
                         size = ButtonSize.XL,
                         loading = loading.value
                     ) {
 
-                        var result = notEmptyOrNull(fullName.value, ctx.getString(R.string.full_name_empty))
+                        val result = notEmptyOrNull(fullName.value, ctx.getString(R.string.full_name_empty))
                             .then { notEmptyOrNull(sId.value, ctx.getString(R.string.student_id_empty)) }
                             .then { notNull(loginViewModel.fieldOfStudy, ctx.getString(R.string.fos_empty)) }
                             .then { notEmptyOrNull(gradeId.value, ctx.getString(R.string.student_id)) }
@@ -202,27 +273,66 @@ fun RegisterScreen(
                             }
                             is Success -> {
                                 loading.value = true
-                                loginViewModel.register(phoneNumber.orEmpty(), fullName.value, "1", sId.value, loginViewModel.fieldOfStudy?.id.toString(), gradeId.value.toString()).observe(owner){
-                                    when (it){
-                                        is NetworkResult.Error -> {
-                                            ctx.getString(R.string.sth_wrong)
-                                            loading.value = false
-                                        }
-                                        is NetworkResult.Loading -> {
-                                        }
-                                        is NetworkResult.Success -> {
-                                            userDataViewModel.setUsername(fullName.value)
-                                            userDataViewModel.setUserStatus("1")
-                                            userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
-                                            userDataViewModel.setUserId(sId.value)
-                                            userDataViewModel.setPhone(phoneNumber.orEmpty())
-                                            navHostController.navigate(Screens.HomeScreen.name){
-                                                popUpTo(0)
+
+                                if (edit.orFalse()){
+                                    loginViewModel.editUserDate(phone = phoneNumber.orEmpty(), fullName = fullName.value, state = "1", uid = sId.value, fosId = loginViewModel.fieldOfStudy?.id.toString(), gradeId = gradeId.value.toString()).observe(owner){
+                                        when (it){
+                                            is NetworkResult.Error -> {
+                                                ctx.getString(R.string.sth_wrong)
+                                                loading.value = false
+                                            }
+                                            is NetworkResult.Loading -> {
+                                            }
+                                            is NetworkResult.Success -> {
+                                                if (it.data?.isSuccess.orFalse()){
+                                                    userDataViewModel.setUserStatus("1")
+                                                    userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
+                                                    userDataViewModel.setUserId(sId.value)
+                                                    userDataViewModel.setPhone(phoneNumber.orEmpty())
+                                                    userDataViewModel.setUsername(fullName.value)
+                                                    userDataViewModel.setGradeId(gradeId.value)
+                                                    userDataViewModel.setFosId(loginViewModel.fieldOfStudy?.id.orZero())
+                                                    ctx.toast(ctx.getString(R.string.user_updated_successfully))
+                                                    navHostController.popBackStack(Screens.SettingsScreen.name, false)
+                                                }else if (it.data?.message == "UID_ALREADY_EXIST"){
+                                                    ctx.toast(ctx.getString(R.string.uid_already_exist))
+                                                }else{
+                                                    ctx.toast(ctx.getString(R.string.user_not_updated))
+                                                }
                                             }
                                         }
-                                    }
 
+                                    }
+                                }else{
+                                    loginViewModel.register(phoneNumber.orEmpty(), fullName.value, "1", sId.value, loginViewModel.fieldOfStudy?.id.toString(), gradeId.value.toString()).observe(owner){
+                                        when (it){
+                                            is NetworkResult.Error -> {
+                                                ctx.getString(R.string.sth_wrong)
+                                                loading.value = false
+                                            }
+                                            is NetworkResult.Loading -> {
+                                            }
+                                            is NetworkResult.Success -> {
+                                                if (it.data?.isSuccess.orFalse()){
+                                                    userDataViewModel.setUserStatus("1")
+                                                    userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
+                                                    userDataViewModel.setUserId(sId.value)
+                                                    userDataViewModel.setPhone(phoneNumber.orEmpty())
+                                                    userDataViewModel.setUsername(fullName.value)
+                                                    userDataViewModel.setGradeId(gradeId.value)
+                                                    userDataViewModel.setFosId(loginViewModel.fieldOfStudy?.id.orZero())
+                                                }else if (it.data?.message == "UID_ALREADY_EXIST"){
+                                                    ctx.toast(ctx.getString(R.string.uid_already_exist))
+                                                }else{
+                                                    ctx.toast(ctx.getString(R.string.user_not_registered))
+                                                }
+                                            }
+                                        }
+
+                                    }
                                 }
+
+
                             }
                         }
                     }
@@ -235,7 +345,7 @@ fun RegisterScreen(
                         size = ButtonSize.XL,
                         style = ButtonStyle.TextOnly
                     ) {
-                        navHostController.navigate(Screens.ProfRegisterScreen.name + "?phone=$phoneNumber")
+                        navHostController.navigate(Screens.ProfRegisterScreen.name + "?phone=$phoneNumber&edit=$edit")
                     }
                 }
 

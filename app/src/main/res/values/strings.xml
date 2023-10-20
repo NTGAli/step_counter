@@ -47,6 +47,7 @@
     <string name="contact_us">ارتباط باما</string>
     <string name="report_problem">گزارش مشکل</string>
     <string name="account_pending">حساب کاربری شما نیاز به تایید یا بررسی دارد</string>
+    <string name="account_verified">حساب کاربری شما تایید شده است</string>
     <string name="first_last_name">نام و نام خانوادگی</string>
     <string name="student_id">شماره دانشجویی</string>
     <string name="field_study">رشته تحصیلی</string>
@@ -90,4 +91,9 @@
     <string name="fiald_to_fetch_data">خطا در دریافت داده ها</string>
     <string name="no_internet">اینترنت شما قطع می باشد</string>
     <string name="try_again">تلاش مجدد</string>
+    <string name="edit_account_info">ویرایش اطلاعات کاربری</string>
+    <string name="user_updated_successfully">اطلاعات شما بروزرسانی شد</string>
+    <string name="user_not_updated">خطا در بروزرسانی اطلاعات کاربری</string>
+    <string name="user_not_registered">خطا در ثبت نام</string>
+    <string name="uid_already_exist">شماره دانشجویی قبلا ثبت شده</string>
 </resources>
