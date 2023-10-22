@@ -137,33 +137,6 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
     }
 
 
-    private fun createNotification2(context: Context) {
-        val builder = NotificationCompat.Builder(context, "123")
-            .setSmallIcon(androidx.core.R.drawable.ic_call_answer_low)
-            .setContentTitle("My notification")
-            .setContentText("Much longer text that cannot fit one line...")
-            .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("Much longer text that cannot fit one line..."))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
-        with(NotificationManagerCompat.from(context)) {
-            if (ActivityCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return
-            }
-            notify(123, builder.build())
-        }
-    }
 
     override fun onSensorChanged(p0: SensorEvent?) {
 
@@ -177,13 +150,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             timber("StepCounterListener :::: Background")
-            val dateOfToday = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                LocalDate.now().toString()
-            } else {
-                val currentDate = Date()
-                val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-                dateFormat.format(currentDate)
-            }
+            val dateOfToday = dateOfToday()
             val rowsUpdated = appDB.stepDao().updateCount(dateOfToday)
             if (rowsUpdated == 0) {
                 // If no rows were updated, insert a new row with count = 1

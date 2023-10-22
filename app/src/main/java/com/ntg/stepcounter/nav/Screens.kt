@@ -14,5 +14,6 @@ enum class Screens {
     ProfRegisterScreen,
     FieldStudiesScreen,
     UserProfileScreen,
-    FieldOfStudyDetailsScreen
+    FieldOfStudyDetailsScreen,
+    UserClapsScreen
 }

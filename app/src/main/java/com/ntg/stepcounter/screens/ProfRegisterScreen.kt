@@ -15,6 +15,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.rememberModalBottomSheetState
@@ -29,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
@@ -50,7 +52,12 @@ import com.ntg.stepcounter.models.components.AppbarItem
 import com.ntg.stepcounter.models.components.GradeItem
 import com.ntg.stepcounter.models.then
 import com.ntg.stepcounter.nav.Screens
+import com.ntg.stepcounter.ui.theme.PRIMARY100
+import com.ntg.stepcounter.ui.theme.PRIMARY900
 import com.ntg.stepcounter.ui.theme.SECONDARY200
+import com.ntg.stepcounter.ui.theme.TERTIARY100
+import com.ntg.stepcounter.ui.theme.TERTIARY900
+import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.util.extension.notEmptyOrNull
 import com.ntg.stepcounter.util.extension.notNull
 import com.ntg.stepcounter.util.extension.orFalse
@@ -83,14 +90,28 @@ fun ProfRegisterScreen(
             )
         },
         content = { innerPadding ->
-            Content(innerPadding, navHostController, loginViewModel, userDataViewModel, phoneNumber, edit)
+            Content(
+                innerPadding,
+                navHostController,
+                loginViewModel,
+                userDataViewModel,
+                phoneNumber,
+                edit
+            )
         }
     )
 
 }
 
 @Composable
-private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHostController, loginViewModel: LoginViewModel, userDataViewModel: UserDataViewModel, phoneNumber: String?,edit: Boolean) {
+private fun Content(
+    innerPaddingValues: PaddingValues,
+    navHostController: NavHostController,
+    loginViewModel: LoginViewModel,
+    userDataViewModel: UserDataViewModel,
+    phoneNumber: String?,
+    edit: Boolean
+) {
 
     val ctx = LocalContext.current
     val owner = LocalLifecycleOwner.current
@@ -127,7 +148,7 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
     isVerified = userDataViewModel.isVerified().collectAsState(initial = false).value
 
 
-    if (edit.orFalse() && !applied){
+    if (edit.orFalse() && !applied) {
 
         val fieldStudy = FieldOfStudy()
 
@@ -149,7 +170,7 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
             loginViewModel.fieldOfStudy = fieldStudy
         }
 
-        if (fullName.value.isNotEmpty() && loginViewModel.fieldOfStudy != null && fieldStudy.id != -1){
+        if (fullName.value.isNotEmpty() && loginViewModel.fieldOfStudy != null && fieldStudy.id != -1) {
             applied = true
         }
 
@@ -157,6 +178,28 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
 
 
     LazyColumn {
+
+
+        item {
+            Box(
+                modifier = Modifier
+                    .padding(top = 24.dp)
+                    .padding(horizontal = 32.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (isVerified) PRIMARY100 else TERTIARY100)
+            ) {
+                Text(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
+                    text = if (isVerified) stringResource(id = R.string.account_verified) else stringResource(
+                        id = R.string.account_pending
+                    ),
+                    style = fontMedium12(
+                        if (isVerified) PRIMARY900 else TERTIARY900
+                    )
+                )
+            }
+        }
 
         item {
             Column(modifier = Modifier.padding(horizontal = 32.dp)) {
@@ -224,7 +267,7 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
                         is Success -> {
                             loading.value = true
 
-                            if (edit){
+                            if (edit) {
                                 loginViewModel.editUserDate(
                                     phoneNumber.orEmpty(),
                                     fullName.value,
@@ -255,7 +298,7 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
                                     }
 
                                 }
-                            }else{
+                            } else {
                                 loginViewModel.register(
                                     phoneNumber.orEmpty(),
                                     fullName.value,
@@ -291,7 +334,7 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
                     }
                 }
 
-                if (!isVerified && edit.orFalse()){
+                if (!isVerified && edit.orFalse()) {
                     CustomButton(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -300,9 +343,9 @@ private fun Content(innerPaddingValues: PaddingValues, navHostController: NavHos
                         size = ButtonSize.XL,
                         style = ButtonStyle.TextOnly
                     ) {
-                        if (navHostController.previousBackStackEntry?.destination?.route == Screens.SettingsScreen.name){
+                        if (navHostController.previousBackStackEntry?.destination?.route == Screens.SettingsScreen.name) {
                             navHostController.navigate(Screens.RegisterScreen.name + "?phone=$phoneNumber&edit=${true}")
-                        }else{
+                        } else {
                             navHostController.popBackStack()
                         }
                     }

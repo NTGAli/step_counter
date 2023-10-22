@@ -13,10 +13,13 @@ import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.TopRecord
 import com.ntg.stepcounter.models.res.StepSynced
 import com.ntg.stepcounter.models.res.SummariesRes
+import com.ntg.stepcounter.util.extension.dateOfToday
 import com.ntg.stepcounter.util.extension.safeApiCall
+import com.ntg.stepcounter.util.extension.timber
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Date
@@ -28,7 +31,7 @@ class StepViewModel @Inject constructor(
     private val apiService: ApiService
 ) : ViewModel() {
 
-    private var stepsOfToday: LiveData<Step> = MutableLiveData()
+    private var stepsOfToday: LiveData<List<Step>> = MutableLiveData()
     private var topRecord: LiveData<TopRecord?>? = MutableLiveData()
     private var unSynced: LiveData<List<Step?>> = MutableLiveData()
     private var syncResult: MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>> = MutableLiveData()
@@ -40,13 +43,7 @@ class StepViewModel @Inject constructor(
 
     fun insertStep() = viewModelScope.launch {
 
-        val dateOfToday = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            LocalDate.now().toString()
-        } else {
-            val currentDate = Date()
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-            dateFormat.format(currentDate)
-        }
+        val dateOfToday = dateOfToday()
         val rowsUpdated = appDB.stepDao().updateCount(dateOfToday)
 
         if (rowsUpdated == 0) {
@@ -54,6 +51,26 @@ class StepViewModel @Inject constructor(
             val newEntity = Step(0,date = dateOfToday, count =  1) // Replace with your entity constructor
             appDB.stepDao().insert(newEntity)
         }
+    }
+
+    fun insertStep(count: Int, updateId: Int) = viewModelScope.launch {
+
+        timber("ajkhdjakdkjawhdjkwhakjdh $updateId")
+        val dateOfToday = dateOfToday()
+
+        if (updateId != -1){
+            val rowsUpdated = appDB.stepDao().updateCount(updateId, count)
+            if (rowsUpdated == 0) {
+                val newEntity = Step(0,date = dateOfToday, start  =  count)
+                appDB.stepDao().insert(newEntity)
+            }
+        }else{
+            val newEntity = Step(0,date = dateOfToday, start  =  count)
+            appDB.stepDao().insert(newEntity)
+        }
+
+//        val rowsUpdated = appDB.stepDao().updateCount(dateOfToday, count)
+
     }
 
     fun insertManually(step: Step){
@@ -70,14 +87,8 @@ class StepViewModel @Inject constructor(
 
     fun numberOfDate() = appDB.stepDao().numberOfDate()
 
-    fun getToday(): LiveData<Step> {
-        val dateOfToday = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            LocalDate.now().toString()
-        } else {
-            val currentDate = Date()
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-            dateFormat.format(currentDate)
-        }
+    fun getToday(): LiveData<List<Step>> {
+        val dateOfToday = dateOfToday()
 
         viewModelScope.launch {
             stepsOfToday = appDB.stepDao().getToday(dateOfToday)

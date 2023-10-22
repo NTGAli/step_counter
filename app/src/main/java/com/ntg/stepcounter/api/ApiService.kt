@@ -103,4 +103,10 @@ interface ApiService {
     suspend fun accountSate(
         @Field("uid") uid: String
     ): Response<ResponseBody<AccountStateRes?>>
+
+    @FormUrlEncoded
+    @POST("clapData.php")
+    suspend fun clapData(
+        @Field("uid") uid: String
+    ): Response<ResponseBody<List<UserRes>?>>
 }

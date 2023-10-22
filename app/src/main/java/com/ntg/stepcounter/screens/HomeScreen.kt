@@ -123,7 +123,16 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
     val ctx = LocalContext.current
     val owner = LocalLifecycleOwner.current
 
-    val stepsOfToday = stepViewModel.getToday().observeAsState().value?.count.orZero()
+
+    val userStepsToday = stepViewModel.getToday().observeAsState().value
+    var stepsOfToday = 0
+
+    userStepsToday?.forEach {
+        if (it.count != 0){
+            stepsOfToday += it.count.orZero() - it.start.orZero()
+        }
+    }
+
     val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
 
     internetConnection = ctx.checkInternet()
@@ -353,10 +362,7 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
 
                     Text(
                         modifier = Modifier
-                            .padding(top = 32.dp)
-                            .clickable {
-                                stepViewModel.insertStep()
-                            },
+                            .padding(top = 32.dp),
                         text = divideNumber(
                             stepsOfToday
                         ),

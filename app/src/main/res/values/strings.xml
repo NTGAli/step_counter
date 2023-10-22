@@ -96,4 +96,7 @@
     <string name="user_not_updated">خطا در بروزرسانی اطلاعات کاربری</string>
     <string name="user_not_registered">خطا در ثبت نام</string>
     <string name="uid_already_exist">شماره دانشجویی قبلا ثبت شده</string>
+    <string name="clpas_for_you_format">%s نفر برای شما دست زده</string>
+    <string name="users">تشویق کنندگان</string>
+    <string name="wrong">اشتباهی شده؟</string>
 </resources>

@@ -24,6 +24,7 @@ import com.ntg.stepcounter.screens.SettingsScreen
 import com.ntg.stepcounter.screens.SignInScreen
 import com.ntg.stepcounter.screens.SocialListScreen
 import com.ntg.stepcounter.screens.SocialScreen
+import com.ntg.stepcounter.screens.UserClapsScreen
 import com.ntg.stepcounter.screens.UserProfileScreen
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.vm.LoginViewModel
@@ -208,6 +209,10 @@ fun AppNavHost(
                 it.arguments?.getString("uid").orEmpty(),
                 it.arguments?.getString("rank").orEmpty()
             )
+        }
+
+        composable(Screens.UserClapsScreen.name) {
+            UserClapsScreen(navController, userDataViewModel)
         }
 
 

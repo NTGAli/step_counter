@@ -8,6 +8,8 @@ data class Step(
     @PrimaryKey(autoGenerate = true)
     val id: Int,
     val date: String,
-    val count: Int? = null,
-    val synced: Int? = 0
+    val start: Int? = null,
+    val count: Int = 0,
+    val synced: Int? = 0,
+    val exp: Boolean = false
 )

@@ -28,6 +28,7 @@ class UserDataViewModel @Inject constructor(
     private var fodDetails: MutableLiveData<NetworkResult<ResponseBody<FosDetailsRes?>>> = MutableLiveData()
     private var usersFos: MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> = MutableLiveData()
     private var userSteps: MutableLiveData<NetworkResult<ResponseBody<List<StepRes>?>>> = MutableLiveData()
+    private var clapsData: MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> = MutableLiveData()
     private var accountStateDate: MutableLiveData<NetworkResult<ResponseBody<AccountStateRes?>>> = MutableLiveData()
     private var clapResult: MutableLiveData<NetworkResult<ResponseBody<Any?>>> = MutableLiveData()
 
@@ -40,6 +41,7 @@ class UserDataViewModel @Inject constructor(
     fun getFieldStudy() = userStore.fieldStudy
     fun getFosId() = userStore.getFosId
     fun isVerified() = userStore.isVerified
+    fun isBlocked() = userStore.isBlocked
     fun isShowReport() = userStore.showReport
     fun isAutoDetect() = userStore.isAutoDetect
 
@@ -61,6 +63,10 @@ class UserDataViewModel @Inject constructor(
 
     fun isVerified(isVerified: Boolean) = viewModelScope.launch {
         userStore.isVerified(isVerified)
+    }
+
+    fun isBlocked(isBlocked: Boolean) = viewModelScope.launch {
+        userStore.isBlocked(isBlocked)
     }
 
     fun setPhone(phone: String) = viewModelScope.launch {
@@ -137,6 +143,18 @@ class UserDataViewModel @Inject constructor(
             apiService.clap(uid, forUid)
         }
         return clapResult
+    }
+
+    fun clapsData(uid: String): MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> {
+        if (clapsData.value == null){
+
+            viewModelScope.launch {
+                clapsData = safeApiCall(Dispatchers.IO){
+                    apiService.clapData(uid)
+                } as MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>>
+            }
+        }
+        return clapsData
     }
 
 
