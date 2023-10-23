@@ -15,16 +15,20 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.IBinder
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ServiceLifecycleDispatcher
 import com.ntg.stepcounter.db.AppDB
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.util.Constants.NOTIFICATION_CHANNEL_ID
 import com.ntg.stepcounter.util.extension.dateOfToday
+import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.timber
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -51,6 +55,9 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
             // If running on older Android versions, use a default channel ID
             ""
         }
+    private lateinit var updateId: String
+    private var steps: MutableLiveData<Int> = MutableLiveData()
+
 
     @Inject
     lateinit var appDB: AppDB
@@ -63,8 +70,38 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
         timber("BackgroundService:::onCreate")
         notification = createNotification()
 //        notificationManager.notify(1414, notification)
-        startForeground(1414, notification)
+        try {
+            startForeground(1414, notification)
+        }catch (e: Exception) {e.printStackTrace()}
 
+
+        appDB.stepDao().getToday(dateOfToday()).observe(this){
+            updateId = if (it.lastOrNull() != null){
+                it.last().id.toString()
+            } else ""
+
+            timber("aklwjdaklwjdlkawjdlkwlkd $updateId")
+
+            steps.value = 0
+            it.forEach { step ->
+                if (step.count != 0){
+                    steps.value = steps.value.orZero() + (step.count - step.start.orZero())
+                }
+            }
+
+
+        }
+    }
+
+    private fun updateNotification(){
+        steps.observe(this){
+            try {
+                notificationBuilder.setContentText(it.toString())
+                notificationManager.notify(1414, notificationBuilder.build())
+            }catch (e: Exception){
+                e.printStackTrace()
+            }
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -74,25 +111,11 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         timber("BackgroundService:::start")
         mServiceLifecycleDispatcher.onServicePreSuperOnStart()
-        val sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-        val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        val stepSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         if (stepSensor != null) {
-            sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
+            sensorManager!!.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
         }
-
-
-//        appDB.stepDao().getToday(dateOfToday()).observe(this){
-//
-//            try {
-//                timber("klajwdlkajdlkajwlkdjlwkad ${it.count}")
-//                notificationBuilder.setContentText(it.count.toString())
-//                notificationManager.notify(1414, notificationBuilder.build())
-////                notification.notify()
-//            }catch (e: Exception){
-//                e.printStackTrace()
-//            }
-//
-//        }
 
         return START_NOT_STICKY
     }
@@ -121,6 +144,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
             .setContentIntent(pendingIntent) // Set the PendingIntent when the notification is clicked
             .setOngoing(true) // Makes the notification persistent
             .setAutoCancel(false) // Prevents the notification from being dismissed when clicked
+            .setVibrate(longArrayOf(0))
 //
 //        // Create a notification channel (if needed) for Android Oreo and later
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -139,25 +163,34 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
 
 
     override fun onSensorChanged(p0: SensorEvent?) {
-
-        try {
-            notificationBuilder.setContentText(p0?.values?.firstOrNull().toString())
-            notificationManager.notify(1414, notificationBuilder.build())
-        }catch (e: Exception){
-            e.printStackTrace()
-        }
-
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
-            timber("StepCounterListener :::: Background")
-            val dateOfToday = dateOfToday()
-            val rowsUpdated = appDB.stepDao().updateCount(dateOfToday)
-            if (rowsUpdated == 0) {
-                // If no rows were updated, insert a new row with count = 1
-                val newEntity = Step(0,date = dateOfToday, count =  1) // Replace with your entity constructor
-                appDB.stepDao().insert(newEntity)
-            }
+            timber("onSensorChanged :::: Background")
+
+            val count = p0?.values?.firstOrNull()?.toInt()
+
+
+           if (::updateId.isInitialized){
+               if (updateId.isNotEmpty()){
+                   val rowsUpdated = appDB.stepDao().updateCount(updateId.toInt(), count, true)
+                   if (rowsUpdated == 0) {
+                       val newEntity = Step(0,date = dateOfToday(), start  =  count, exp = true)
+                       appDB.stepDao().insert(newEntity)
+                   }
+               }else{
+                   val newEntity = Step(0,date = dateOfToday(), start  =  count, exp = true)
+                   appDB.stepDao().insert(newEntity)
+               }
+           }
+
+//            val dateOfToday = dateOfToday()
+//            val rowsUpdated = appDB.stepDao().updateCount(dateOfToday)
+//            if (rowsUpdated == 0) {
+//                val newEntity = Step(0,date = dateOfToday, count =  1)
+//                appDB.stepDao().insert(newEntity)
+//            }
         }
+
     }
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
@@ -167,6 +200,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
     override fun onDestroy() {
         super.onDestroy()
         timber("BackgroundService:::destroy")
+        sensorManager?.unregisterListener(this)
         sensorManager = null
         stopSelf()
     }

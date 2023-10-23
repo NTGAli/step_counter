@@ -24,13 +24,13 @@ interface StepDao {
     @Query("UPDATE Step SET count = count + 1 WHERE date = :date")
     suspend fun updateCount(date: String?): Int
 
-    @Query("UPDATE Step SET count =:count WHERE id = :id AND count <:count")
-    suspend fun updateCount(id: Int?, count: Int?): Int
+    @Query("UPDATE Step SET count =:count, exp =:exp WHERE id = :id AND count <:count")
+    suspend fun updateCount(id: Int?, count: Int?, exp: Boolean = false): Int
 
-    @Query("UPDATE Step SET synced =:sync WHERE date = :date")
-    suspend fun updateSync(date: String, sync: Int)
+    @Query("UPDATE Step SET synced =:sync WHERE id = :id")
+    suspend fun updateSync(id: Int, sync: Int)
 
-    @Query("SELECT SUM(count) FROM Step")
+    @Query("SELECT SUM(count - start) FROM Step WHERE count != 0")
     fun getAllSteps(): LiveData<Int>
 
     @Query("SELECT * FROM Step")
@@ -39,7 +39,7 @@ interface StepDao {
     @Query("SELECT * FROM Step WHERE date =:date")
     fun getToday(date: String): LiveData<List<Step>>
 
-    @Query("SELECT date, MAX(count) AS record_count FROM Step")
+    @Query("SELECT date, SUM(count - start) AS record_count FROM Step WHERE count != 0 GROUP BY date ORDER BY record_count DESC LIMIT 1")
     fun topRecord(): LiveData<TopRecord?>?
 
     @Query("SELECT COUNT(DISTINCT date)\n" +

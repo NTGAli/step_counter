@@ -68,7 +68,7 @@ fun CustomButton(
                 ButtonStyle.Outline -> {
                     background = Color.Transparent
                     borderColor = PRIMARY500
-                    textColor = Color.White
+                    textColor = PRIMARY500
                 }
                 ButtonStyle.TextOnly -> {
                     background = Color.Transparent

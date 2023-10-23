@@ -154,6 +154,9 @@ dependencies {
     // lottie
     implementation("com.airbnb.android:lottie-compose:4.0.0")
 
+    //permission
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
 
 }
 

@@ -36,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -109,7 +110,6 @@ fun ProfileScreen(
     val ctx = LocalContext.current
 
     val totalSteps = stepViewModel.getAllSteps().observeAsState().value
-
 
     val status = userDataViewModel.getUserStatus().collectAsState(initial = "").value
 
@@ -459,7 +459,21 @@ private fun UserDataSteps(
     val allDate = stepViewModel.getAllDate().observeAsState().value
     var dateSelected by remember { mutableStateOf("") }
     if (dateSelected.isEmpty() && allDate.orEmpty().isNotEmpty()) dateSelected =
-        allDate.orEmpty()[0].date
+        allDate?.lastOrNull()?.date.orEmpty()
+
+    var countSelected by remember {
+        mutableIntStateOf(0)
+    }
+
+    if (countSelected == 0){
+        allDate?.filter { it.date == dateSelected }?.forEach {
+            if (it.count != 0){
+                countSelected += it.count - it.start.orZero()
+            }
+        }
+    }
+
+
 
     Column(
         modifier = Modifier
@@ -502,13 +516,15 @@ private fun UserDataSteps(
                     .padding(top = 16.dp)
             ) {
                 itemsIndexed(
-                    allDate.orEmpty().distinctBy { it.date }) { index, it ->
+                    allDate.orEmpty().distinctBy { it.date }.sortedByDescending { it.date }) { index, step ->
                     DateItem(
                         modifier = Modifier.padding(end = 8.dp),
-                        date = it.date,
-                        isSelected = if (dateSelected.isNotEmpty()) dateSelected == it.date else index == 0
+                        date = step.date,
+                        isSelected = if (dateSelected.isNotEmpty()) dateSelected == step.date else index == 0
                     ) { date ->
+                        countSelected = 0
                         dateSelected = date
+
                     }
                 }
             }
@@ -535,7 +551,7 @@ private fun UserDataSteps(
                 ),
                 text = stringResource(
                     id = R.string.step_format,
-                    allDate.orEmpty().first { it.date == dateSelected }.count.orZero()
+                    countSelected
                 ), style = fontMedium12(SECONDARY500)
             )
         } else {

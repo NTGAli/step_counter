@@ -134,7 +134,7 @@ fun RegisterScreen(
     isVerified = userDataViewModel.isVerified().collectAsState(initial = false).value
 
 
-    if (edit.orFalse() && !applied){
+    if (edit.orFalse() && !applied) {
 
         val fieldStudy = FieldOfStudy()
 
@@ -146,16 +146,20 @@ fun RegisterScreen(
             sId.value = it
         }
 
-        userDataViewModel.getGradeId().collectAsState(initial = -1).value.let {gId ->
+        userDataViewModel.getGradeId().collectAsState(initial = -1).value.let { gId ->
             gradeId.value = gId
             try {
-                grade.value = gradeItems.first { it.id == gId  }.title
-            }catch (e:Exception) {e.printStackTrace()}
+                grade.value = gradeItems.first { it.id == gId }.title
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
-        userDataViewModel.getFosId().collectAsState(initial = -1).value.let {
-            fieldStudy.id = it
-            loginViewModel.fieldOfStudy = fieldStudy
+        userDataViewModel.getFosId().collectAsState(initial = null).value.let {
+            if (it != null) {
+                fieldStudy.id = it
+                loginViewModel.fieldOfStudy = fieldStudy
+            }
         }
 
         userDataViewModel.getFieldStudy().collectAsState(initial = "").value.let {
@@ -163,7 +167,7 @@ fun RegisterScreen(
             loginViewModel.fieldOfStudy = fieldStudy
         }
 
-        if (fullName.value.isNotEmpty() && loginViewModel.fieldOfStudy != null && fieldStudy.id != -1){
+        if (fullName.value.isNotEmpty() && loginViewModel.fieldOfStudy != null && loginViewModel.fieldOfStudy?.id != null) {
             applied = true
         }
 
@@ -171,7 +175,7 @@ fun RegisterScreen(
 
     ModalBottomSheetLayout(sheetState = sheetState, sheetContent = {
 
-        Column(horizontalAlignment = Alignment.CenterHorizontally){
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
                 modifier = Modifier
                     .padding(vertical = 24.dp)
@@ -180,11 +184,19 @@ fun RegisterScreen(
                     .background(shape = RoundedCornerShape(16.dp), color = SECONDARY200)
             )
 
-            LazyColumn{
-                items(gradeItems){
-                    SampleItem(modifier = Modifier.padding(horizontal = 24.dp), title = it.title, id = it.id){ _, id, _ ->
+            LazyColumn {
+                items(gradeItems) {
+                    SampleItem(
+                        modifier = Modifier.padding(horizontal = 24.dp),
+                        title = it.title,
+                        id = it.id
+                    ) { _, id, _ ->
                         gradeId.value = id.orZero()
-                        grade.value = try { gradeItems.first { it.id == id.orZero()}.title }catch (e: Exception) {""}
+                        grade.value = try {
+                            gradeItems.first { it.id == id.orZero() }.title
+                        } catch (e: Exception) {
+                            ""
+                        }
                         scope.launch {
                             sheetState.hide()
                         }
@@ -196,35 +208,50 @@ fun RegisterScreen(
 
     }, sheetShape = RoundedCornerShape(topEnd = 32.dp, topStart = 32.dp)) {
 
-        LazyColumn{
+        LazyColumn {
             item {
                 Appbar(
-                    title = if (edit.orFalse()) stringResource(R.string.edit_account_info) else stringResource(R.string.register),
+                    title = if (edit.orFalse()) stringResource(R.string.edit_account_info) else stringResource(
+                        R.string.register
+                    ),
                     navigationOnClick = { navHostController.popBackStack() }
                 )
             }
 
             item {
-                    Box(modifier = Modifier
-                        .padding(top = 24.dp)
-                        .padding(horizontal = 32.dp)
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (isVerified) PRIMARY100 else TERTIARY100)) {
-                        Text(modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp), text = if (isVerified) stringResource(id = R.string.account_verified) else stringResource(id = R.string.account_pending), style = fontMedium12(
-                            if (isVerified) PRIMARY900 else TERTIARY900
-                        )
+                if (edit.orFalse()) {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 24.dp)
+                            .padding(horizontal = 32.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(if (isVerified) PRIMARY100 else TERTIARY100)
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
+                            text = if (isVerified) stringResource(id = R.string.account_verified) else stringResource(
+                                id = R.string.account_pending
+                            ),
+                            style = fontMedium12(
+                                if (isVerified) PRIMARY900 else TERTIARY900
+                            )
                         )
                     }
+                }
             }
 
             item {
-                Column(modifier = Modifier.padding(horizontal = 32.dp).padding(top = 16.dp)) {
+                Column(modifier = Modifier
+                    .padding(horizontal = 32.dp)
+                    .padding(top = 16.dp)) {
 
                     EditText(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 16.dp), label = stringResource(id = R.string.full_name), text = fullName
+                            .padding(top = 16.dp),
+                        label = stringResource(id = R.string.full_name),
+                        text = fullName
                     )
 
                     EditText(
@@ -239,16 +266,22 @@ fun RegisterScreen(
                     EditText(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp), label = stringResource(id = R.string.field_study), text = fosId, readOnly = true
-                    ){
+                            .padding(top = 8.dp),
+                        label = stringResource(id = R.string.field_study),
+                        text = fosId,
+                        readOnly = true
+                    ) {
                         navHostController.navigate(Screens.FieldStudiesScreen.name)
                     }
 
                     EditText(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp), label = stringResource(id = R.string.grade), text = grade, readOnly = true
-                    ){
+                            .padding(top = 8.dp),
+                        label = stringResource(id = R.string.grade),
+                        text = grade,
+                        readOnly = true
+                    ) {
                         scope.launch {
                             sheetState.show()
                         }
@@ -258,34 +291,65 @@ fun RegisterScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 24.dp),
-                        text = if (edit.orFalse()) stringResource(id = R.string.save) else stringResource(id = R.string.next),
+                        text = if (edit.orFalse()) stringResource(id = R.string.save) else stringResource(
+                            id = R.string.next
+                        ),
                         size = ButtonSize.XL,
                         loading = loading.value
                     ) {
 
-                        val result = notEmptyOrNull(fullName.value, ctx.getString(R.string.full_name_empty))
-                            .then { notEmptyOrNull(sId.value, ctx.getString(R.string.student_id_empty)) }
-                            .then { notNull(loginViewModel.fieldOfStudy, ctx.getString(R.string.fos_empty)) }
-                            .then { notEmptyOrNull(gradeId.value, ctx.getString(R.string.student_id)) }
+                        val result =
+                            notEmptyOrNull(fullName.value, ctx.getString(R.string.full_name_empty))
+                                .then {
+                                    notEmptyOrNull(
+                                        sId.value,
+                                        ctx.getString(R.string.student_id_empty)
+                                    )
+                                }
+                                .then {
+                                    notNull(
+                                        loginViewModel.fieldOfStudy,
+                                        ctx.getString(R.string.fos_empty)
+                                    )
+                                }
+                                .then {
+                                    notEmptyOrNull(
+                                        gradeId.value,
+                                        ctx.getString(R.string.student_id)
+                                    )
+                                }
 
-                        when (result){
+                        when (result) {
                             is Failure -> {
                                 ctx.toast(result.errorMessage)
                             }
+
                             is Success -> {
                                 loading.value = true
 
-                                if (edit.orFalse()){
-                                    loginViewModel.editUserDate(phone = phoneNumber.orEmpty(), fullName = fullName.value, state = "1", uid = sId.value, fosId = loginViewModel.fieldOfStudy?.id.toString(), gradeId = gradeId.value.toString()).observe(owner){
-                                        when (it){
+                                if (edit.orFalse()) {
+                                    timber("akdjklawjdkjwaldkjwalkjdlwakjd ${loginViewModel.fieldOfStudy?.id.toString()}")
+
+                                    loginViewModel.editUserDate(
+                                        phone = phoneNumber.orEmpty(),
+                                        fullName = fullName.value,
+                                        state = "1",
+                                        uid = sId.value,
+                                        fosId = loginViewModel.fieldOfStudy?.id.toString(),
+                                        gradeId = gradeId.value.toString()
+                                    ).observe(owner) {
+                                        when (it) {
                                             is NetworkResult.Error -> {
                                                 ctx.getString(R.string.sth_wrong)
                                                 loading.value = false
                                             }
+
                                             is NetworkResult.Loading -> {
                                             }
+
                                             is NetworkResult.Success -> {
-                                                if (it.data?.isSuccess.orFalse()){
+
+                                                if (it.data?.isSuccess.orFalse()) {
                                                     userDataViewModel.setUserStatus("1")
                                                     userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
                                                     userDataViewModel.setUserId(sId.value)
@@ -294,27 +358,39 @@ fun RegisterScreen(
                                                     userDataViewModel.setGradeId(gradeId.value)
                                                     userDataViewModel.setFosId(loginViewModel.fieldOfStudy?.id.orZero())
                                                     ctx.toast(ctx.getString(R.string.user_updated_successfully))
-                                                    navHostController.popBackStack(Screens.SettingsScreen.name, false)
-                                                }else if (it.data?.message == "UID_ALREADY_EXIST"){
+                                                    navHostController.popBackStack(
+                                                        Screens.SettingsScreen.name,
+                                                        false
+                                                    )
+                                                } else if (it.data?.message == "UID_ALREADY_EXIST") {
                                                     ctx.toast(ctx.getString(R.string.uid_already_exist))
-                                                }else{
+                                                } else {
                                                     ctx.toast(ctx.getString(R.string.user_not_updated))
                                                 }
                                             }
                                         }
 
                                     }
-                                }else{
-                                    loginViewModel.register(phoneNumber.orEmpty(), fullName.value, "1", sId.value, loginViewModel.fieldOfStudy?.id.toString(), gradeId.value.toString()).observe(owner){
-                                        when (it){
+                                } else {
+                                    loginViewModel.register(
+                                        phoneNumber.orEmpty(),
+                                        fullName.value,
+                                        "1",
+                                        sId.value,
+                                        loginViewModel.fieldOfStudy?.id.toString(),
+                                        gradeId.value.toString()
+                                    ).observe(owner) {
+                                        when (it) {
                                             is NetworkResult.Error -> {
                                                 ctx.getString(R.string.sth_wrong)
                                                 loading.value = false
                                             }
+
                                             is NetworkResult.Loading -> {
                                             }
+
                                             is NetworkResult.Success -> {
-                                                if (it.data?.isSuccess.orFalse()){
+                                                if (it.data?.isSuccess.orFalse()) {
                                                     userDataViewModel.setUserStatus("1")
                                                     userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
                                                     userDataViewModel.setUserId(sId.value)
@@ -322,9 +398,9 @@ fun RegisterScreen(
                                                     userDataViewModel.setUsername(fullName.value)
                                                     userDataViewModel.setGradeId(gradeId.value)
                                                     userDataViewModel.setFosId(loginViewModel.fieldOfStudy?.id.orZero())
-                                                }else if (it.data?.message == "UID_ALREADY_EXIST"){
+                                                } else if (it.data?.message == "UID_ALREADY_EXIST") {
                                                     ctx.toast(ctx.getString(R.string.uid_already_exist))
-                                                }else{
+                                                } else {
                                                     ctx.toast(ctx.getString(R.string.user_not_registered))
                                                 }
                                             }
@@ -338,7 +414,7 @@ fun RegisterScreen(
                         }
                     }
 
-                    if (!isVerified && edit.orFalse()){
+                    if (!isVerified && edit.orFalse() || !edit.orFalse()) {
                         CustomButton(
                             modifier = Modifier
                                 .fillMaxWidth()

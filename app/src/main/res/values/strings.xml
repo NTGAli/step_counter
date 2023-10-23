@@ -99,4 +99,10 @@
     <string name="clpas_for_you_format">%s نفر برای شما دست زده</string>
     <string name="users">تشویق کنندگان</string>
     <string name="wrong">اشتباهی شده؟</string>
+    <string name="permissions_and_accesses">مجوز و دسترسی ها</string>
+    <string name="permissions_desc">برای شمارش دقیق قدم های شما، نیازمند دسترسی های زیر می باشد.</string>
+    <string name="physical_activity">فعالیت بدنی</string>
+    <string name="access">دسترسی</string>
+    <string name="notification">اعلان</string>
+    <string name="battery">باتری</string>
 </resources>

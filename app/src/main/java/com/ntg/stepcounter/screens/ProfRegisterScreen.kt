@@ -81,12 +81,6 @@ fun ProfRegisterScreen(
             Appbar(
                 title = stringResource(R.string.register),
                 navigationOnClick = { navHostController.popBackStack() },
-                actions = listOf(
-                    AppbarItem(
-                        id = 0,
-                        imageVector = Icons.Rounded.Search
-                    )
-                ),
             )
         },
         content = { innerPadding ->
@@ -181,23 +175,25 @@ private fun Content(
 
 
         item {
-            Box(
-                modifier = Modifier
-                    .padding(top = 24.dp)
-                    .padding(horizontal = 32.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(if (isVerified) PRIMARY100 else TERTIARY100)
-            ) {
-                Text(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
-                    text = if (isVerified) stringResource(id = R.string.account_verified) else stringResource(
-                        id = R.string.account_pending
-                    ),
-                    style = fontMedium12(
-                        if (isVerified) PRIMARY900 else TERTIARY900
+            if (edit.orFalse()){
+                Box(
+                    modifier = Modifier
+                        .padding(top = 24.dp)
+                        .padding(horizontal = 32.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (isVerified) PRIMARY100 else TERTIARY100)
+                ) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
+                        text = if (isVerified) stringResource(id = R.string.account_verified) else stringResource(
+                            id = R.string.account_pending
+                        ),
+                        style = fontMedium12(
+                            if (isVerified) PRIMARY900 else TERTIARY900
+                        )
                     )
-                )
+                }
             }
         }
 
@@ -334,7 +330,7 @@ private fun Content(
                     }
                 }
 
-                if (!isVerified && edit.orFalse()) {
+                if (!isVerified && edit.orFalse() || !edit.orFalse()) {
                     CustomButton(
                         modifier = Modifier
                             .fillMaxWidth()

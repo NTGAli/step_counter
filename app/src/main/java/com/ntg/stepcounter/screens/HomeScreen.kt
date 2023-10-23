@@ -423,10 +423,34 @@ fun getColorComponentsForNumber(number: Int): RGBColor {
     return RGBColor(interpolatedRed, interpolatedGreen, interpolatedBlue)
 }
 
-
+//var isFakeDtaSet = false
 private fun fakeData(stepViewModel: StepViewModel) {
 
-//    val fakeDate = arrayListOf<Step>()
+//    if (!isFakeDtaSet){
+//
+//        val fakeDate = arrayListOf(
+//            Step(0,"2023-05-14",20,500,480),
+//            Step(0,"2023-05-14",68,0,0),
+//            Step(0,"2023-05-14",100,400,300),
+//            Step(0,"2023-05-15",200,800,600),
+//            Step(0,"2023-05-16",400,900,500),
+//            Step(0,"2023-05-17",10,50,40),
+//            Step(0,"2023-10-22",100,600,500),
+//        )
+//
+//
+//        fakeDate.forEach{
+//            stepViewModel.insertManually(it)
+//        }
+//
+//        isFakeDtaSet = true
+//    }
+
+
+
+
+
+
 //
 //
 //    for (i in 0 until 6000)

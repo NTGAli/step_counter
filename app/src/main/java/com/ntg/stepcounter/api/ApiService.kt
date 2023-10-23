@@ -57,6 +57,7 @@ interface ApiService {
         @Field("uid") uid: String,
         @Field("date") date: String,
         @Field("steps") steps: Int?,
+        @Field("id") id: Int?,
     ): Response<ResponseBody<StepSynced?>>
 
     @FormUrlEncoded

@@ -14,6 +14,7 @@ import com.ntg.stepcounter.models.TopRecord
 import com.ntg.stepcounter.models.res.StepSynced
 import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.util.extension.dateOfToday
+import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.safeApiCall
 import com.ntg.stepcounter.util.extension.timber
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -55,7 +56,6 @@ class StepViewModel @Inject constructor(
 
     fun insertStep(count: Int, updateId: Int) = viewModelScope.launch {
 
-        timber("ajkhdjakdkjawhdjkwhakjdh $updateId")
         val dateOfToday = dateOfToday()
 
         if (updateId != -1){
@@ -69,8 +69,6 @@ class StepViewModel @Inject constructor(
             appDB.stepDao().insert(newEntity)
         }
 
-//        val rowsUpdated = appDB.stepDao().updateCount(dateOfToday, count)
-
     }
 
     fun insertManually(step: Step){
@@ -79,7 +77,7 @@ class StepViewModel @Inject constructor(
         }
     }
 
-    fun updateSync(date: String, sync: Int) = viewModelScope.launch { appDB.stepDao().updateSync(date, sync) }
+    fun updateSync(id: Int, sync: Int) = viewModelScope.launch { appDB.stepDao().updateSync(id, sync) }
 
     fun getAllSteps() = appDB.stepDao().getAllSteps()
 
@@ -106,7 +104,7 @@ class StepViewModel @Inject constructor(
     fun syncStep(uid: String, step: Step): MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>> {
         viewModelScope.launch {
             syncResult = safeApiCall(Dispatchers.IO){
-                apiService.syncSteps(uid, step.date, step.count)
+                apiService.syncSteps(uid, step.date, (step.count - step.start.orZero()), step.id)
             } as MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>>
         }
         return syncResult

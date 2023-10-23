@@ -16,6 +16,7 @@ import com.ntg.stepcounter.screens.FieldOfStudyDetailsScreen
 import com.ntg.stepcounter.screens.FieldStudiesScreen
 import com.ntg.stepcounter.screens.HomeScreen
 import com.ntg.stepcounter.screens.LoginScreen
+import com.ntg.stepcounter.screens.PermissionsScreen
 import com.ntg.stepcounter.screens.PhoneNumberScreen
 import com.ntg.stepcounter.screens.ProfRegisterScreen
 import com.ntg.stepcounter.screens.ProfileScreen
@@ -213,6 +214,10 @@ fun AppNavHost(
 
         composable(Screens.UserClapsScreen.name) {
             UserClapsScreen(navController, userDataViewModel)
+        }
+
+        composable(Screens.PermissionScreen.name) {
+            PermissionsScreen(navController)
         }
 
 

@@ -1,5 +1,8 @@
 package com.ntg.stepcounter
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -7,6 +10,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -34,8 +38,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.ntg.mywords.model.components.ButtonStyle
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.CustomButton
@@ -71,14 +79,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-        val stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        if (stepSensor == null) {
-            // This will give a toast message to the user if there is no sensor in the device
-        } else {
-            sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
-        }
-
         super.onCreate(savedInstanceState)
         setContent {
 
@@ -89,16 +89,17 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             }
 
             userDataViewModel.getUsername().collectAsState(initial = null).value.let {
-                if (it != null){
-                    startDes = if (it.isNotEmpty()) Screens.HomeScreen.name
+                if (it != null) {
+                    startDes = if (it.isNotEmpty()) {
+                        checkPermissions()
+                    }
                     else Screens.LoginScreen.name
                 }
             }
 
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 StepCounterTheme {
-                    if (startDes.isNotEmpty()){
-                        timber("ajwhdklawjkdjawlkjdlakw $startDes")
+                    if (startDes.isNotEmpty()) {
                         AppNavHost(
                             stepViewModel = stepViewModel,
                             userDataViewModel = userDataViewModel,
@@ -111,35 +112,29 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                     }
                 }
             }
-            HandleLifecycle(
-                startOnBackground = userDataViewModel.isAutoDetect()
-                    .collectAsState(initial = true).value
-            ) {
-                if (it == Lifecycle.Event.ON_PAUSE) {
-                    isInBackground = true
-                } else if (it == Lifecycle.Event.ON_RESUME) {
-                    isInBackground = false
-                }
-            }
 
 
-            userDataViewModel.getUserId().collectAsState(initial = "").let {
-                if (it.value.isNotEmpty()){
-                    syncSteps(stepViewModel, LocalLifecycleOwner.current, it.value)
-                }
+            userDataViewModel.getUserId().collectAsState(initial = null).let {
+                if (it.value != null){
+                    if (it.value!!.isNotEmpty()) {
+                        syncSteps(stepViewModel, LocalLifecycleOwner.current, it.value!!)
+                    }
 
-                userDataViewModel.accountState(it.value).observe(LocalLifecycleOwner.current){
-                    when(it){
-                        is NetworkResult.Error -> {
+                    userDataViewModel.accountState(it.value!!).observe(LocalLifecycleOwner.current) {
+                        when (it) {
+                            is NetworkResult.Error -> {
 
-                        }
-                        is NetworkResult.Loading -> {
+                            }
 
-                        }
-                        is NetworkResult.Success -> {
-                            if (it.data?.isSuccess.orFalse()){
-                                userDataViewModel.isVerified(it.data?.data?.isVerified.orFalse())
-                                userDataViewModel.isBlocked(it.data?.data?.isBlock.orFalse())
+                            is NetworkResult.Loading -> {
+
+                            }
+
+                            is NetworkResult.Success -> {
+                                if (it.data?.isSuccess.orFalse()) {
+                                    userDataViewModel.isVerified(it.data?.data?.isVerified.orFalse())
+                                    userDataViewModel.isBlocked(it.data?.data?.isBlock.orFalse())
+                                }
                             }
                         }
                     }
@@ -148,29 +143,95 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
             val isBlocked = userDataViewModel.isBlocked().collectAsState(initial = false).value
 
-            if (isBlocked){
+            if (isBlocked) {
                 UserBlocked(blockReasons = "حساب کاربری شما مسدود شده است!")
             }
-
         }
+    }
+
+    private fun registerListener() {
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        val stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+        if (stepSensor == null) {
+            // This will give a toast message to the user if there is no sensor in the device
+        } else {
+            sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
+        }
+    }
+
+    private fun unRegisterListener() {
+        sensorManager?.unregisterListener(this)
     }
 
     override fun onSensorChanged(p0: SensorEvent?) {
         timber("onSensorChanged FOR")
-        stepViewModel.insertStep(p0?.values?.firstOrNull().orZero().toInt(), updateId)
         if (!isInBackground) {
+            val serviceIntent = Intent(this, MyBackgroundService::class.java)
+            this.stopService(serviceIntent)
+            stepViewModel.insertStep(p0?.values?.firstOrNull().orZero().toInt(), updateId)
         }
 
     }
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
     }
+
+    override fun onResume() {
+        super.onResume()
+        isInBackground = false
+        val serviceIntent = Intent(this, MyBackgroundService::class.java)
+        stopService(serviceIntent)
+        registerListener()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        isInBackground = true
+        val serviceIntent = Intent(this, MyBackgroundService::class.java)
+        startService(serviceIntent)
+        unRegisterListener()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        isInBackground = true
+        val serviceIntent = Intent(this, MyBackgroundService::class.java)
+        startService(serviceIntent)
+        unRegisterListener()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        isInBackground = true
+        val serviceIntent = Intent(this, MyBackgroundService::class.java)
+        startService(serviceIntent)
+        unRegisterListener()
+    }
+
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+private fun checkPermissions(): String{
+    val context = LocalContext.current
+    val physicalActivityPermission =
+        rememberPermissionState(Manifest.permission.ACTIVITY_RECOGNITION).status.isGranted
+
+    val notificationPermission =
+        rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS).status.isGranted
+    val packageName: String = context.packageName
+    val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager?
+
+    val batteryState = pm!!.isIgnoringBatteryOptimizations(packageName)
+
+    return if (physicalActivityPermission && notificationPermission && batteryState) Screens.HomeScreen.name
+    else Screens.PermissionScreen.name
 }
 
 private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, userPhone: String) {
     stepViewModel.needToSyncSteps().observe(owner) {
         it.forEach { step ->
-            if (step != null && (step.date != dateOfToday() || (step.date == dateOfToday() && (step.count.orZero() - step.synced.orZero() >= 10)))) {
+            if (step != null && (step.date != dateOfToday() || (step.date == dateOfToday() && ((step.count.orZero() - step.start.orZero()) - step.synced.orZero() >= 10)))) {
                 stepViewModel.syncStep(userPhone, step).observe(owner) {
                     when (it) {
                         is NetworkResult.Error -> {
@@ -183,8 +244,8 @@ private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, userP
 
                         is NetworkResult.Success -> {
                             timber("StepSync ::: Success ::: ${it.data?.data}")
-                            if (it.data?.data?.date != null && it.data.data.count != null){
-                                stepViewModel.updateSync(it.data.data.date, it.data.data.count)
+                            if (it.data?.data?.id != null && it.data.data.count != null){
+                                stepViewModel.updateSync(it.data.data.id, it.data.data.count)
                                 stepViewModel.clearSummaries()
                             }
                         }
@@ -197,62 +258,33 @@ private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, userP
 
 
 @Composable
-private fun HandleLifecycle(
-    startOnBackground: Boolean,
-    onEventChange: (Lifecycle.Event) -> Unit = {}
-) {
-    val ctx = LocalContext.current
-    val serviceIntent = Intent(ctx, MyBackgroundService::class.java)
-
-    val events = remember {
-        mutableStateOf(Lifecycle.Event.ON_START)
-    }
-
-    OnLifecycleEvent { owner, event ->
-        events.value = event
-        onEventChange.invoke(event)
-    }
-
-
-    when (events.value) {
-        Lifecycle.Event.ON_START -> {
-        }
-
-        Lifecycle.Event.ON_RESUME -> {
-//            ctx.stopService(serviceIntent)
-        }
-
-        Lifecycle.Event.ON_STOP -> {
-        }
-
-        Lifecycle.Event.ON_PAUSE -> {
-            if (startOnBackground) {
-//                ctx.startService(serviceIntent)
-            }
-        }
-
-        Lifecycle.Event.ON_DESTROY -> {
-        }
-
-        else -> {}
-    }
-
-
-}
-
-@Composable
 private fun UserBlocked(
     blockReasons: String
-){
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(Background), horizontalAlignment = Alignment.CenterHorizontally) {
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Background), horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
-        Icon(modifier = Modifier.padding(top = 164.dp), painter = painterResource(id = R.drawable.alert_triangle), contentDescription = null, tint = ERROR500 )
+        Icon(
+            modifier = Modifier.padding(top = 164.dp),
+            painter = painterResource(id = R.drawable.alert_triangle),
+            contentDescription = null,
+            tint = ERROR500
+        )
 
-        Text(modifier = Modifier.padding(top = 16.dp), text = blockReasons, style = fontMedium14(SECONDARY700))
+        Text(
+            modifier = Modifier.padding(top = 16.dp),
+            text = blockReasons,
+            style = fontMedium14(SECONDARY700)
+        )
 
-        CustomButton(modifier = Modifier.padding(top = 16.dp), text = stringResource(id = R.string.wrong), style = ButtonStyle.TextOnly)
+        CustomButton(
+            modifier = Modifier.padding(top = 16.dp),
+            text = stringResource(id = R.string.wrong),
+            style = ButtonStyle.TextOnly
+        )
 
     }
 }

@@ -7,7 +7,7 @@ import com.ntg.stepcounter.db.dao.StepDao
 import com.ntg.stepcounter.models.Social
 import com.ntg.stepcounter.models.Step
 
-@Database(entities = [Step::class, Social::class], version = 14)
+@Database(entities = [Step::class, Social::class], version = 15)
 abstract class AppDB: RoomDatabase()  {
 
     abstract fun stepDao(): StepDao
