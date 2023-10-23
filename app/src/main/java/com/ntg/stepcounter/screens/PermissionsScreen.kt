@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavHostController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -34,6 +36,8 @@ import com.ntg.stepcounter.components.PermissionItem
 import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.SECONDARY800
 import com.ntg.stepcounter.ui.theme.fontMedium14
+import com.ntg.stepcounter.util.extension.OnLifecycleEvent
+import com.ntg.stepcounter.util.extension.timber
 
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -91,6 +95,16 @@ private fun Content(navHostController: NavHostController) {
     notificationStatusPermission = notificationPermission.status.isGranted
 
 
+    val check = remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(key1 = check, block = {
+        timber("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ 1")
+
+    })
+
+    timber("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ 2")
+
     val setManually = remember {
         mutableStateOf(false)
     }
@@ -128,11 +142,11 @@ private fun Content(navHostController: NavHostController) {
             btnText = stringResource(id = R.string.access),
             isGranted = physicalPermission,
             onClick = {
-                if (setManuallyPhysicalActivity.value){
-                    openAppSettings(context)
-                }else{
-                    physicalActivityPermission.launchPermissionRequest()
-                }
+//                if (setManuallyPhysicalActivity.value){
+//                    openAppSettings(context)
+//                }else{
+//                }
+                physicalActivityPermission.launchPermissionRequest()
             })
 
         PermissionItem(id = 0,
@@ -162,16 +176,20 @@ private fun Content(navHostController: NavHostController) {
                 intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
                 intent.data = Uri.parse("package:$packageName")
                 context.startActivity(intent)
+                check.value = !check.value
             })
 
 
     }
+    
+    OnLifecycleEvent(onEvent = { _, event ->
+        if (event == Lifecycle.Event.ON_RESUME){
+            batteryState = pm.isIgnoringBatteryOptimizations(packageName)
+            if (physicalPermission && notificationStatusPermission && batteryState)
+                navHostController.navigate(Screens.HomeScreen.name)
+        }
+    })
 
-//    if (physicalPermission && notificationStatusPermission && batteryState){
-//        navHostController.navigate(Screens.HomeScreen.name){
-//            popUpTo(0)
-//        }
-//    }
 
 }
 

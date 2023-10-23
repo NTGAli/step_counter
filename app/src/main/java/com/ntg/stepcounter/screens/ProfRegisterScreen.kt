@@ -244,7 +244,7 @@ private fun Content(
                             .then {
                                 notEmptyOrNull(
                                     sId.value,
-                                    ctx.getString(R.string.student_id_empty)
+                                    ctx.getString(R.string.prof_id_empty)
                                 )
                             }
                             .then {

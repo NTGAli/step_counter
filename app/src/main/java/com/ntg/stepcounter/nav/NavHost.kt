@@ -1,6 +1,8 @@
 package com.ntg.stepcounter.nav
 
 import android.os.Bundle
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -57,6 +59,8 @@ fun AppNavHost(
         modifier = modifier,
         navController = navController,
         startDestination = startDestination,
+//        enterTransition = { EnterTransition.None },
+//        exitTransition = { ExitTransition.None }
     ) {
 
         composable(Screens.HomeScreen.name) {
@@ -116,6 +120,8 @@ fun AppNavHost(
                 navController,
                 loginViewModel,
                 userDataViewModel,
+                socialNetworkViewModel,
+                stepViewModel,
                 it.arguments?.getString("phone"),
                 it.arguments?.getString("state")
             )

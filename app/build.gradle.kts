@@ -133,7 +133,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.0-alpha")
 
     //navigation
-    implementation("androidx.navigation:navigation-compose:2.7.2")
+    implementation("androidx.navigation:navigation-compose:2.7.4")
 
     // dataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")

@@ -1,27 +1,21 @@
 package com.ntg.stepcounter
 
-import android.Manifest
-import android.R.id
 import android.app.Notification
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.IBinder
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ServiceLifecycleDispatcher
 import com.ntg.stepcounter.db.AppDB
@@ -34,10 +28,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.internal.notify
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.util.Date
 import javax.inject.Inject
 
 
@@ -69,7 +59,6 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
         super.onCreate()
         timber("BackgroundService:::onCreate")
         notification = createNotification()
-//        notificationManager.notify(1414, notification)
         try {
             startForeground(1414, notification)
         }catch (e: Exception) {e.printStackTrace()}
@@ -134,6 +123,8 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
             PendingIntent.FLAG_MUTABLE
         )
 
+
+
         notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.icons8_trainers_1) // Replace with your notification icon
 //            .setContentTitle("Step Counting Service")
@@ -145,18 +136,22 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner {
             .setOngoing(true) // Makes the notification persistent
             .setAutoCancel(false) // Prevents the notification from being dismissed when clicked
             .setVibrate(longArrayOf(0))
+            .setChannelId(channelId)
 //
 //        // Create a notification channel (if needed) for Android Oreo and later
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//            val channel = NotificationChannel(
-//                channelId,
-//                "Step Counting Service",
-//                NotificationManager.IMPORTANCE_DEFAULT
-//            )
-//            notificationManager.createNotificationChannel(channel)
-//        }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    channelId,
+                    "StepCounterService",
+                    NotificationManager.IMPORTANCE_DEFAULT
+                )
+                notificationManager.createNotificationChannel(channel)
+            }
+
         return notificationBuilder.build()
     }
 

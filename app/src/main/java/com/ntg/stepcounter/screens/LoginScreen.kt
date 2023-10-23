@@ -1,9 +1,14 @@
 package com.ntg.stepcounter.screens
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -11,11 +16,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.navigation.NavHostController
 import com.ntg.mywords.model.components.ButtonSize
 import com.ntg.stepcounter.R
@@ -81,8 +93,6 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
                 ctx.toast(ctx.getString(R.string.wrong_format_phone))
                 return@CustomButton
             }
-
-
             if (phoneNumber.value.isNotEmpty()){
                 loginViewModel.login(phoneNumber.value).observe(owner){
 
@@ -114,7 +124,48 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
             }
 
         }
+
+        TextWithLink()
     }
 
+}
+
+@Composable
+private fun TextWithLink(){
+    var startIndex = 0
+    var endIndex = 0
+
+    val url = "https://www.example.com/privacy-policy" // Replace with your privacy policy URL
+    val annotatedString = buildAnnotatedString {
+        withStyle(style = SpanStyle(fontSize = 16.sp, color = Color.Black)) {
+            append("I agree with all ")
+        }
+        startIndex = length
+        withStyle(style = SpanStyle(fontSize = 16.sp, color = Color.Blue, textDecoration = TextDecoration.Underline)) {
+            append("privacy policy")
+        }
+        endIndex = length
+        addStringAnnotation("www.google.com", url, startIndex, endIndex)
+    }
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
+        // Handle the result if needed
+    }
+
+    val context = LocalContext.current
+
+    BasicText(
+        text = annotatedString,
+        modifier = Modifier.clickable(
+            onClick = {
+                annotatedString.getStringAnnotations("URL", startIndex, endIndex).firstOrNull()?.let { annotation ->
+                    val intent = Intent(Intent.ACTION_VIEW, annotation.item.toUri())
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        launcher.launch(intent)
+                    }
+                }
+            }
+        )
+    )
 }
 

@@ -83,6 +83,8 @@ class StepViewModel @Inject constructor(
 
     fun getAllDate() = appDB.stepDao().getAllDate()
 
+    fun insertAll(steps: List<Step>) = viewModelScope.launch { appDB.stepDao().insertAll(steps) }
+
     fun numberOfDate() = appDB.stepDao().numberOfDate()
 
     fun getToday(): LiveData<List<Step>> {

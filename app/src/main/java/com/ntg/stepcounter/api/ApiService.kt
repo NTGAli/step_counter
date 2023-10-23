@@ -106,6 +106,13 @@ interface ApiService {
     ): Response<ResponseBody<AccountStateRes?>>
 
     @FormUrlEncoded
+    @POST("signIn.php")
+    suspend fun signIn(
+        @Field("uid") uid: String,
+        @Field("phone") phone: String,
+    ): Response<ResponseBody<UserProfile?>>
+
+    @FormUrlEncoded
     @POST("clapData.php")
     suspend fun clapData(
         @Field("uid") uid: String

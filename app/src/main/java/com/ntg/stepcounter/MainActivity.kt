@@ -1,6 +1,7 @@
 package com.ntg.stepcounter
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -76,6 +78,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private var isInBackground = false
     private var updateId = -1
 
+    @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -100,15 +103,17 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 StepCounterTheme {
                     if (startDes.isNotEmpty()) {
-                        AppNavHost(
-                            stepViewModel = stepViewModel,
-                            userDataViewModel = userDataViewModel,
-                            socialNetworkViewModel = socialNetworkViewModel,
-                            loginViewModel = loginViewModel,
-                            startDestination = startDes,
-                            onDestinationChangedListener = { nav, des, bundle ->
+                        Scaffold {
+                            AppNavHost(
+                                stepViewModel = stepViewModel,
+                                userDataViewModel = userDataViewModel,
+                                socialNetworkViewModel = socialNetworkViewModel,
+                                loginViewModel = loginViewModel,
+                                startDestination = startDes,
+                                onDestinationChangedListener = { nav, des, bundle ->
 
-                            })
+                                })
+                        }
                     }
                 }
             }

@@ -105,4 +105,6 @@
     <string name="access">دسترسی</string>
     <string name="notification">اعلان</string>
     <string name="battery">باتری</string>
+    <string name="prof_id_empty">کد استاد نمی تواند خالی باشد</string>
+    <string name="wrong_info">اطلاعات وارد شده تطابق ندارد</string>
 </resources>

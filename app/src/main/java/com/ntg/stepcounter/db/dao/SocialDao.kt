@@ -14,6 +14,9 @@ interface SocialDao {
     @Insert
     suspend fun insert(social: Social)
 
+    @Insert
+    suspend fun insertAll(social: List<Social>)
+
     @Update
     suspend fun update(social: Social)
 

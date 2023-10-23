@@ -26,6 +26,7 @@ class UserDataViewModel @Inject constructor(
 
     private var userProfile: MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> = MutableLiveData()
     private var fodDetails: MutableLiveData<NetworkResult<ResponseBody<FosDetailsRes?>>> = MutableLiveData()
+    private var signInData: MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> = MutableLiveData()
     private var usersFos: MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> = MutableLiveData()
     private var userSteps: MutableLiveData<NetworkResult<ResponseBody<List<StepRes>?>>> = MutableLiveData()
     private var clapsData: MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> = MutableLiveData()
@@ -155,6 +156,15 @@ class UserDataViewModel @Inject constructor(
             }
         }
         return clapsData
+    }
+
+    fun signIn(uid: String, phone: String): MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> {
+        viewModelScope.launch {
+            signInData = safeApiCall(Dispatchers.IO){
+                apiService.signIn(uid, phone)
+            } as MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>>
+        }
+        return signInData
     }
 
 
