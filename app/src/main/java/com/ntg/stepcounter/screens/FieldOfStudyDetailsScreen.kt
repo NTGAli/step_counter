@@ -1,5 +1,6 @@
 package com.ntg.stepcounter.screens
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,16 +34,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -86,6 +90,7 @@ import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.vm.UserDataViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -214,7 +219,18 @@ fun FieldOfStudyDetailsScreen(
             LocalDensity.current.run { (sheetHeight - sheetPeekHeight + topOffset).toPx() }
         val minOffset = LocalDensity.current.run { topOffset.toPx() }
         topBarColor = getColorComponentsForNumber(radius.toInt())
+        val animateRotation = remember { Animatable(0f) }
+        val coroutineScope = rememberCoroutineScope()
 
+        LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded){
+            coroutineScope.launch{
+                if (scaffoldState.bottomSheetState.isExpanded){
+                    animateRotation.animateTo(180f)
+                }else{
+                    animateRotation.animateTo(0f)
+                }
+            }
+        }
 
 
 
@@ -231,7 +247,7 @@ fun FieldOfStudyDetailsScreen(
                     backgroundColor = Color(topBarColor.red, topBarColor.blue, topBarColor.green),
                     title = {
                         Text(
-                            text = stringResource(id = R.string.profile),
+                            text = stringResource(id = R.string.field),
                             style = fontMedium14(
                                 SECONDARY500
                             )
@@ -254,7 +270,19 @@ fun FieldOfStudyDetailsScreen(
 
                 LazyColumn(modifier = Modifier
                     .height(sheetHeight)
-                    .padding(horizontal = 16.dp)){
+                    .background(Background)
+                    .padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally){
+
+                    item {
+                        Icon(
+                            modifier = Modifier.padding(top = 8.dp)
+                                .rotate(animateRotation.value),
+                            painter = painterResource(id = R.drawable.chevron_up),
+                            contentDescription = null
+                        )
+                    }
+
+
                     item {
                         Text(modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp), text = stringResource(id = R.string.members), style = fontBold14(
                             SECONDARY500))

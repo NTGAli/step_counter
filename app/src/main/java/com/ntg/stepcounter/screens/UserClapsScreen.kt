@@ -23,6 +23,7 @@ import com.ntg.stepcounter.components.Loading
 import com.ntg.stepcounter.models.FieldOfStudy
 import com.ntg.stepcounter.models.components.AppbarItem
 import com.ntg.stepcounter.models.res.UserRes
+import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.vm.LoginViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
 
@@ -106,8 +107,7 @@ private fun Content(navHostController: NavHostController, paddingValues: Padding
     LazyColumn{
         items(userClaps.value.filter { it.fullName.orEmpty().contains(search) }){
             ItemOption(text = it.fullName.orEmpty()) {fosSelected ->
-//                loginViewModel.fieldOfStudy = listOfStudies.value.first { it.title == fosSelected }
-//                navHostController.popBackStack()
+                navHostController.navigate(Screens.UserProfileScreen.name + "?uid=${it.uid}")
             }
         }
     }

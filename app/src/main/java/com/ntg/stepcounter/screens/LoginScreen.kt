@@ -4,18 +4,23 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -36,6 +41,9 @@ import com.ntg.stepcounter.components.Appbar
 import com.ntg.stepcounter.components.CustomButton
 import com.ntg.stepcounter.components.EditText
 import com.ntg.stepcounter.nav.Screens
+import com.ntg.stepcounter.ui.theme.PRIMARY500
+import com.ntg.stepcounter.ui.theme.SECONDARY500
+import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.util.extension.isValidIranMobileNumber
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.timber
@@ -131,41 +139,14 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
 }
 
 @Composable
-private fun TextWithLink(){
-    var startIndex = 0
-    var endIndex = 0
+private fun TextWithLink(modifier: Modifier = Modifier.fillMaxWidth()){
+    Row(modifier = modifier.fillMaxWidth().padding(top = 24.dp), horizontalArrangement = Arrangement.Center) {
+        Text(text = "درصورت ادامه با", style = fontMedium12(SECONDARY500))
+        Text(modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable {
 
-    val url = "https://www.example.com/privacy-policy" // Replace with your privacy policy URL
-    val annotatedString = buildAnnotatedString {
-        withStyle(style = SpanStyle(fontSize = 16.sp, color = Color.Black)) {
-            append("I agree with all ")
-        }
-        startIndex = length
-        withStyle(style = SpanStyle(fontSize = 16.sp, color = Color.Blue, textDecoration = TextDecoration.Underline)) {
-            append("privacy policy")
-        }
-        endIndex = length
-        addStringAnnotation("www.google.com", url, startIndex, endIndex)
+        }, text = " قوانین و مقررات ",style = fontMedium12(PRIMARY500))
+        Text(text = "موافقم.", style = fontMedium12(SECONDARY500))
+
     }
-
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
-        // Handle the result if needed
-    }
-
-    val context = LocalContext.current
-
-    BasicText(
-        text = annotatedString,
-        modifier = Modifier.clickable(
-            onClick = {
-                annotatedString.getStringAnnotations("URL", startIndex, endIndex).firstOrNull()?.let { annotation ->
-                    val intent = Intent(Intent.ACTION_VIEW, annotation.item.toUri())
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        launcher.launch(intent)
-                    }
-                }
-            }
-        )
-    )
 }
 

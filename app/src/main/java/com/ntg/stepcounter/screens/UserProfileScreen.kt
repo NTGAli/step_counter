@@ -1,5 +1,6 @@
 package com.ntg.stepcounter.screens
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,6 +38,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -44,15 +46,18 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -65,6 +70,7 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.api.NetworkResult
+import com.ntg.stepcounter.components.AchievementItem
 import com.ntg.stepcounter.components.DateItem
 import com.ntg.stepcounter.components.ErrorMessage
 import com.ntg.stepcounter.components.Loading
@@ -73,6 +79,7 @@ import com.ntg.stepcounter.components.SocialView
 import com.ntg.stepcounter.models.ErrorStatus
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.components.ReportWidgetType
+import com.ntg.stepcounter.models.res.Achievement
 import com.ntg.stepcounter.models.res.SocialRes
 import com.ntg.stepcounter.models.res.StepRes
 import com.ntg.stepcounter.ui.theme.Background
@@ -95,6 +102,7 @@ import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -168,7 +176,13 @@ fun UserProfileScreen(
         mutableStateOf(true)
     }
 
+    var achievement by remember {
+        mutableStateOf(Achievement())
+    }
+
     val ctx = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+
 
     internetConnection = ctx.checkInternet()
 
@@ -202,6 +216,7 @@ fun UserProfileScreen(
                     isClap = it.data?.data?.isClap.orFalse()
                     socials = it.data?.data?.socials.orEmpty()
                     val gradeId = it.data?.data?.gradeId.orZero()
+                    achievement = it.data?.data?.achievement ?: Achievement()
                     userBio = when (userSate) {
                         "1" -> {
                             ctx.getString(
@@ -272,7 +287,18 @@ fun UserProfileScreen(
             LocalDensity.current.run { (sheetHeight - sheetPeekHeight + topOffset).toPx() }
         val minOffset = LocalDensity.current.run { topOffset.toPx() }
         topBarColor = getColorComponentsForNumber(radius.toInt())
+        val animateRotation = remember { Animatable(0f) }
+        val coroutineScope = rememberCoroutineScope()
 
+        LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded){
+            coroutineScope.launch{
+                if (scaffoldState.bottomSheetState.isExpanded){
+                    animateRotation.animateTo(180f)
+                }else{
+                    animateRotation.animateTo(0f)
+                }
+            }
+        }
 
 
 
@@ -318,7 +344,9 @@ fun UserProfileScreen(
 
                     item {
                         Icon(
-                            modifier = Modifier.padding(top = 8.dp),
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .rotate(animateRotation.value),
                             painter = painterResource(id = R.drawable.chevron_up),
                             contentDescription = null
                         )
@@ -451,13 +479,57 @@ fun UserProfileScreen(
                                 text = stringResource(id = R.string.achievments),
                                 style = fontMedium14(SECONDARY500)
                             )
-                            Text(
-                                modifier = Modifier.padding(top = 8.dp, start = 16.dp),
-                                text = stringResource(id = R.string.no_achievment),
-                                style = fontRegular12(
-                                    SECONDARY500
+
+                            if (achievement.n3Days == 0 && !achievement.is10.orFalse()){
+                                Text(
+                                    modifier = Modifier.padding(top = 8.dp, start = 16.dp),
+                                    text = stringResource(id = R.string.no_achievment),
+                                    style = fontRegular12(
+                                        SECONDARY500
+                                    )
                                 )
-                            )
+                            }else{
+
+                                if (achievement.totalTop != 0){
+                                    AchievementItem(text = ctx.getString(R.string.total_top_achievement, achievement.totalTop.toString()))
+                                }
+
+                                if (achievement.n3Days != 0){
+                                    AchievementItem(text = ctx.getString(R.string.n3days_achievement, achievement.n3Days.toString()))
+                                }
+
+                                if (achievement.n7Days != 0){
+                                    AchievementItem(text = ctx.getString(R.string.n7days_achievement, achievement.n7Days.toString()))
+                                }
+
+                                if (achievement.n30Days != 0){
+                                    AchievementItem(text = ctx.getString(R.string.n30days_achievement, achievement.n30Days.toString()))
+                                }
+
+                                if (achievement.is10.orFalse()){
+                                    AchievementItem(text = ctx.getString(R.string.n10_steps_achievement))
+                                }
+
+                                if (achievement.is20.orFalse()){
+                                    AchievementItem(text = ctx.getString(R.string.n20_steps_achievement))
+                                }
+
+                                if (achievement.is30.orFalse()){
+                                    AchievementItem(text = ctx.getString(R.string.n30_steps_achievement))
+                                }
+
+                                if (achievement.is40.orFalse()){
+                                    AchievementItem(text = ctx.getString(R.string.n40_steps_achievement))
+                                }
+
+                                if (achievement.is50.orFalse()){
+                                    AchievementItem(text = ctx.getString(R.string.n50_steps_achievement))
+                                }
+
+
+                            }
+
+
 
                             Divider(modifier = Modifier.height(16.dp), color = Background)
                         }
@@ -468,7 +540,7 @@ fun UserProfileScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
-                                .padding(top = 8.dp)
+                                .padding(top = 8.dp, bottom = 32.dp)
                                 .clip(RoundedCornerShape(16.dp))
                                 .border(
                                     width = 1.dp,
@@ -500,7 +572,9 @@ fun UserProfileScreen(
                                         SocialView(
                                             title = it.title.orEmpty(),
                                             url = it.url.orEmpty(),
-                                            onClick = {})
+                                            onClick = {
+                                                uriHandler.openUri(it)
+                                            })
                                     }
                                 }
                             }

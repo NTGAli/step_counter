@@ -25,6 +25,8 @@ import com.ntg.stepcounter.ui.theme.SECONDARY500
 import com.ntg.stepcounter.ui.theme.TERTIARY500
 import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.ui.theme.fontMedium14
+import com.ntg.stepcounter.util.extension.divideNumber
+import com.ntg.stepcounter.util.extension.orZero
 
 @Composable
 fun Record(
@@ -39,7 +41,6 @@ fun Record(
     Box(modifier = modifier
         .fillMaxWidth()
         .clip(RoundedCornerShape(16.dp))
-        .background(Background)
         .border(width = 1.dp, shape = RoundedCornerShape(16.dp), color = SECONDARY100)
         .clickable {
             onClick.invoke(uid)
@@ -64,7 +65,7 @@ fun Record(
                     }
 
                     else -> {
-                        Text(text = record.toString(), style = fontMedium14(SECONDARY500))
+                        Text(text = (record+1).toString(), style = fontMedium14(SECONDARY500))
                     }
                 }
             }
@@ -73,7 +74,7 @@ fun Record(
 
             Text(text = stringResource(
                 id = R.string.step_format,
-                steps.toString()
+                divideNumber(steps.orZero())
             ), style = fontMedium12(SECONDARY500))
 
         }

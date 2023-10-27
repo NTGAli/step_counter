@@ -107,4 +107,18 @@
     <string name="battery">باتری</string>
     <string name="prof_id_empty">کد استاد نمی تواند خالی باشد</string>
     <string name="wrong_info">اطلاعات وارد شده تطابق ندارد</string>
+    <string name="max_login">هر شماره تنها می تواند با یک تلفن همراه لاگین کند</string>
+    <string name="total_top_achievement">بیشترین راه در روز * %s بار</string>
+    <string name="n3days_achievement">بیشترین قدم در سه روز متوالی * %s بار</string>
+    <string name="n7days_achievement">بیشترین قدم در 7 روز متوالی * %s بار</string>
+    <string name="n30days_achievement">بیشترین قدم در 30 روز متوالی * %s بار</string>
+    <string name="n10_steps_achievement">10.000 قدم</string>
+    <string name="n20_steps_achievement">20.000 قدم</string>
+    <string name="n30_steps_achievement">30.000 قدم</string>
+    <string name="n40_steps_achievement">40.000 قدم</string>
+    <string name="n50_steps_achievement">50.000 قدم</string>
+    <string name="edit_phone_number">ویرایش شماره تلفن</string>
+    <string name="cant_edit_phone">حساب شما تایید شده است، امکان ویرایش شماره تلفن را ندارید.</string>
+    <string name="phone_updated">شماره تلفن شما آپدیت  شد.</string>
+    <string name="field">رشته</string>
 </resources>

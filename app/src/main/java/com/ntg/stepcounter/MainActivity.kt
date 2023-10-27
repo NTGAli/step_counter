@@ -12,6 +12,7 @@ import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
+import android.telephony.TelephonyManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -46,9 +47,11 @@ import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.gson.Gson
 import com.ntg.mywords.model.components.ButtonStyle
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.CustomButton
+import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.nav.AppNavHost
 import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.Background
@@ -61,6 +64,7 @@ import com.ntg.stepcounter.util.extension.dateOfToday
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.timber
+import com.ntg.stepcounter.util.extension.toast
 import com.ntg.stepcounter.vm.LoginViewModel
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
@@ -91,12 +95,13 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 mutableStateOf("")
             }
 
+
+
             userDataViewModel.getUsername().collectAsState(initial = null).value.let {
                 if (it != null) {
                     startDes = if (it.isNotEmpty()) {
                         checkPermissions()
-                    }
-                    else Screens.LoginScreen.name
+                    } else Screens.LoginScreen.name
                 }
             }
 
@@ -120,12 +125,42 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
 
             userDataViewModel.getUserId().collectAsState(initial = null).let {
-                if (it.value != null){
-                    if (it.value!!.isNotEmpty()) {
-                        syncSteps(stepViewModel, LocalLifecycleOwner.current, it.value!!)
-                    }
+                SetupDataUser(it.value)
 
-                    userDataViewModel.accountState(it.value!!).observe(LocalLifecycleOwner.current) {
+            }
+
+            val isBlocked = userDataViewModel.isBlocked().collectAsState(initial = false).value
+
+            if (isBlocked) {
+                UserBlocked(blockReasons = "حساب کاربری شما مسدود شده است!")
+            }
+        }
+    }
+
+    @Composable
+    fun SetupDataUser(uid: String?) {
+        var syncCalled by remember {
+            mutableStateOf(false)
+        }
+
+        var timeSign by remember {
+            mutableStateOf("")
+        }
+
+        val context = LocalContext.current
+
+        if (uid != null) {
+            if (uid.isNotEmpty() && !syncCalled) {
+                syncCalled = true
+                syncSteps(stepViewModel, LocalLifecycleOwner.current, uid)
+            }
+
+            timeSign =
+                userDataViewModel.getTimeSign().collectAsState(initial = "").value
+
+            if(timeSign.isNotEmpty()){
+                userDataViewModel.accountState(uid)
+                    .observe(LocalLifecycleOwner.current) {
                         when (it) {
                             is NetworkResult.Error -> {
 
@@ -139,19 +174,45 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                                 if (it.data?.isSuccess.orFalse()) {
                                     userDataViewModel.isVerified(it.data?.data?.isVerified.orFalse())
                                     userDataViewModel.isBlocked(it.data?.data?.isBlock.orFalse())
+                                    if (timeSign.isNotEmpty()) {
+                                        timber("akljdlkwjadkljawlkdjlawkjdlkawjdlkawjdlk $timeSign ----- ${it.data?.data?.timeSign}")
+                                        if (timeSign != it.data?.data?.timeSign.orEmpty()) {
+                                            context.toast(context.getString(R.string.max_login))
+                                            logout(
+                                                userDataViewModel,
+                                                stepViewModel,
+                                                socialNetworkViewModel
+                                            )
+                                        }
+                                    }
                                 }
                             }
+                        }
+                    }
+            }
+
+
+
+
+            userDataViewModel.userAchievement(uid).observe(LocalLifecycleOwner.current){
+                when(it){
+                    is NetworkResult.Error -> {
+
+                    }
+                    is NetworkResult.Loading -> {
+
+                    }
+                    is NetworkResult.Success -> {
+                        if (it.data?.data != null){
+                            userDataViewModel.setAchievement(Gson().toJson(it.data.data))
                         }
                     }
                 }
             }
 
-            val isBlocked = userDataViewModel.isBlocked().collectAsState(initial = false).value
-
-            if (isBlocked) {
-                UserBlocked(blockReasons = "حساب کاربری شما مسدود شده است!")
-            }
         }
+
+
     }
 
     private fun registerListener() {
@@ -217,7 +278,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-private fun checkPermissions(): String{
+private fun checkPermissions(): String {
     val context = LocalContext.current
     val physicalActivityPermission =
         rememberPermissionState(Manifest.permission.ACTIVITY_RECOGNITION).status.isGranted
@@ -234,10 +295,12 @@ private fun checkPermissions(): String{
 }
 
 private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, userPhone: String) {
+    timber("StepSync **********")
+    var loading = false
     stepViewModel.needToSyncSteps().observe(owner) {
-        it.forEach { step ->
-            if (step != null && (step.date != dateOfToday() || (step.date == dateOfToday() && ((step.count.orZero() - step.start.orZero()) - step.synced.orZero() >= 10)))) {
-                stepViewModel.syncStep(userPhone, step).observe(owner) {
+        it.distinctBy { it?.id }.forEach { step ->
+            if (!loading && step != null && (step.date != dateOfToday() || (step.date == dateOfToday() && ((step.count.orZero() - step.start.orZero()) - step.synced.orZero() >= 10)))) {
+                stepViewModel.syncStep(!loading, userPhone, step).observe(owner) {
                     when (it) {
                         is NetworkResult.Error -> {
                             timber("StepSync ::: ERR")
@@ -245,13 +308,15 @@ private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, userP
 
                         is NetworkResult.Loading -> {
                             timber("StepSync ::: Loading")
+                            loading = true
                         }
 
                         is NetworkResult.Success -> {
                             timber("StepSync ::: Success ::: ${it.data?.data}")
-                            if (it.data?.data?.id != null && it.data.data.count != null){
+                            if (it.data?.data?.id != null && it.data.data.count != null) {
                                 stepViewModel.updateSync(it.data.data.id, it.data.data.count)
                                 stepViewModel.clearSummaries()
+                                loading = false
                             }
                         }
                     }
@@ -292,4 +357,14 @@ private fun UserBlocked(
         )
 
     }
+}
+
+fun logout(
+    userDataViewModel: UserDataViewModel,
+    stepViewModel: StepViewModel,
+    socialNetworkViewModel: SocialNetworkViewModel
+) {
+    stepViewModel.clearUserSteps()
+    socialNetworkViewModel.clearAllSocials()
+    userDataViewModel.clearUserData()
 }

@@ -16,5 +16,8 @@ enum class Screens {
     UserProfileScreen,
     FieldOfStudyDetailsScreen,
     UserClapsScreen,
-    PermissionScreen
+    PermissionScreen,
+    EditPhoneNumberScreen,
+    SeeMoreScreen,
+    TermAndConditionsScreen
 }

@@ -26,10 +26,20 @@ class UserStore(private val context: Context) {
         private val AUTO_DETECT = booleanPreferencesKey("auto_detect")
         private val GRADE_ID = intPreferencesKey("grade_id")
         private val FOS_ID = intPreferencesKey("fos_id")
+        private val TIME_SIGN = stringPreferencesKey("time_sign")
+        private val ACHIEVEMENT = stringPreferencesKey("acheivement")
     }
 
     val getUserToken: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[USER_TOKEN] ?: ""
+    }
+
+    val getTimeSign: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[TIME_SIGN] ?: ""
+    }
+
+    val getAchievement: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[ACHIEVEMENT] ?: ""
     }
 
     val getUserName: Flow<String> = context.dataStore.data.map { preferences ->
@@ -77,9 +87,17 @@ class UserStore(private val context: Context) {
     }
 
 
+    suspend fun clearUserData() = context.dataStore.edit { it.clear() }
+
     suspend fun saveToken(token: String) {
         context.dataStore.edit { preferences ->
             preferences[USER_TOKEN] = token
+        }
+    }
+
+    suspend fun saveTimeSign(timeSing: String) {
+        context.dataStore.edit { preferences ->
+            preferences[TIME_SIGN] = timeSing
         }
     }
 
@@ -111,6 +129,12 @@ class UserStore(private val context: Context) {
     suspend fun saveFiledStudy(fieldStudy: String) {
         context.dataStore.edit { preferences ->
             preferences[FIELD_STUDY] = fieldStudy
+        }
+    }
+
+    suspend fun saveAchievement(achievement: String) {
+        context.dataStore.edit { preferences ->
+            preferences[ACHIEVEMENT] = achievement
         }
     }
 

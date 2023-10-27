@@ -10,10 +10,12 @@ data class UserProfile(
     val isLock: Boolean? = false,
     val fosId: Int? = null,
     val fosName: String? = null,
+    val timeSign: String? = null,
     val totalClaps: Int? = 0,
     val isClap: Boolean? = false,
     val socials: List<SocialRes>? = null,
     val stepsList: List<StepRes>? = null,
+    val achievement: Achievement? = null,
 
 
 )

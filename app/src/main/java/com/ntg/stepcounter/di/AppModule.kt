@@ -2,6 +2,7 @@ package com.ntg.stepcounter.di
 
 import android.content.Context
 import androidx.room.Room
+import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.ntg.stepcounter.api.ApiService
 import com.ntg.stepcounter.api.AuthorizeInterceptor
 import com.ntg.stepcounter.api.LoggingInterceptor
@@ -29,12 +30,13 @@ class AppModule {
 
     @Provides
     @Singleton
-    fun provideOkHttp(): OkHttpClient{
+    fun provideOkHttp(@ApplicationContext context: Context): OkHttpClient{
         return OkHttpClient.Builder()
             .readTimeout(15, TimeUnit.SECONDS)
             .connectTimeout(15, TimeUnit.SECONDS)
             .addInterceptor(LoggingInterceptor().httpLoggingInterceptor())
             .addInterceptor(AuthorizeInterceptor())
+            .addInterceptor(ChuckerInterceptor(context))
             .build()
     }
 

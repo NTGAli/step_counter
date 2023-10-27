@@ -13,6 +13,7 @@ import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.TopRecord
 import com.ntg.stepcounter.models.res.StepSynced
 import com.ntg.stepcounter.models.res.SummariesRes
+import com.ntg.stepcounter.models.res.SummaryRes
 import com.ntg.stepcounter.util.extension.dateOfToday
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.safeApiCall
@@ -20,6 +21,7 @@ import com.ntg.stepcounter.util.extension.timber
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import retrofit2.Response
 import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -37,10 +39,13 @@ class StepViewModel @Inject constructor(
     private var unSynced: LiveData<List<Step?>> = MutableLiveData()
     private var syncResult: MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>> = MutableLiveData()
     private var summaries: MutableLiveData<NetworkResult<ResponseBody<SummariesRes?>>> = MutableLiveData()
+    private var usersBase: MutableLiveData<NetworkResult<ResponseBody<List<SummaryRes>?>>> = MutableLiveData()
 
     fun clearSummaries(){
         summaries = MutableLiveData()
     }
+
+    fun clearUserSteps() = viewModelScope.launch { appDB.stepDao().clearUserSteps() }
 
     fun insertStep() = viewModelScope.launch {
 
@@ -103,11 +108,14 @@ class StepViewModel @Inject constructor(
         return topRecord
     }
 
-    fun syncStep(uid: String, step: Step): MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>> {
+    fun syncStep(fetch: Boolean,uid: String, step: Step): MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>> {
         viewModelScope.launch {
-            syncResult = safeApiCall(Dispatchers.IO){
-                apiService.syncSteps(uid, step.date, (step.count - step.start.orZero()), step.id)
-            } as MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>>
+            if (fetch){
+                syncResult = safeApiCall(Dispatchers.IO){
+                    timber("StepSync -----")
+                    apiService.syncSteps(uid, step.date, (step.count - step.start.orZero()) - step.synced.orZero(), step.id)
+                } as MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>>
+            }
         }
         return syncResult
     }
@@ -128,6 +136,16 @@ class StepViewModel @Inject constructor(
             }
         }
         return summaries
+    }
+
+
+    fun gerUserBase(base: String): MutableLiveData<NetworkResult<ResponseBody<List<SummaryRes>?>>> {
+            viewModelScope.launch {
+                usersBase = safeApiCall(Dispatchers.IO){
+                    apiService.getUserBase(base)
+                } as MutableLiveData<NetworkResult<ResponseBody<List<SummaryRes>?>>>
+            }
+        return usersBase
     }
 
 }

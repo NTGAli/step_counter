@@ -1,18 +1,29 @@
 package com.ntg.stepcounter.vm
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ntg.stepcounter.api.ApiService
+import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.db.AppDB
+import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.Social
 import com.ntg.stepcounter.models.SocialNetwork
+import com.ntg.stepcounter.models.res.FosDetailsRes
+import com.ntg.stepcounter.util.extension.safeApiCall
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SocialNetworkViewModel @Inject constructor(
-    private val appDB: AppDB
+    private val appDB: AppDB,
+    private val apiService: ApiService
 ): ViewModel() {
+
+    private var socialResult: MutableLiveData<NetworkResult<ResponseBody<Int?>>> = MutableLiveData()
 
     val socialNetworks = listOf(
         SocialNetwork(
@@ -21,19 +32,15 @@ class SocialNetworkViewModel @Inject constructor(
         ),
         SocialNetwork(
             name = "تلگرام",
-            link = "https://telegram.me/PAGE_NAME"
+            link = "https://t.me/PAGE_NAME"
         ),
         SocialNetwork(
             name = "ایکس",
-            link = "https://telegram.me/PAGE_NAME"
-        ),
-        SocialNetwork(
-            name = "بله",
-            link = "https://web.bale.ai/PAGE_NAME"
+            link = "https://twitter.com/PAGE_NAME"
         ),
         SocialNetwork(
             name = "ایتا",
-            link = "https://web.eitaa.com/PAGE_NAME"
+            link = "https://eitaa.com/PAGE_NAME"
         )
     )
 
@@ -46,4 +53,25 @@ class SocialNetworkViewModel @Inject constructor(
     fun getSocial(id: Int) = appDB.socialDao().getSocial(id)
 
 
+
+    fun clearAllSocials() = viewModelScope.launch { appDB.socialDao().clearAll() }
+
+    fun insertInServer(uid: String, social: Social): MutableLiveData<NetworkResult<ResponseBody<Int?>>> {
+        viewModelScope.launch {
+            socialResult = safeApiCall(Dispatchers.IO){
+                apiService.insertSocial(uid,social.name, social.pageId)
+            } as MutableLiveData<NetworkResult<ResponseBody<Int?>>>
+        }
+        return socialResult
+    }
+
+
+    fun updateInServer(uid: String, social: Social): MutableLiveData<NetworkResult<ResponseBody<Int?>>> {
+        viewModelScope.launch {
+            socialResult = safeApiCall(Dispatchers.IO){
+                apiService.updateSocial(uid,social.id,social.name, social.pageId)
+            } as MutableLiveData<NetworkResult<ResponseBody<Int?>>>
+        }
+        return socialResult
+    }
 }

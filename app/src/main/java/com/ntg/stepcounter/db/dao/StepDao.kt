@@ -2,6 +2,7 @@ package com.ntg.stepcounter.db.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -21,13 +22,16 @@ interface StepDao {
     @Update
     suspend fun update(step: Step)
 
+    @Query("DELETE FROM Step")
+    suspend fun clearUserSteps()
+
     @Query("UPDATE Step SET count = count + 1 WHERE date = :date")
     suspend fun updateCount(date: String?): Int
 
     @Query("UPDATE Step SET count =:count, exp =:exp WHERE id = :id AND count <:count")
     suspend fun updateCount(id: Int?, count: Int?, exp: Boolean = false): Int
 
-    @Query("UPDATE Step SET synced =:sync WHERE id = :id")
+    @Query("UPDATE Step SET synced =:sync+synced WHERE id = :id")
     suspend fun updateSync(id: Int, sync: Int)
 
     @Query("SELECT SUM(count - start) FROM Step WHERE count != 0")

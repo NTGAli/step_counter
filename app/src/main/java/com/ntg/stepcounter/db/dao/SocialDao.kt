@@ -26,6 +26,9 @@ interface SocialDao {
     @Query("SELECT * FROM Social")
     fun getSocials(): LiveData<List<Social>>
 
+    @Query("DELETE FROM Social")
+    suspend fun clearAll()
+
     @Query("SELECT * FROM Social WHERE id =:id")
     fun getSocial(id: Int): LiveData<Social>
 }

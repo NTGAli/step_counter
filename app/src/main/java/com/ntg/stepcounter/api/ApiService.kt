@@ -4,6 +4,7 @@ import com.ntg.stepcounter.models.FieldOfStudy
 import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.res.AccountStateRes
+import com.ntg.stepcounter.models.res.Achievement
 import com.ntg.stepcounter.models.res.FosDetailsRes
 import com.ntg.stepcounter.models.res.StepRes
 import com.ntg.stepcounter.models.res.StepSynced
@@ -38,6 +39,7 @@ interface ApiService {
         @Field("uid") uid: String,
         @Field("fos_id") fosId: String,
         @Field("grad_id") gradId: String,
+        @Field("timeSign") timeSign: String,
     ): Response<ResponseBody<String?>>
 
     @FormUrlEncoded
@@ -49,6 +51,13 @@ interface ApiService {
         @Field("uid") uid: String,
         @Field("fos_id") fosId: String,
         @Field("grad_id") gradId: String,
+    ): Response<ResponseBody<String?>>
+
+    @FormUrlEncoded
+    @POST("editPhoneNumber.php")
+    suspend fun editPhoneNumber(
+        @Field("phone") phone: String,
+        @Field("uid") uid: String
     ): Response<ResponseBody<String?>>
 
     @FormUrlEncoded
@@ -65,6 +74,12 @@ interface ApiService {
     suspend fun summariesData(
         @Field("uid") uid: String
     ): Response<ResponseBody<SummariesRes?>>
+
+    @FormUrlEncoded
+    @POST("getUserBase.php")
+    suspend fun getUserBase(
+        @Field("base") base: String
+    ): Response<ResponseBody<List<SummaryRes>?>>
 
 
     @FormUrlEncoded
@@ -110,6 +125,7 @@ interface ApiService {
     suspend fun signIn(
         @Field("uid") uid: String,
         @Field("phone") phone: String,
+        @Field("timeSign") timeSign: String,
     ): Response<ResponseBody<UserProfile?>>
 
     @FormUrlEncoded
@@ -117,4 +133,36 @@ interface ApiService {
     suspend fun clapData(
         @Field("uid") uid: String
     ): Response<ResponseBody<List<UserRes>?>>
+
+    @FormUrlEncoded
+    @POST("insertSocial.php")
+    suspend fun insertSocial(
+        @Field("uid") uid: String,
+        @Field("name") name: String,
+        @Field("pageId") pageId: String,
+    ): Response<ResponseBody<Int?>>
+
+    @FormUrlEncoded
+    @POST("updateSocial.php")
+    suspend fun updateSocial(
+        @Field("uid") uid: String,
+        @Field("id") id: Int,
+        @Field("name") name: String,
+        @Field("pageId") pageId: String,
+    ): Response<ResponseBody<Int?>>
+
+    @FormUrlEncoded
+    @POST("userAchievement.php")
+    suspend fun userAchievement(
+        @Field("uid") uid: String
+    ): Response<ResponseBody<Achievement?>>
+
+    @FormUrlEncoded
+    @POST("visibilityWorkout.php")
+    suspend fun setLock(
+        @Field("uid") uid: String,
+        @Field("isLock") isLock: Boolean
+    ): Response<ResponseBody<Boolean?>>
+
+
 }

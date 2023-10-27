@@ -378,7 +378,8 @@ fun RegisterScreen(
                                         "1",
                                         sId.value,
                                         loginViewModel.fieldOfStudy?.id.toString(),
-                                        gradeId.value.toString()
+                                        gradeId.value.toString(),
+                                        System.currentTimeMillis().toString()
                                     ).observe(owner) {
                                         when (it) {
                                             is NetworkResult.Error -> {
@@ -391,6 +392,7 @@ fun RegisterScreen(
 
                                             is NetworkResult.Success -> {
                                                 if (it.data?.isSuccess.orFalse()) {
+                                                    userDataViewModel.setTimeSign(it.data?.data.orEmpty())
                                                     userDataViewModel.setUserStatus("1")
                                                     userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
                                                     userDataViewModel.setUserId(sId.value)

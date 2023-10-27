@@ -81,7 +81,7 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
         CustomButton(modifier = Modifier.padding(top = 16.dp).fillMaxWidth(), text = stringResource(id = R.string.sign_in), size = ButtonSize.XL){
 
             if (uid.value.isNotEmpty()){
-                userDataViewModel.signIn(uid.value, phoneNumber.orEmpty()).observe(owner){
+                userDataViewModel.signIn(uid.value, phoneNumber.orEmpty(), System.currentTimeMillis().toString()).observe(owner){
 
                     when(it){
                         is NetworkResult.Error -> {
@@ -94,7 +94,7 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
 
                             if (it.data?.isSuccess.orFalse()){
                                 stepViewModel.insertAll(it.data?.data?.stepsList.orEmpty().map { Step(id=0, date = it.date, start = 0, count = it.steps.orZero(),synced = it.steps) })
-                                socialNetworkViewModel.insertAll(it.data?.data?.socials.orEmpty().map { Social(id=0, name = it.title.orEmpty(), pageId = it.url.orEmpty()) })
+                                socialNetworkViewModel.insertAll(it.data?.data?.socials.orEmpty().map { Social(id=it.id, name = it.title.orEmpty(), pageId = it.url.orEmpty()) })
                                 userDataViewModel.setUserStatus(state.orEmpty())
                                 userDataViewModel.setFieldStudy(it.data?.data?.fosName.orEmpty())
                                 userDataViewModel.setUserId(uid.value)
@@ -102,6 +102,7 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
                                 userDataViewModel.setUsername(it.data?.data?.fullName.orEmpty())
                                 userDataViewModel.setGradeId(it.data?.data?.gradeId.orZero())
                                 userDataViewModel.setFosId(it.data?.data?.fosId.orZero())
+                                userDataViewModel.setTimeSign(it.data?.data?.timeSign.orEmpty())
 
                             }else{
                                 context.toast(context.getString(R.string.wrong_info))

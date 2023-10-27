@@ -3,6 +3,7 @@ package com.ntg.stepcounter.screens
 import android.content.Context
 import android.net.ConnectivityManager
 import android.util.Log
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -26,10 +27,12 @@ import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.material.Button
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -41,11 +44,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,6 +73,7 @@ import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.components.ReportWidgetType
 import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.nav.Screens
+import com.ntg.stepcounter.ui.theme.Background
 import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY500
 import com.ntg.stepcounter.ui.theme.PRIMARY900
@@ -88,6 +94,7 @@ import com.ntg.stepcounter.util.extension.stepsToKilometers
 import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
+import kotlinx.coroutines.launch
 import java.lang.Exception
 
 
@@ -172,7 +179,18 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
             LocalDensity.current.run { (sheetHeight - sheetPeekHeight + topOffset).toPx() }
         val minOffset = LocalDensity.current.run { topOffset.toPx() }
         topBarColor = getColorComponentsForNumber(radius.toInt())
+        val animateRotation = remember { Animatable(0f) }
+        val coroutineScope = rememberCoroutineScope()
 
+        LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded){
+            coroutineScope.launch{
+                if (scaffoldState.bottomSheetState.isExpanded){
+                    animateRotation.animateTo(180f)
+                }else{
+                    animateRotation.animateTo(0f)
+                }
+            }
+        }
 
 
 
@@ -231,8 +249,17 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                 else{
                     Column(modifier = Modifier
                         .height(sheetHeight)
+                        .background(Background)
                         .padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally)
                     {
+
+
+                        Icon(
+                            modifier = Modifier.padding(top = 8.dp)
+                                .rotate(animateRotation.value),
+                            painter = painterResource(id = R.drawable.chevron_up),
+                            contentDescription = null
+                        )
 
                         Text(
                             modifier = Modifier
@@ -252,6 +279,7 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                             .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_today), action = stringResource(
                             id = R.string.see_all
                         )) {
+                            navHostController.navigate(Screens.SeeMoreScreen.name+"?type=TopToday")
                         }
                         if (summaries?.today.orEmpty().isNotEmpty()){
                             LazyColumn(content = {
@@ -277,7 +305,7 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                             .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_rank_base_fos), action = stringResource(
                             id = R.string.see_all
                         )) {
-
+                            navHostController.navigate(Screens.SeeMoreScreen.name+"?type=TopBaseFos")
                         }
 
                         if (summaries?.fos.orEmpty().isNotEmpty()){
@@ -303,7 +331,7 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                             .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_rank_base_user), action = stringResource(
                             id = R.string.see_all
                         )) {
-
+                            navHostController.navigate(Screens.SeeMoreScreen.name+"?type=TopUsers")
                         }
 
                         if (summaries?.all.orEmpty().isNotEmpty()){

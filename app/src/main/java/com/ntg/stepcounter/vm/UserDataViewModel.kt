@@ -8,6 +8,7 @@ import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.UserStore
 import com.ntg.stepcounter.models.res.AccountStateRes
+import com.ntg.stepcounter.models.res.Achievement
 import com.ntg.stepcounter.models.res.FosDetailsRes
 import com.ntg.stepcounter.models.res.StepRes
 import com.ntg.stepcounter.models.res.UserProfile
@@ -30,11 +31,15 @@ class UserDataViewModel @Inject constructor(
     private var usersFos: MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> = MutableLiveData()
     private var userSteps: MutableLiveData<NetworkResult<ResponseBody<List<StepRes>?>>> = MutableLiveData()
     private var clapsData: MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> = MutableLiveData()
+    private var userDataAchievement: MutableLiveData<NetworkResult<ResponseBody<Achievement?>>> = MutableLiveData()
+    private var lockResult: MutableLiveData<NetworkResult<ResponseBody<Boolean?>>> = MutableLiveData()
     private var accountStateDate: MutableLiveData<NetworkResult<ResponseBody<AccountStateRes?>>> = MutableLiveData()
     private var clapResult: MutableLiveData<NetworkResult<ResponseBody<Any?>>> = MutableLiveData()
 
 
     fun getUsername() = userStore.getUserName
+    fun getAchievement() = userStore.getAchievement
+    fun getTimeSign() = userStore.getTimeSign
     fun getPhoneNumber() = userStore.getPhoneNumber
     fun getUserId() = userStore.getUserID
     fun getGradeId() = userStore.getGradeId
@@ -46,8 +51,14 @@ class UserDataViewModel @Inject constructor(
     fun isShowReport() = userStore.showReport
     fun isAutoDetect() = userStore.isAutoDetect
 
+    fun clearUserData() = viewModelScope.launch { userStore.clearUserData() }
+
     fun setUsername(username: String) = viewModelScope.launch {
         userStore.saveUsername(username)
+    }
+
+    fun setTimeSign(timeSing: String) = viewModelScope.launch {
+        userStore.saveTimeSign(timeSing)
     }
 
     fun setUserStatus(status: String) = viewModelScope.launch {
@@ -60,6 +71,10 @@ class UserDataViewModel @Inject constructor(
 
     fun setUserId(userId: String) = viewModelScope.launch {
         userStore.saveUserID(userId)
+    }
+
+    fun setAchievement(achievement: String) = viewModelScope.launch {
+        userStore.saveAchievement(achievement)
     }
 
     fun isVerified(isVerified: Boolean) = viewModelScope.launch {
@@ -131,9 +146,11 @@ class UserDataViewModel @Inject constructor(
 
     fun accountState(uid: String): MutableLiveData<NetworkResult<ResponseBody<AccountStateRes?>>> {
         viewModelScope.launch {
-            accountStateDate = safeApiCall(Dispatchers.IO){
-                apiService.accountSate(uid)
-            } as MutableLiveData<NetworkResult<ResponseBody<AccountStateRes?>>>
+            if (accountStateDate.value == null){
+                accountStateDate = safeApiCall(Dispatchers.IO){
+                    apiService.accountSate(uid)
+                } as MutableLiveData<NetworkResult<ResponseBody<AccountStateRes?>>>
+            }
         }
         return accountStateDate
     }
@@ -158,13 +175,35 @@ class UserDataViewModel @Inject constructor(
         return clapsData
     }
 
-    fun signIn(uid: String, phone: String): MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> {
+    fun signIn(uid: String, phone: String, timeSign: String): MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> {
         viewModelScope.launch {
             signInData = safeApiCall(Dispatchers.IO){
-                apiService.signIn(uid, phone)
+                apiService.signIn(uid, phone, timeSign)
             } as MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>>
         }
         return signInData
+    }
+
+    fun userAchievement(uid: String): MutableLiveData<NetworkResult<ResponseBody<Achievement?>>> {
+        if (userDataAchievement.value == null){
+
+            viewModelScope.launch {
+                userDataAchievement = safeApiCall(Dispatchers.IO){
+                    apiService.userAchievement(uid)
+                } as MutableLiveData<NetworkResult<ResponseBody<Achievement?>>>
+            }
+        }
+        return userDataAchievement
+    }
+
+
+    fun setLock(uid: String, isLock: Boolean): MutableLiveData<NetworkResult<ResponseBody<Boolean?>>> {
+            viewModelScope.launch {
+                lockResult = safeApiCall(Dispatchers.IO){
+                    apiService.setLock(uid = uid, isLock = isLock)
+                } as MutableLiveData<NetworkResult<ResponseBody<Boolean?>>>
+            }
+        return lockResult
     }
 
 

@@ -301,7 +301,8 @@ private fun Content(
                                     "2",
                                     sId.value,
                                     loginViewModel.fieldOfStudy?.id.toString(),
-                                    gradeId.value.toString()
+                                    gradeId.value.toString(),
+                                    System.currentTimeMillis().toString()
                                 ).observe(owner) {
                                     when (it) {
                                         is NetworkResult.Error -> {
@@ -313,6 +314,7 @@ private fun Content(
                                         }
 
                                         is NetworkResult.Success -> {
+                                            userDataViewModel.setTimeSign(it.data?.data.orEmpty())
                                             userDataViewModel.setUsername(fullName.value)
                                             userDataViewModel.setUserStatus("2")
                                             userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())

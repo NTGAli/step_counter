@@ -1,5 +1,6 @@
 package com.ntg.stepcounter.screens
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,23 +41,28 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.google.gson.Gson
 import com.ntg.mywords.model.components.ButtonStyle
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.api.NetworkResult
+import com.ntg.stepcounter.components.AchievementItem
 import com.ntg.stepcounter.components.CustomButton
 import com.ntg.stepcounter.components.DateItem
 import com.ntg.stepcounter.components.ReportWidget
@@ -63,6 +70,7 @@ import com.ntg.stepcounter.components.SocialItem
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.Social
 import com.ntg.stepcounter.models.components.ReportWidgetType
+import com.ntg.stepcounter.models.res.Achievement
 import com.ntg.stepcounter.models.res.UserRes
 import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.Background
@@ -83,6 +91,8 @@ import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
+import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -144,9 +154,18 @@ fun ProfileScreen(
             LocalDensity.current.run { (sheetHeight - sheetPeekHeight + topOffset).toPx() }
         val minOffset = LocalDensity.current.run { topOffset.toPx() }
         topBarColor = getColorComponentsForNumber(radius.toInt())
+        val animateRotation = remember { Animatable(0f) }
+        val coroutineScope = rememberCoroutineScope()
 
-
-
+        LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded){
+            coroutineScope.launch{
+                if (scaffoldState.bottomSheetState.isExpanded){
+                    animateRotation.animateTo(180f)
+                }else{
+                    animateRotation.animateTo(0f)
+                }
+            }
+        }
 
         BottomSheetScaffold(
             sheetPeekHeight = sheetPeekHeight,
@@ -165,7 +184,9 @@ fun ProfileScreen(
 
                     item {
                         Icon(
-                            modifier = Modifier.padding(top = 8.dp),
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .rotate(animateRotation.value),
                             painter = painterResource(id = R.drawable.chevron_up),
                             contentDescription = null
                         )
@@ -176,7 +197,7 @@ fun ProfileScreen(
                     }
 
                     item {
-                       UserAchievements()
+                       UserAchievements(userDataViewModel, stepViewModel)
                     }
 
 
@@ -352,11 +373,14 @@ private fun UserSocialData(
     socialNetworkViewModel: SocialNetworkViewModel,
     navHostController: NavHostController
 ){
+
+    val uriHandler = LocalUriHandler.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(top = 8.dp)
+            .padding(top = 8.dp, bottom = 32.dp)
             .clip(RoundedCornerShape(16.dp))
             .border(
                 width = 1.dp,
@@ -380,7 +404,7 @@ private fun UserSocialData(
 
         LazyColumn(
             modifier = Modifier
-                .height((socials?.size.orZero() * 37).dp)
+                .height((socials?.size.orZero() * 33).dp)
                 .padding(top = 8.dp), content = {
                 items(socials.orEmpty()) { social ->
                     SocialItem(
@@ -388,7 +412,7 @@ private fun UserSocialData(
                         id = social.id,
                         title = social.name,
                         itemClick = {
-                            navHostController.navigate(Screens.SocialScreen.name + "?id=$it")
+                            uriHandler.openUri(social.pageId)
                         },
                         edit = {
                             navHostController.navigate(Screens.SocialScreen.name + "?id=$it")
@@ -403,7 +427,7 @@ private fun UserSocialData(
         CustomButton(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 24.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             text = stringResource(id = R.string.add_new),
             style = if (socials.orEmpty()
                     .isEmpty()
@@ -420,7 +444,24 @@ private fun UserSocialData(
 
 
 @Composable
-private fun UserAchievements(){
+private fun UserAchievements(userDataViewModel: UserDataViewModel, stepViewModel: StepViewModel){
+
+    val context = LocalContext.current
+
+    var achievement by remember {
+        mutableStateOf(Achievement())
+    }
+
+    val steps = stepViewModel.getAllDate().observeAsState().value?.groupBy { it.date }
+
+
+
+    userDataViewModel.getAchievement().collectAsState(initial = null).value.let {
+        try {
+            achievement = Gson().fromJson(it, Achievement::class.java)
+        }catch (e: Exception){e.printStackTrace()}
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -439,13 +480,64 @@ private fun UserAchievements(){
             text = stringResource(id = R.string.your_achievment),
             style = fontMedium14(SECONDARY500)
         )
-        Text(
-            modifier = Modifier.padding(top = 8.dp, start = 16.dp),
-            text = stringResource(id = R.string.no_achievment),
-            style = fontRegular12(
-                SECONDARY500
+
+        if (achievement.totalTop.orZero() == 0){
+            Text(
+                modifier = Modifier.padding(top = 8.dp, start = 16.dp),
+                text = stringResource(id = R.string.no_achievment),
+                style = fontRegular12(
+                    SECONDARY500
+                )
             )
-        )
+        }else{
+
+            AchievementItem(text = context.getString(R.string.total_top_achievement, achievement.totalTop.toString()))
+
+            if (achievement.n3Days.orZero() != 0){
+                AchievementItem(text = context.getString(R.string.n3days_achievement, achievement.n3Days.toString()))
+            }
+
+            if (achievement.n7Days.orZero() != 0){
+                AchievementItem(text = context.getString(R.string.n7days_achievement, achievement.n7Days.toString()))
+            }
+
+            if (achievement.n30Days.orZero() != 0){
+                AchievementItem(text = context.getString(R.string.n30days_achievement, achievement.n30Days.toString()))
+            }
+
+            if (steps.orEmpty().any { (_, dateSteps) ->
+                    dateSteps.any { if(it.count > it.start.orZero()) (it.count - it.start.orZero()) > 10000 else false }
+                }){
+                AchievementItem(text = context.getString(R.string.n10_steps_achievement))
+            }
+
+            if (steps.orEmpty().any { (_, dateSteps) ->
+                    dateSteps.any { if(it.count > it.start.orZero()) (it.count - it.start.orZero()) > 20000 else false }
+                }){
+                AchievementItem(text = context.getString(R.string.n20_steps_achievement))
+            }
+
+            if (steps.orEmpty().any { (_, dateSteps) ->
+                    dateSteps.any { if(it.count > it.start.orZero()) (it.count - it.start.orZero()) > 30000 else false }
+                }){
+                AchievementItem(text = context.getString(R.string.n30_steps_achievement))
+            }
+
+            if (steps.orEmpty().any { (_, dateSteps) ->
+                    dateSteps.any { if(it.count > it.start.orZero()) (it.count - it.start.orZero()) > 40000 else false }
+                }){
+                AchievementItem(text = context.getString(R.string.n40_steps_achievement))
+            }
+
+            if (steps.orEmpty().any { (_, dateSteps) ->
+                    dateSteps.any { if(it.count > it.start.orZero()) (it.count - it.start.orZero()) > 50000 else false }
+                }){
+                AchievementItem(text = context.getString(R.string.n50_steps_achievement))
+            }
+
+        }
+
+
         Divider(modifier = Modifier.height(16.dp), color = Background)
     }
 }

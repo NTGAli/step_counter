@@ -21,6 +21,7 @@ class LoginViewModel @Inject constructor(
     private var loginResult: MutableLiveData<NetworkResult<ResponseBody<String?>>> = MutableLiveData()
     private var registerResult: MutableLiveData<NetworkResult<ResponseBody<String?>>> = MutableLiveData()
     private var editResult: MutableLiveData<NetworkResult<ResponseBody<String?>>> = MutableLiveData()
+    private var editPhoneResult: MutableLiveData<NetworkResult<ResponseBody<String?>>> = MutableLiveData()
     private var listOfFos: MutableLiveData<NetworkResult<ResponseBody<List<FieldOfStudy>?>>> = MutableLiveData()
     var fieldOfStudy: FieldOfStudy? = null
 
@@ -35,10 +36,10 @@ class LoginViewModel @Inject constructor(
     }
 
 
-    fun register(phone: String, fullName: String, state: String, uid: String, fosId: String, gradeId: String): MutableLiveData<NetworkResult<ResponseBody<String?>>> {
+    fun register(phone: String, fullName: String, state: String, uid: String, fosId: String, gradeId: String, timeSign: String): MutableLiveData<NetworkResult<ResponseBody<String?>>> {
         viewModelScope.launch {
             registerResult = safeApiCall(Dispatchers.IO){
-                apiService.register(fullName, phone, state, uid, fosId, gradeId)
+                apiService.register(fullName, phone, state, uid, fosId, gradeId, timeSign)
             } as MutableLiveData<NetworkResult<ResponseBody<String?>>>
         }
         return registerResult
@@ -51,6 +52,16 @@ class LoginViewModel @Inject constructor(
             } as MutableLiveData<NetworkResult<ResponseBody<String?>>>
         }
         return editResult
+    }
+
+
+    fun editPhoneNumber(phone: String, uid: String): MutableLiveData<NetworkResult<ResponseBody<String?>>> {
+        viewModelScope.launch {
+            editPhoneResult = safeApiCall(Dispatchers.IO){
+                apiService.editPhoneNumber(phone, uid)
+            } as MutableLiveData<NetworkResult<ResponseBody<String?>>>
+        }
+        return editPhoneResult
     }
 
 

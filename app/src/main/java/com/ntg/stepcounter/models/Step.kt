@@ -9,7 +9,7 @@ data class Step(
     val id: Int,
     val date: String,
     val start: Int? = null,
-    val count: Int = 0,
-    val synced: Int? = 0,
+    var count: Int = 0,
+    var synced: Int? = 0,
     val exp: Boolean = false
 )

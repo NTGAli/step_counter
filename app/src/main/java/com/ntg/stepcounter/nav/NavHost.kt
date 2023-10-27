@@ -13,7 +13,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.ntg.stepcounter.components.TermAndConditionsScreen
 import com.ntg.stepcounter.screens.AccountScreen
+import com.ntg.stepcounter.screens.EditPhoneNumberScreen
 import com.ntg.stepcounter.screens.FieldOfStudyDetailsScreen
 import com.ntg.stepcounter.screens.FieldStudiesScreen
 import com.ntg.stepcounter.screens.HomeScreen
@@ -23,6 +25,7 @@ import com.ntg.stepcounter.screens.PhoneNumberScreen
 import com.ntg.stepcounter.screens.ProfRegisterScreen
 import com.ntg.stepcounter.screens.ProfileScreen
 import com.ntg.stepcounter.screens.RegisterScreen
+import com.ntg.stepcounter.screens.SeeMoreScreen
 import com.ntg.stepcounter.screens.SettingsScreen
 import com.ntg.stepcounter.screens.SignInScreen
 import com.ntg.stepcounter.screens.SocialListScreen
@@ -79,7 +82,7 @@ fun AppNavHost(
                 defaultValue = -1
             })
         ) {
-            SocialScreen(navController, socialNetworkViewModel, it.arguments?.getInt("id"))
+            SocialScreen(navController, socialNetworkViewModel, userDataViewModel, it.arguments?.getInt("id"))
         }
 
         composable(Screens.SocialListScreen.name) {
@@ -100,6 +103,10 @@ fun AppNavHost(
 
         composable(Screens.LoginScreen.name) {
             LoginScreen(navController, loginViewModel)
+        }
+
+        composable(Screens.EditPhoneNumberScreen.name) {
+            EditPhoneNumberScreen(navController, loginViewModel, userDataViewModel)
         }
 
         composable(
@@ -218,12 +225,33 @@ fun AppNavHost(
             )
         }
 
+        composable(
+            Screens.SeeMoreScreen.name + "?type={type}",
+            arguments = listOf(
+                navArgument("type")
+                {
+                    type = NavType.StringType
+                    defaultValue = ""
+                })
+        ) {
+            SeeMoreScreen(
+                navController,
+                userDataViewModel,
+                stepViewModel,
+                it.arguments?.getString("type").orEmpty(),
+            )
+        }
+
         composable(Screens.UserClapsScreen.name) {
             UserClapsScreen(navController, userDataViewModel)
         }
 
         composable(Screens.PermissionScreen.name) {
             PermissionsScreen(navController)
+        }
+
+        composable(Screens.TermAndConditionsScreen.name) {
+            TermAndConditionsScreen()
         }
 
 

@@ -37,7 +37,6 @@ fun CustomButton(
     paddingRight: Dp = 0.dp,
     paddingTop: Dp = 0.dp,
     paddingBottom: Dp = 0.dp,
-
     onClick: () -> Unit = {}
 
 ) {
