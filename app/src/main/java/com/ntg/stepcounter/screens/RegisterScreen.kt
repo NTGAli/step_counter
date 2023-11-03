@@ -394,6 +394,7 @@ fun RegisterScreen(
                                                 if (it.data?.isSuccess.orFalse()) {
                                                     userDataViewModel.setTimeSign(it.data?.data.orEmpty())
                                                     userDataViewModel.setUserStatus("1")
+                                                    userDataViewModel.setClaps(0)
                                                     userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
                                                     userDataViewModel.setUserId(sId.value)
                                                     userDataViewModel.setPhone(phoneNumber.orEmpty())

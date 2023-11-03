@@ -27,7 +27,8 @@ class UserStore(private val context: Context) {
         private val GRADE_ID = intPreferencesKey("grade_id")
         private val FOS_ID = intPreferencesKey("fos_id")
         private val TIME_SIGN = stringPreferencesKey("time_sign")
-        private val ACHIEVEMENT = stringPreferencesKey("acheivement")
+        private val ACHIEVEMENT = stringPreferencesKey("achievement")
+        private val CLAPS = intPreferencesKey("claps")
     }
 
     val getUserToken: Flow<String> = context.dataStore.data.map { preferences ->
@@ -52,6 +53,10 @@ class UserStore(private val context: Context) {
 
     val getGradeId: Flow<Int> = context.dataStore.data.map { preferences ->
         preferences[GRADE_ID] ?: -1
+    }
+
+    val getClaps: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[CLAPS] ?: -1
     }
 
     val getFosId: Flow<Int> = context.dataStore.data.map { preferences ->
@@ -141,6 +146,12 @@ class UserStore(private val context: Context) {
     suspend fun setGradeId(gradeId: Int) {
         context.dataStore.edit { preferences ->
             preferences[GRADE_ID] = gradeId
+        }
+    }
+
+    suspend fun setClaps(claps: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[CLAPS] = claps
         }
     }
 

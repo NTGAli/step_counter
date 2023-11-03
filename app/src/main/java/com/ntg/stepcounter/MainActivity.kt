@@ -24,6 +24,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -51,11 +52,13 @@ import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.CustomButton
 import com.ntg.stepcounter.nav.AppNavHost
 import com.ntg.stepcounter.nav.Screens
+import com.ntg.stepcounter.screens.NotSupportScreen
 import com.ntg.stepcounter.ui.theme.Background
 import com.ntg.stepcounter.ui.theme.ERROR500
 import com.ntg.stepcounter.ui.theme.SECONDARY700
 import com.ntg.stepcounter.ui.theme.StepCounterTheme
 import com.ntg.stepcounter.ui.theme.fontMedium14
+import com.ntg.stepcounter.util.Constants
 import com.ntg.stepcounter.util.StepDetector
 import com.ntg.stepcounter.util.StepListener
 import com.ntg.stepcounter.util.extension.dateOfToday
@@ -82,6 +85,10 @@ class MainActivity : ComponentActivity(), SensorEventListener, StepListener {
     private var updateId = -1
     private var mStepCounter = 0
     private lateinit var stepDetector: StepDetector
+
+    companion object{
+        lateinit var sensorType: String
+    }
 
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     @RequiresApi(Build.VERSION_CODES.O)
@@ -156,7 +163,7 @@ class MainActivity : ComponentActivity(), SensorEventListener, StepListener {
         if (uid != null) {
             if (uid.isNotEmpty() && !syncCalled) {
                 syncCalled = true
-                syncSteps(stepViewModel, LocalLifecycleOwner.current, uid)
+                SyncSteps(stepViewModel, LocalLifecycleOwner.current, uid)
             }
 
             timeSign =
@@ -222,15 +229,16 @@ class MainActivity : ComponentActivity(), SensorEventListener, StepListener {
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         val stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         val accSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        sensorManager?.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
 
-
-//        if (stepSensor == null) {
-////            this.toast(getString(R.string.sensor_not_support))
-//            sensorManager?.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
-//        } else {
-//            sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
-//        }
+        if (stepSensor != null) {
+            sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
+            sensorType = Constants.STEP_COUNTER
+        } else if (accSensor != null) {
+            sensorManager?.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
+            sensorType = Constants.ACCELEROMETER
+        }else{
+            this.toast(getString(R.string.sensor_not_support))
+        }
     }
 
     private fun unRegisterListener() {
@@ -328,9 +336,18 @@ private fun checkPermissions(): String {
     else Screens.PermissionScreen.name
 }
 
-private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: String) {
+@Composable
+private fun SyncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: String) {
     timber("StepSync **********")
     var stepNeedSync = 0
+    var totalSteps = 0
+    var totalSynced = 0
+    var dateSync = ""
+
+    var needToSync by remember {
+        mutableStateOf(false)
+    }
+
     stepViewModel.needToSyncSteps().observe(owner) {
 
         val groupedSteps = it.groupBy { it?.date }
@@ -338,8 +355,8 @@ private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: 
         groupedSteps.forEach { (date, steps) ->
 
             if (date.orEmpty().isNotEmpty()){
-                var totalSteps = 0
-                var totalSynced = 0
+                totalSteps = 0
+                totalSynced = 0
                 steps.forEach {
 
                     if (it?.count.orZero() > it?.start.orZero()){
@@ -350,32 +367,39 @@ private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: 
                 }
 
                 if (date != dateOfToday() && totalSteps > totalSynced || totalSteps - totalSynced > 10){
-
-                    if (totalSteps != stepNeedSync){
-                        stepViewModel.syncStep(date!!, totalSteps, uid).observe(owner){
-                            when(it){
-                                is NetworkResult.Error -> {
-
-                                }
-                                is NetworkResult.Loading -> {
-
-                                }
-                                is NetworkResult.Success -> {
-                                    stepNeedSync = totalSteps
-                                    if (it.data?.data?.date.orEmpty().isNotEmpty() && it.data?.data?.count.orZero() != 0){
-                                        stepViewModel.updateSync(it.data?.data?.date.orEmpty(), it.data?.data?.count.orZero())
-                                        stepViewModel.clearSummaries()
-                                    }
-                                }
-                            }
-                        }
-                    }
-
+                    dateSync = date.orEmpty()
+                    needToSync = totalSteps != stepNeedSync
                 }
             }
         }
 
     }
+
+
+    LaunchedEffect(key1 = needToSync, block = {
+
+        if (dateSync.isNotEmpty()){
+
+            stepViewModel.syncStep(dateSync, totalSteps, uid).observe(owner){
+                when(it){
+                    is NetworkResult.Error -> {
+
+                    }
+                    is NetworkResult.Loading -> {
+
+                    }
+                    is NetworkResult.Success -> {
+                        stepNeedSync = totalSteps
+                        if (it.data?.data?.date.orEmpty().isNotEmpty() && it.data?.data?.count.orZero() != 0){
+                            stepViewModel.updateSync(it.data?.data?.date.orEmpty(), it.data?.data?.count.orZero())
+                            stepViewModel.clearSummaries()
+                        }
+                    }
+                }
+            }
+
+        }
+    })
 }
 
 

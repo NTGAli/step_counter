@@ -22,12 +22,20 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.ntg.stepcounter.R
 import android.webkit.WebViewClient
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.Alignment
+import com.ntg.stepcounter.BuildConfig
+import com.ntg.stepcounter.MainActivity.Companion.sensorType
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.Appbar
 import com.ntg.stepcounter.components.ItemOption
 import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.SECONDARY500
 import com.ntg.stepcounter.ui.theme.fontBold14
+import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.sendMail
 import com.ntg.stepcounter.util.extension.timber
@@ -52,6 +60,7 @@ fun SettingsScreen(
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun  Content(navHostController: NavHostController, paddingValues: PaddingValues, userDataViewModel: UserDataViewModel){
 
@@ -81,10 +90,11 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
 
     val userPhone = userDataViewModel.getPhoneNumber().collectAsState(initial = "").value
 
-    LazyColumn(modifier = Modifier.padding(paddingValues)){
+    LazyColumn(modifier = Modifier.padding(paddingValues), horizontalAlignment = Alignment.CenterHorizontally){
 
         item {
             Text(modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.account), style = fontBold14(SECONDARY500))
 
@@ -101,6 +111,7 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
             })
 
             Text(modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.privacy), style = fontBold14(SECONDARY500))
 
@@ -136,6 +147,7 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
 
 
             Text(modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.advance), style = fontBold14(SECONDARY500))
 
@@ -147,6 +159,7 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
 
 
             Text(modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.other), style = fontBold14(SECONDARY500))
 
@@ -161,6 +174,14 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
             ItemOption(text = stringResource(id = R.string.report_problem), onClick = {
                 ctx.sendMail(ctx.getString(R.string.support_email),ctx.getString(R.string.report_problem))
             })
+
+            Text(modifier = Modifier.padding(top = 24.dp).combinedClickable(
+                onLongClick = {
+                    ctx.toast(sensorType)
+                },
+                onClick = {}
+            ), text = stringResource(id = R.string.version,BuildConfig.VERSION_NAME), style = fontRegular12(
+                SECONDARY500))
         }
 
     }

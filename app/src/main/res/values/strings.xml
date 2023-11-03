@@ -122,4 +122,5 @@
     <string name="phone_updated">شماره تلفن شما آپدیت  شد.</string>
     <string name="field">رشته</string>
     <string name="sensor_not_support">متاسفانه این برنامه برای گوشی شما پشتیبانی نمی شود.</string>
+    <string name="version">ورژن %s</string>
 </resources>

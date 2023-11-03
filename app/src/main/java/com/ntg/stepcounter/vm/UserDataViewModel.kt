@@ -46,6 +46,7 @@ class UserDataViewModel @Inject constructor(
     fun getUserStatus() = userStore.getStatus
     fun getFieldStudy() = userStore.fieldStudy
     fun getFosId() = userStore.getFosId
+    fun getClaps() = userStore.getClaps
     fun isVerified() = userStore.isVerified
     fun isBlocked() = userStore.isBlocked
     fun isShowReport() = userStore.showReport
@@ -103,6 +104,10 @@ class UserDataViewModel @Inject constructor(
 
     fun setFosId(id: Int) = viewModelScope.launch {
         userStore.setFosId(id)
+    }
+
+    fun setClaps(claps: Int) = viewModelScope.launch {
+        userStore.setClaps(claps)
     }
 
     fun getUserProfile(uid: String, userId: String): MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> {
@@ -164,14 +169,14 @@ class UserDataViewModel @Inject constructor(
     }
 
     fun clapsData(uid: String): MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> {
-        if (clapsData.value == null){
+//        if (clapsData.value == null){
 
             viewModelScope.launch {
                 clapsData = safeApiCall(Dispatchers.IO){
                     apiService.clapData(uid)
                 } as MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>>
             }
-        }
+//        }
         return clapsData
     }
 

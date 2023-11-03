@@ -318,6 +318,7 @@ private fun Content(
                                         is NetworkResult.Success -> {
                                             userDataViewModel.setTimeSign(it.data?.data.orEmpty())
                                             userDataViewModel.setUsername(fullName.value.trim())
+                                            userDataViewModel.setClaps(0)
                                             userDataViewModel.setUserStatus("2")
                                             userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
                                             userDataViewModel.setUserId(sId.value)

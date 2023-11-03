@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.progressSemantics
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetScaffoldState
@@ -75,6 +76,7 @@ import com.ntg.stepcounter.models.res.Achievement
 import com.ntg.stepcounter.models.res.UserRes
 import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.Background
+import com.ntg.stepcounter.ui.theme.ERROR300
 import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY500
 import com.ntg.stepcounter.ui.theme.PRIMARY900
@@ -90,6 +92,7 @@ import com.ntg.stepcounter.ui.theme.fontRegular14
 import com.ntg.stepcounter.util.extension.daysUntilToday
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
+import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
@@ -120,6 +123,7 @@ fun ProfileScreen(
     var contentHeight by remember { mutableFloatStateOf(0f) }
     var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
     val ctx = LocalContext.current
+    val observer = LocalLifecycleOwner.current
 
     val totalSteps = stepViewModel.getAllSteps().observeAsState().value
 
@@ -130,20 +134,22 @@ fun ProfileScreen(
     val uid = userDataViewModel.getUserId().collectAsState(initial = null).value
 
     if (uid != null){
-        userDataViewModel.clapsData(uid).observe(LocalLifecycleOwner.current){
-            when(it){
-                is NetworkResult.Error -> {
-                    loadClaps.value = false
-                }
-                is NetworkResult.Loading -> {
-                    loadClaps.value = true
-                }
-                is NetworkResult.Success -> {
-                    claps = it.data?.data.orEmpty()
-                    loadClaps.value = false
+        LaunchedEffect(key1 = Unit, block = {
+            userDataViewModel.clapsData(uid).observe(observer){
+                when(it){
+                    is NetworkResult.Error -> {
+                        loadClaps.value = false
+                    }
+                    is NetworkResult.Loading -> {
+                        loadClaps.value = true
+                    }
+                    is NetworkResult.Success -> {
+                        claps = it.data?.data.orEmpty()
+                        loadClaps.value = false
+                    }
                 }
             }
-        }
+        })
     }
 
 
@@ -206,7 +212,8 @@ fun ProfileScreen(
                     item {
                         UserDataClap(
                             loadClaps,
-                            claps
+                            claps,
+                            userDataViewModel
                         ){
                             navHostController.navigate(Screens.UserClapsScreen.name)
                         }
@@ -319,8 +326,18 @@ fun ProfileScreen(
 private fun UserDataClap(
     loadClaps: MutableState<Boolean>,
     claps: List<UserRes>,
+    userDataViewModel: UserDataViewModel,
     onClick:() -> Unit
 ){
+
+    var userClaps by remember {
+        mutableIntStateOf(-1)
+    }
+
+    userClaps = userDataViewModel.getClaps().collectAsState(initial = -1).value
+
+    timber("akjdlkawjdlkjawlkdjwalkd $userClaps")
+
     if (loadClaps.value){
         CircularProgressIndicator(modifier = Modifier
             .progressSemantics()
@@ -353,16 +370,27 @@ private fun UserDataClap(
             Text(
                 modifier = Modifier
                     .padding(start = 16.dp)
-                    .padding(vertical = 16.dp)
-                    .weight(1f),
+                    .padding(vertical = 16.dp),
                 text = stringResource(id = R.string.clpas_for_you_format, claps.size.toString()),
                 style = fontRegular14(SECONDARY500)
             )
+
+            if (claps.size > userClaps && userClaps != -1){
+                Box(modifier = Modifier
+                    .padding(start = 8.dp)
+                    .clip(CircleShape)
+                    .size(6.dp)
+                    .background(ERROR300))
+            }
+
+            Divider(modifier = Modifier.weight(1f), color = Background)
+
             CustomButton(
                 modifier = Modifier.padding(end = 8.dp),
                 text = stringResource(id = R.string.view),
                 style = ButtonStyle.TextOnly
             ){
+                userDataViewModel.setClaps(claps.size)
                 onClick.invoke()
             }
         }

@@ -99,6 +99,7 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
                                 userDataViewModel.setUserStatus(state.orEmpty())
                                 userDataViewModel.setFieldStudy(it.data?.data?.fosName.orEmpty())
                                 userDataViewModel.setUserId(uid.value)
+                                userDataViewModel.setClaps(it.data?.data?.claps.orZero())
                                 userDataViewModel.setPhone(phoneNumber.orEmpty())
                                 userDataViewModel.setUsername(it.data?.data?.fullName.orEmpty())
                                 userDataViewModel.setGradeId(it.data?.data?.gradeId.orZero())

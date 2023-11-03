@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -75,6 +76,9 @@ import com.ntg.stepcounter.models.components.ReportWidgetType
 import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.Background
+import com.ntg.stepcounter.ui.theme.ERROR300
+import com.ntg.stepcounter.ui.theme.ERROR400
+import com.ntg.stepcounter.ui.theme.ERROR500
 import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY500
 import com.ntg.stepcounter.ui.theme.PRIMARY900
@@ -143,6 +147,16 @@ fun HomeScreen(
         mutableStateOf(false)
     }
 
+    var clpas by remember {
+        mutableIntStateOf(-1)
+    }
+
+    var newClpas by remember {
+        mutableIntStateOf(-1)
+    }
+
+    clpas = userDataViewModel.getClaps().collectAsState(initial = -1).value
+
 
     val ctx = LocalContext.current
     val owner = LocalLifecycleOwner.current
@@ -171,29 +185,31 @@ fun HomeScreen(
         userDataViewModel.getUserId().collectAsState(initial = "").value.let { userId ->
 
 
-            if (userId.isNotEmpty()){
+            if (userId.isNotEmpty()) {
 
                 LaunchedEffect(key1 = updateSummaries, block = {
 
-                    stepViewModel.summariesData(userId, summaries == null || tryAgain).observe(owner) {
-                        when (it) {
-                            is NetworkResult.Error -> {
-                                timber("SUMMARISE ::: ERR :: ${it.message}")
-                                error = true
-                                loadData = true
-                            }
+                    stepViewModel.summariesData(userId, summaries == null || tryAgain)
+                        .observe(owner) {
+                            when (it) {
+                                is NetworkResult.Error -> {
+                                    timber("SUMMARISE ::: ERR :: ${it.message}")
+                                    error = true
+                                    loadData = true
+                                }
 
-                            is NetworkResult.Loading -> {
-                                timber("SUMMARISE ::: Loading")
-                                loadData = true
-                            }
+                                is NetworkResult.Loading -> {
+                                    timber("SUMMARISE ::: Loading")
+                                    loadData = true
+                                }
 
-                            is NetworkResult.Success -> {
-                                summaries = it.data?.data
-                                loadData = false
+                                is NetworkResult.Success -> {
+                                    summaries = it.data?.data
+                                    newClpas = it.data?.data?.claps ?: -1
+                                    loadData = false
+                                }
                             }
                         }
-                    }
 
                 })
 
@@ -251,18 +267,34 @@ fun HomeScreen(
 
                     },
                     actions = {
-                        Box(
-                            modifier = Modifier
-                                .padding(end = 8.dp)
-                                .clip(CircleShape)
-                                .background(PRIMARY100)
-                                .clickable {
-                                    navHostController.navigate(Screens.ProfileScreen.name)
-                                }
-                                .size(32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = username[0].toString(), style = fontRegular12(PRIMARY500))
+
+                        Box(modifier = Modifier.padding(end = 8.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(PRIMARY100)
+                                    .clickable {
+                                        navHostController.navigate(Screens.ProfileScreen.name)
+                                    }
+                                    .size(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = username[0].toString(),
+                                    style = fontRegular12(PRIMARY500)
+                                )
+                            }
+
+                            if (clpas != -1 && newClpas.orZero() != -1 && clpas < newClpas.orZero()){
+                                Box(modifier = Modifier
+                                    .padding(start = 4.dp)
+                                    .clip(CircleShape)
+                                    .size(6.dp)
+                                    .background(ERROR300)
+                                    .align(
+                                        Alignment.TopStart
+                                    ))
+                            }
                         }
                     },
                     elevation = 0.dp
@@ -292,7 +324,7 @@ fun HomeScreen(
                     Column(
                         modifier = Modifier
                             .height(sheetHeight)
-                            .background(Background)
+                            .background(Color.White)
                             .padding(horizontal = 16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     )

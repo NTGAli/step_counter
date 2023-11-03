@@ -6,7 +6,7 @@ public class StepDetector {
     private static final int ACCELERATOR_RING_SIZE = 500;
     private static final int VEL_RING_SIZE = 100;
 
-    private static final float STEP_THRESHOLD = 20f;
+    private static final float STEP_THRESHOLD = 30f;
 
     private static final int STEP_DELAY_NS = 250000000;
 

@@ -128,14 +128,12 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         val stepSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         val accSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        sensorManager!!.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
 
-//        if (stepSensor != null) {
-//            sensorManager!!.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
-//        }else{
-//            sensorManager!!.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
-//
-//        }
+        if (stepSensor != null) {
+            sensorManager!!.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
+        }else if (accSensor != null){
+            sensorManager!!.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
+        }
 
         val scope = CoroutineScope(Dispatchers.IO)
 
