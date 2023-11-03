@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -87,6 +88,7 @@ import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.ui.theme.fontRegular14
 import com.ntg.stepcounter.util.extension.daysUntilToday
+import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
@@ -211,7 +213,7 @@ fun ProfileScreen(
                     }
 
                     item {
-                        UserSocialData(socials, socialNetworkViewModel, navHostController)
+                        UserSocialData(socials,uid.orEmpty(), socialNetworkViewModel, navHostController)
                     }
 
 
@@ -370,11 +372,13 @@ private fun UserDataClap(
 @Composable
 private fun UserSocialData(
     socials: List<Social>?,
+    uid: String,
     socialNetworkViewModel: SocialNetworkViewModel,
     navHostController: NavHostController
 ){
 
     val uriHandler = LocalUriHandler.current
+    val owner = LocalLifecycleOwner.current
 
     Column(
         modifier = Modifier
@@ -418,7 +422,23 @@ private fun UserSocialData(
                             navHostController.navigate(Screens.SocialScreen.name + "?id=$it")
                         },
                         delete = {
-                            socialNetworkViewModel.delete(social)
+
+                            socialNetworkViewModel.deleteInServer(uid, it).observe(owner){
+                                when(it){
+                                    is NetworkResult.Error -> {
+
+                                    }
+                                    is NetworkResult.Loading -> {
+
+                                    }
+                                    is NetworkResult.Success -> {
+                                        if (it.data?.isSuccess.orFalse()){
+                                            socialNetworkViewModel.delete(social)
+                                        }
+                                    }
+                                }
+                            }
+
                         }
                     )
                 }
@@ -604,8 +624,8 @@ private fun UserDataSteps(
         if (allDate.orEmpty().isNotEmpty()) {
             LazyRow(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 16.dp)
+                    .padding(top = 16.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp)
             ) {
                 itemsIndexed(
                     allDate.orEmpty().distinctBy { it.date }.sortedByDescending { it.date }) { index, step ->

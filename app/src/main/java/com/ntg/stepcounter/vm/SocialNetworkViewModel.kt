@@ -24,6 +24,7 @@ class SocialNetworkViewModel @Inject constructor(
 ): ViewModel() {
 
     private var socialResult: MutableLiveData<NetworkResult<ResponseBody<Int?>>> = MutableLiveData()
+    private var deleteResult: MutableLiveData<NetworkResult<ResponseBody<Int?>>> = MutableLiveData()
 
     val socialNetworks = listOf(
         SocialNetwork(
@@ -73,5 +74,15 @@ class SocialNetworkViewModel @Inject constructor(
             } as MutableLiveData<NetworkResult<ResponseBody<Int?>>>
         }
         return socialResult
+    }
+
+
+    fun deleteInServer(uid: String, id: Int): MutableLiveData<NetworkResult<ResponseBody<Int?>>> {
+        viewModelScope.launch {
+            deleteResult = safeApiCall(Dispatchers.IO){
+                apiService.deleteSocial(uid, id)
+            } as MutableLiveData<NetworkResult<ResponseBody<Int?>>>
+        }
+        return deleteResult
     }
 }

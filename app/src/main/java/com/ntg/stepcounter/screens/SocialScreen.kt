@@ -81,6 +81,12 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
             mutableStateOf(_pageId)
         }
 
+
+        val applied = rememberSaveable {
+            mutableStateOf(false)
+        }
+
+
         val uid = userDataViewModel.getUserId().collectAsState(initial = null).value
 
         socialName.value = try {
@@ -89,12 +95,16 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
             ""
         }
 
-        if (id != -1 && id != null && pageId.value.isEmpty()){
+        if (id != -1 && id != null && !applied.value){
             val sName = socialNetworkViewModel.getSocial(id).observeAsState().value?.name ?: ""
             socialNetworkViewModel.socialNetworks.forEach {
                 it.isSelected = sName == it.name
             }
             pageId.value = socialNetworkViewModel.getSocial(id).observeAsState().value?.pageId?.split("/")?.last() ?: ""
+
+            if (pageId.value.isNotEmpty()){
+                applied.value = true
+            }
         }
 
 

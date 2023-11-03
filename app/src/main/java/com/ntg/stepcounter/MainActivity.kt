@@ -2,7 +2,6 @@ package com.ntg.stepcounter
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.hardware.Sensor
@@ -12,7 +11,6 @@ import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
-import android.telephony.TelephonyManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -41,17 +39,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.gson.Gson
+import com.jjoe64.graphview.series.DataPoint
+import com.jjoe64.graphview.series.LineGraphSeries
 import com.ntg.mywords.model.components.ButtonStyle
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.CustomButton
-import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.nav.AppNavHost
 import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.Background
@@ -59,7 +56,8 @@ import com.ntg.stepcounter.ui.theme.ERROR500
 import com.ntg.stepcounter.ui.theme.SECONDARY700
 import com.ntg.stepcounter.ui.theme.StepCounterTheme
 import com.ntg.stepcounter.ui.theme.fontMedium14
-import com.ntg.stepcounter.util.extension.OnLifecycleEvent
+import com.ntg.stepcounter.util.StepDetector
+import com.ntg.stepcounter.util.StepListener
 import com.ntg.stepcounter.util.extension.dateOfToday
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
@@ -71,8 +69,9 @@ import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+
 @AndroidEntryPoint
-class MainActivity : ComponentActivity(), SensorEventListener {
+class MainActivity : ComponentActivity(), SensorEventListener, StepListener {
 
     private val stepViewModel: StepViewModel by viewModels()
     private val userDataViewModel: UserDataViewModel by viewModels()
@@ -81,15 +80,20 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private var sensorManager: SensorManager? = null
     private var isInBackground = false
     private var updateId = -1
+    private var mStepCounter = 0
+    private lateinit var stepDetector: StepDetector
 
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
-
+        stepDetector = StepDetector()
+        stepDetector.registerListener(this)
         super.onCreate(savedInstanceState)
         setContent {
 
-            updateId = stepViewModel.getToday().observeAsState().value?.lastOrNull()?.id ?: -1
+            stepViewModel.getToday().observeAsState().value?.lastOrNull().let {
+                updateId = if (it != null && it.start.orZero() != 0) it.id else -1
+            }
 
             var startDes by remember {
                 mutableStateOf("")
@@ -174,17 +178,16 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                                 if (it.data?.isSuccess.orFalse()) {
                                     userDataViewModel.isVerified(it.data?.data?.isVerified.orFalse())
                                     userDataViewModel.isBlocked(it.data?.data?.isBlock.orFalse())
-                                    if (timeSign.isNotEmpty()) {
-                                        timber("akljdlkwjadkljawlkdjlawkjdlkawjdlkawjdlk $timeSign ----- ${it.data?.data?.timeSign}")
-                                        if (timeSign != it.data?.data?.timeSign.orEmpty()) {
-                                            context.toast(context.getString(R.string.max_login))
-                                            logout(
-                                                userDataViewModel,
-                                                stepViewModel,
-                                                socialNetworkViewModel
-                                            )
-                                        }
-                                    }
+//                                    if (timeSign.isNotEmpty()) {
+//                                        if (timeSign != it.data?.data?.timeSign.orEmpty()) {
+//                                            context.toast(context.getString(R.string.max_login))
+//                                            logout(
+//                                                userDataViewModel,
+//                                                stepViewModel,
+//                                                socialNetworkViewModel
+//                                            )
+//                                        }
+//                                    }
                                 }
                             }
                         }
@@ -218,11 +221,16 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private fun registerListener() {
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         val stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        if (stepSensor == null) {
-            // This will give a toast message to the user if there is no sensor in the device
-        } else {
-            sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
-        }
+        val accSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        sensorManager?.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
+
+
+//        if (stepSensor == null) {
+////            this.toast(getString(R.string.sensor_not_support))
+//            sensorManager?.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
+//        } else {
+//            sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
+//        }
     }
 
     private fun unRegisterListener() {
@@ -230,14 +238,34 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     }
 
     override fun onSensorChanged(p0: SensorEvent?) {
-        timber("onSensorChanged FOR")
-        if (!isInBackground) {
+
+        if (!isInBackground){
             val serviceIntent = Intent(this, MyBackgroundService::class.java)
             this.stopService(serviceIntent)
-            stepViewModel.insertStep(p0?.values?.firstOrNull().orZero().toInt(), updateId)
         }
 
+        when(p0?.sensor?.type){
+
+            Sensor.TYPE_STEP_COUNTER ->{
+                timber("onSensorChanged :: For")
+                if (!isInBackground) {
+                    timber("wakdjjwhadjkwahdkjhawkjdhakwjhd 3:: $mStepCounter")
+                    stepViewModel.insertStep(p0.values?.firstOrNull().orZero().toInt(), updateId)
+                }
+            }
+
+
+            Sensor.TYPE_ACCELEROMETER ->{
+                if (!isInBackground){
+                    stepDetector.updateAccel(p0.timestamp, p0.values[0],p0.values[1],p0.values[2])
+                }
+
+            }
+        }
+
+
     }
+    
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
     }
@@ -274,6 +302,12 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         unRegisterListener()
     }
 
+    override fun step(timeNs: Long) {
+        mStepCounter++
+        timber("wakdjjwhadjkwahdkjhawkjdhakwjhd 2:: $mStepCounter")
+        stepViewModel.insertStep(mStepCounter, updateId)
+    }
+
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -294,35 +328,53 @@ private fun checkPermissions(): String {
     else Screens.PermissionScreen.name
 }
 
-private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, userPhone: String) {
+private fun syncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: String) {
     timber("StepSync **********")
-    var loading = false
+    var stepNeedSync = 0
     stepViewModel.needToSyncSteps().observe(owner) {
-        it.distinctBy { it?.id }.forEach { step ->
-            if (!loading && step != null && (step.date != dateOfToday() || (step.date == dateOfToday() && ((step.count.orZero() - step.start.orZero()) - step.synced.orZero() >= 10)))) {
-                stepViewModel.syncStep(!loading, userPhone, step).observe(owner) {
-                    when (it) {
-                        is NetworkResult.Error -> {
-                            timber("StepSync ::: ERR")
-                        }
 
-                        is NetworkResult.Loading -> {
-                            timber("StepSync ::: Loading")
-                            loading = true
-                        }
+        val groupedSteps = it.groupBy { it?.date }
 
-                        is NetworkResult.Success -> {
-                            timber("StepSync ::: Success ::: ${it.data?.data}")
-                            if (it.data?.data?.id != null && it.data.data.count != null) {
-                                stepViewModel.updateSync(it.data.data.id, it.data.data.count)
-                                stepViewModel.clearSummaries()
-                                loading = false
+        groupedSteps.forEach { (date, steps) ->
+
+            if (date.orEmpty().isNotEmpty()){
+                var totalSteps = 0
+                var totalSynced = 0
+                steps.forEach {
+
+                    if (it?.count.orZero() > it?.start.orZero()){
+                        totalSteps += it?.count.orZero() - it?.start.orZero()
+                        totalSynced = it?.synced.orZero()
+                    }
+
+                }
+
+                if (date != dateOfToday() && totalSteps > totalSynced || totalSteps - totalSynced > 10){
+
+                    if (totalSteps != stepNeedSync){
+                        stepViewModel.syncStep(date!!, totalSteps, uid).observe(owner){
+                            when(it){
+                                is NetworkResult.Error -> {
+
+                                }
+                                is NetworkResult.Loading -> {
+
+                                }
+                                is NetworkResult.Success -> {
+                                    stepNeedSync = totalSteps
+                                    if (it.data?.data?.date.orEmpty().isNotEmpty() && it.data?.data?.count.orZero() != 0){
+                                        stepViewModel.updateSync(it.data?.data?.date.orEmpty(), it.data?.data?.count.orZero())
+                                        stepViewModel.clearSummaries()
+                                    }
+                                }
                             }
                         }
                     }
+
                 }
             }
         }
+
     }
 }
 

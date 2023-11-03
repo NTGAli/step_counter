@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -190,9 +191,6 @@ fun UserProfileScreen(
         userId = it
     }
 
-    userDataViewModel.getUserStatus().collectAsState(initial = "").value.let {
-        userSate = it
-    }
 
     if (userName.isEmpty() && internetConnection || tryAgain){
 
@@ -215,6 +213,7 @@ fun UserProfileScreen(
                     isLock.value = it.data?.data?.isLock.orFalse()
                     isClap = it.data?.data?.isClap.orFalse()
                     socials = it.data?.data?.socials.orEmpty()
+                    userSate = it.data?.data?.state.orEmpty()
                     val gradeId = it.data?.data?.gradeId.orZero()
                     achievement = it.data?.data?.achievement ?: Achievement()
                     userBio = when (userSate) {
@@ -245,24 +244,36 @@ fun UserProfileScreen(
 
     }
 
-    if (!isLock.value && internetConnection || tryAgain) {
+    var loadData by remember {
+        mutableStateOf(false)
+    }
 
-        userDataViewModel.getUserSteps(uid).observe(LocalLifecycleOwner.current) {
-            when (it) {
-                is NetworkResult.Error -> {
-                    error = true
-                }
+    val owner = LocalLifecycleOwner.current
 
-                is NetworkResult.Loading -> {
-                }
+    LaunchedEffect(key1 = Unit, block = {
+        if (!loadData && !isLock.value && internetConnection || tryAgain) {
 
-                is NetworkResult.Success -> {
-                    steps = it.data?.data.orEmpty()
+            userDataViewModel.getUserSteps(uid).observe(owner) {
+                when (it) {
+                    is NetworkResult.Error -> {
+                        loadData = false
+                        error = true
+                    }
+
+                    is NetworkResult.Loading -> {
+                        loadData = true
+                    }
+
+                    is NetworkResult.Success -> {
+                        loadData = false
+                        steps = it.data?.data.orEmpty()
+                    }
                 }
             }
-        }
 
-    }
+        }
+    })
+
 
 
     var aaa by remember { mutableFloatStateOf(0f) }
@@ -401,8 +412,8 @@ fun UserProfileScreen(
                             } else if (steps.isNotEmpty()) {
                                 LazyRow(
                                     modifier = Modifier
-                                        .padding(horizontal = 16.dp)
-                                        .padding(top = 16.dp)
+                                        .padding(top = 16.dp),
+                                    contentPadding = PaddingValues(horizontal = 16.dp)
                                 ) {
                                     itemsIndexed(
                                         steps.distinctBy { it.date }) { index, it ->
@@ -480,15 +491,8 @@ fun UserProfileScreen(
                                 style = fontMedium14(SECONDARY500)
                             )
 
-                            if (achievement.n3Days == 0 && !achievement.is10.orFalse()){
-                                Text(
-                                    modifier = Modifier.padding(top = 8.dp, start = 16.dp),
-                                    text = stringResource(id = R.string.no_achievment),
-                                    style = fontRegular12(
-                                        SECONDARY500
-                                    )
-                                )
-                            }else{
+
+                            if (achievement.totalTop != 0 || achievement.is10.orFalse()){
 
                                 if (achievement.totalTop != 0){
                                     AchievementItem(text = ctx.getString(R.string.total_top_achievement, achievement.totalTop.toString()))
@@ -526,6 +530,18 @@ fun UserProfileScreen(
                                     AchievementItem(text = ctx.getString(R.string.n50_steps_achievement))
                                 }
 
+
+                            }else{
+                                    androidx.compose.material.Text(
+                                        modifier = androidx.compose.ui.Modifier.padding(
+                                            top = 8.dp,
+                                            start = 16.dp
+                                        ),
+                                        text = androidx.compose.ui.res.stringResource(id = com.ntg.stepcounter.R.string.no_achievment),
+                                        style = com.ntg.stepcounter.ui.theme.fontRegular12(
+                                            com.ntg.stepcounter.ui.theme.SECONDARY500
+                                        )
+                                    )
 
                             }
 

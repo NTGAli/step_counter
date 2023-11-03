@@ -20,6 +20,7 @@ import com.ntg.stepcounter.util.extension.safeApiCall
 import com.ntg.stepcounter.util.extension.timber
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import java.lang.Exception
@@ -37,11 +38,14 @@ class StepViewModel @Inject constructor(
     private var stepsOfToday: LiveData<List<Step>> = MutableLiveData()
     private var topRecord: LiveData<TopRecord?>? = MutableLiveData()
     private var unSynced: LiveData<List<Step?>> = MutableLiveData()
-    private var syncResult: MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>> = MutableLiveData()
-    private var summaries: MutableLiveData<NetworkResult<ResponseBody<SummariesRes?>>> = MutableLiveData()
-    private var usersBase: MutableLiveData<NetworkResult<ResponseBody<List<SummaryRes>?>>> = MutableLiveData()
+    private var syncResult: MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>> =
+        MutableLiveData()
+    private var summaries: MutableLiveData<NetworkResult<ResponseBody<SummariesRes?>>> =
+        MutableLiveData()
+    private var usersBase: MutableLiveData<NetworkResult<ResponseBody<List<SummaryRes>?>>> =
+        MutableLiveData()
 
-    fun clearSummaries(){
+    fun clearSummaries() {
         summaries = MutableLiveData()
     }
 
@@ -54,7 +58,8 @@ class StepViewModel @Inject constructor(
 
         if (rowsUpdated == 0) {
             // If no rows were updated, insert a new row with count = 1
-            val newEntity = Step(0,date = dateOfToday, count =  1) // Replace with your entity constructor
+            val newEntity =
+                Step(0, date = dateOfToday, count = 1) // Replace with your entity constructor
             appDB.stepDao().insert(newEntity)
         }
     }
@@ -63,26 +68,27 @@ class StepViewModel @Inject constructor(
 
         val dateOfToday = dateOfToday()
 
-        if (updateId != -1){
-            val rowsUpdated = appDB.stepDao().updateCount(updateId, count)
+        if (updateId != -1) {
+            val rowsUpdated = appDB.stepDao().updateCount(updateId,dateOfToday, count)
             if (rowsUpdated == 0) {
-                val newEntity = Step(0,date = dateOfToday, start  =  count)
+                val newEntity = Step(0, date = dateOfToday, start = count)
                 appDB.stepDao().insert(newEntity)
             }
-        }else{
-            val newEntity = Step(0,date = dateOfToday, start  =  count)
+        } else {
+            val newEntity = Step(0, date = dateOfToday, start = count)
             appDB.stepDao().insert(newEntity)
         }
 
     }
 
-    fun insertManually(step: Step){
+    fun insertManually(step: Step) {
         viewModelScope.launch {
             appDB.stepDao().insert(step)
         }
     }
 
-    fun updateSync(id: Int, sync: Int) = viewModelScope.launch { appDB.stepDao().updateSync(id, sync) }
+    fun updateSync(date: String, count: Int) =
+        viewModelScope.launch { appDB.stepDao().updateSync(date, count) }
 
     fun getAllSteps() = appDB.stepDao().getAllSteps()
 
@@ -108,14 +114,18 @@ class StepViewModel @Inject constructor(
         return topRecord
     }
 
-    fun syncStep(fetch: Boolean,uid: String, step: Step): MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>> {
+    fun syncStep(
+        date: String,
+        steps: Int,
+        uid: String
+    ): MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>> {
         viewModelScope.launch {
-            if (fetch){
-                syncResult = safeApiCall(Dispatchers.IO){
-                    timber("StepSync -----")
-                    apiService.syncSteps(uid, step.date, (step.count - step.start.orZero()) - step.synced.orZero(), step.id)
-                } as MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>>
-            }
+            syncResult = safeApiCall(Dispatchers.IO) {
+                timber("StepSync -----")
+                apiService.syncSteps(
+                    date, steps, uid
+                )
+            } as MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>>
         }
         return syncResult
     }
@@ -127,10 +137,13 @@ class StepViewModel @Inject constructor(
         return unSynced
     }
 
-    fun summariesData(uid: String, fetch: Boolean): MutableLiveData<NetworkResult<ResponseBody<SummariesRes?>>> {
-        if (fetch || summaries.value == null){
+    fun summariesData(
+        uid: String,
+        fetch: Boolean
+    ): MutableLiveData<NetworkResult<ResponseBody<SummariesRes?>>> {
+        if (fetch || summaries.value == null) {
             viewModelScope.launch {
-                summaries = safeApiCall(Dispatchers.IO){
+                summaries = safeApiCall(Dispatchers.IO) {
                     apiService.summariesData(uid)
                 } as MutableLiveData<NetworkResult<ResponseBody<SummariesRes?>>>
             }
@@ -140,11 +153,11 @@ class StepViewModel @Inject constructor(
 
 
     fun gerUserBase(base: String): MutableLiveData<NetworkResult<ResponseBody<List<SummaryRes>?>>> {
-            viewModelScope.launch {
-                usersBase = safeApiCall(Dispatchers.IO){
-                    apiService.getUserBase(base)
-                } as MutableLiveData<NetworkResult<ResponseBody<List<SummaryRes>?>>>
-            }
+        viewModelScope.launch {
+            usersBase = safeApiCall(Dispatchers.IO) {
+                apiService.getUserBase(base)
+            } as MutableLiveData<NetworkResult<ResponseBody<List<SummaryRes>?>>>
+        }
         return usersBase
     }
 

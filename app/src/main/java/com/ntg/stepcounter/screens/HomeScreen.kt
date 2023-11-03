@@ -37,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -100,7 +101,11 @@ import java.lang.Exception
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewModel, userDataViewModel: UserDataViewModel) {
+fun HomeScreen(
+    navHostController: NavHostController,
+    stepViewModel: StepViewModel,
+    userDataViewModel: UserDataViewModel
+) {
 
     var aaa by remember { mutableFloatStateOf(0f) }
     var radius by remember { mutableFloatStateOf(32f) }
@@ -126,6 +131,18 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
         mutableStateOf(true)
     }
 
+    var username by remember {
+        mutableStateOf(".")
+    }
+
+    var loadData by remember {
+        mutableStateOf(false)
+    }
+
+    var updateSummaries by remember {
+        mutableStateOf(false)
+    }
+
 
     val ctx = LocalContext.current
     val owner = LocalLifecycleOwner.current
@@ -134,39 +151,59 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
     val userStepsToday = stepViewModel.getToday().observeAsState().value
     var stepsOfToday = 0
 
+
     userStepsToday?.forEach {
-        if (it.count != 0){
+        if (it.count != 0 && it.count.orZero() >= it.start.orZero()) {
             stepsOfToday += it.count.orZero() - it.start.orZero()
         }
     }
 
+    if (stepsOfToday % 10 == 0) updateSummaries = !updateSummaries
+
     val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
+    username = userDataViewModel.getUsername().collectAsState(initial = ".").value
 
     internetConnection = ctx.checkInternet()
 
-    if (internetConnection){
-        userDataViewModel.getUserId().collectAsState(initial = "").value.let {userId ->
-            stepViewModel.summariesData(userId, summaries == null || tryAgain ).observe(owner) {
-                when (it) {
-                    is NetworkResult.Error -> {
-                        timber("SUMMARISE ::: ERR :: ${it.message}")
-                        loading = false
-                        error = true
+
+
+    if (internetConnection && !loadData) {
+        userDataViewModel.getUserId().collectAsState(initial = "").value.let { userId ->
+
+
+            if (userId.isNotEmpty()){
+
+                LaunchedEffect(key1 = updateSummaries, block = {
+
+                    stepViewModel.summariesData(userId, summaries == null || tryAgain).observe(owner) {
+                        when (it) {
+                            is NetworkResult.Error -> {
+                                timber("SUMMARISE ::: ERR :: ${it.message}")
+                                error = true
+                                loadData = true
+                            }
+
+                            is NetworkResult.Loading -> {
+                                timber("SUMMARISE ::: Loading")
+                                loadData = true
+                            }
+
+                            is NetworkResult.Success -> {
+                                summaries = it.data?.data
+                                loadData = false
+                            }
+                        }
                     }
 
-                    is NetworkResult.Loading -> {
-                        timber("SUMMARISE ::: Loading")
-                        loading = true
-                    }
+                })
 
-                    is NetworkResult.Success -> {
-                        summaries = it.data?.data
-                        loading = false
-                    }
-                }
             }
         }
     }
+
+    LaunchedEffect(key1 = summaries, block = {
+        loading = summaries == null
+    })
 
 
     BoxWithConstraints {
@@ -182,11 +219,11 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
         val animateRotation = remember { Animatable(0f) }
         val coroutineScope = rememberCoroutineScope()
 
-        LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded){
-            coroutineScope.launch{
-                if (scaffoldState.bottomSheetState.isExpanded){
+        LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded) {
+            coroutineScope.launch {
+                if (scaffoldState.bottomSheetState.isExpanded) {
                     animateRotation.animateTo(180f)
-                }else{
+                } else {
                     animateRotation.animateTo(0f)
                 }
             }
@@ -225,37 +262,46 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                                 .size(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(text = "ع", style = fontRegular12(PRIMARY500))
+                            Text(text = username[0].toString(), style = fontRegular12(PRIMARY500))
                         }
                     },
                     elevation = 0.dp
                 )
             },
             sheetContent = {
-                if (loading){
+                if (loading) {
                     Loading(isFull = false)
-                }else if (!internetConnection){
-                    ErrorMessage(modifier = Modifier.padding(top = 32.dp), status = ErrorStatus.Internet) {
+                } else if (!internetConnection) {
+                    ErrorMessage(
+                        modifier = Modifier.padding(top = 32.dp),
+                        status = ErrorStatus.Internet
+                    ) {
                         internetConnection = true
                         error = false
                     }
-                } else if(error){
+                } else if (error) {
                     tryAgain = false
-                    ErrorMessage(modifier = Modifier.padding(top = 32.dp), status = ErrorStatus.Failed) {
+                    ErrorMessage(
+                        modifier = Modifier.padding(top = 32.dp),
+                        status = ErrorStatus.Failed
+                    ) {
                         tryAgain = true
                         error = false
                     }
-                }
-                else{
-                    Column(modifier = Modifier
-                        .height(sheetHeight)
-                        .background(Background)
-                        .padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally)
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .height(sheetHeight)
+                            .background(Background)
+                            .padding(horizontal = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    )
                     {
 
 
                         Icon(
-                            modifier = Modifier.padding(top = 8.dp)
+                            modifier = Modifier
+                                .padding(top = 8.dp)
                                 .rotate(animateRotation.value),
                             painter = painterResource(id = R.drawable.chevron_up),
                             contentDescription = null
@@ -274,14 +320,18 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                             style = fontRegular12(PRIMARY900)
                         )
 
-                        Title(modifier = Modifier
-                            .padding(bottom = 8.dp)
-                            .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_today), action = stringResource(
-                            id = R.string.see_all
-                        )) {
-                            navHostController.navigate(Screens.SeeMoreScreen.name+"?type=TopToday")
+                        Title(
+                            modifier = Modifier
+                                .padding(bottom = 8.dp)
+                                .padding(horizontal = 16.dp),
+                            title = stringResource(id = R.string.top_today),
+                            action = stringResource(
+                                id = R.string.see_all
+                            )
+                        ) {
+                            navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopToday")
                         }
-                        if (summaries?.today.orEmpty().isNotEmpty()){
+                        if (summaries?.today.orEmpty().isNotEmpty()) {
                             LazyColumn(content = {
                                 itemsIndexed(summaries?.today.orEmpty()) { index, it ->
                                     Record(
@@ -290,25 +340,29 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                                         record = index,
                                         title = it.title.orEmpty(),
                                         steps = it.steps
-                                    ){
+                                    ) {
                                         navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
                                     }
                                 }
                             })
-                        }else{
+                        } else {
                             EmptyWidget(title = ctx.getString(R.string.no_record_today))
                         }
 
 
-                        Title(modifier = Modifier
-                            .padding(top = 24.dp, bottom = 8.dp)
-                            .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_rank_base_fos), action = stringResource(
-                            id = R.string.see_all
-                        )) {
-                            navHostController.navigate(Screens.SeeMoreScreen.name+"?type=TopBaseFos")
+                        Title(
+                            modifier = Modifier
+                                .padding(top = 24.dp, bottom = 8.dp)
+                                .padding(horizontal = 16.dp),
+                            title = stringResource(id = R.string.top_rank_base_fos),
+                            action = stringResource(
+                                id = R.string.see_all
+                            )
+                        ) {
+                            navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopBaseFos")
                         }
 
-                        if (summaries?.fos.orEmpty().isNotEmpty()){
+                        if (summaries?.fos.orEmpty().isNotEmpty()) {
                             LazyColumn(content = {
                                 itemsIndexed(summaries?.fos.orEmpty()) { index, it ->
                                     Record(
@@ -317,24 +371,28 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                                         record = index,
                                         title = it.title.orEmpty(),
                                         steps = it.steps
-                                    ){
-                                        navHostController.navigate(Screens.FieldOfStudyDetailsScreen.name + "?uid=$it&rank=${index+1}")
+                                    ) {
+                                        navHostController.navigate(Screens.FieldOfStudyDetailsScreen.name + "?uid=$it&rank=${index + 1}")
                                     }
                                 }
                             })
-                        }else{
+                        } else {
                             EmptyWidget(title = ctx.getString(R.string.no_fos_record))
                         }
 
-                        Title(modifier = Modifier
-                            .padding(top = 24.dp, bottom = 8.dp)
-                            .padding(horizontal = 16.dp), title = stringResource(id = R.string.top_rank_base_user), action = stringResource(
-                            id = R.string.see_all
-                        )) {
-                            navHostController.navigate(Screens.SeeMoreScreen.name+"?type=TopUsers")
+                        Title(
+                            modifier = Modifier
+                                .padding(top = 24.dp, bottom = 8.dp)
+                                .padding(horizontal = 16.dp),
+                            title = stringResource(id = R.string.top_rank_base_user),
+                            action = stringResource(
+                                id = R.string.see_all
+                            )
+                        ) {
+                            navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopUsers")
                         }
 
-                        if (summaries?.all.orEmpty().isNotEmpty()){
+                        if (summaries?.all.orEmpty().isNotEmpty()) {
                             LazyColumn(modifier = Modifier.padding(bottom = 64.dp), content = {
                                 itemsIndexed(summaries?.all.orEmpty()) { index, it ->
                                     Record(
@@ -343,12 +401,12 @@ fun HomeScreen(navHostController: NavHostController, stepViewModel: StepViewMode
                                         record = index,
                                         title = it.title.orEmpty(),
                                         steps = it.steps
-                                    ){
+                                    ) {
                                         navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
                                     }
                                 }
                             })
-                        }else{
+                        } else {
                             EmptyWidget(title = ctx.getString(R.string.no_fos_record))
                         }
                     }
@@ -473,10 +531,6 @@ private fun fakeData(stepViewModel: StepViewModel) {
 //
 //        isFakeDtaSet = true
 //    }
-
-
-
-
 
 
 //

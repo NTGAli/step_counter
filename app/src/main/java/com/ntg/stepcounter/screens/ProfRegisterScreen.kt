@@ -264,9 +264,11 @@ private fun Content(
                             loading.value = true
 
                             if (edit) {
+
+
                                 loginViewModel.editUserDate(
                                     phoneNumber.orEmpty(),
-                                    fullName.value,
+                                    fullName.value.trim(),
                                     "2",
                                     sId.value,
                                     loginViewModel.fieldOfStudy?.id.toString(),
@@ -282,7 +284,7 @@ private fun Content(
                                         }
 
                                         is NetworkResult.Success -> {
-                                            userDataViewModel.setUsername(fullName.value)
+                                            userDataViewModel.setUsername(fullName.value.trim())
                                             userDataViewModel.setUserStatus("2")
                                             userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
                                             userDataViewModel.setUserId(sId.value)
@@ -297,7 +299,7 @@ private fun Content(
                             } else {
                                 loginViewModel.register(
                                     phoneNumber.orEmpty(),
-                                    fullName.value,
+                                    fullName.value.trim(),
                                     "2",
                                     sId.value,
                                     loginViewModel.fieldOfStudy?.id.toString(),
@@ -315,7 +317,7 @@ private fun Content(
 
                                         is NetworkResult.Success -> {
                                             userDataViewModel.setTimeSign(it.data?.data.orEmpty())
-                                            userDataViewModel.setUsername(fullName.value)
+                                            userDataViewModel.setUsername(fullName.value.trim())
                                             userDataViewModel.setUserStatus("2")
                                             userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
                                             userDataViewModel.setUserId(sId.value)

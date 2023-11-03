@@ -19,5 +19,6 @@ enum class Screens {
     PermissionScreen,
     EditPhoneNumberScreen,
     SeeMoreScreen,
-    TermAndConditionsScreen
+    TermAndConditionsScreen,
+    PrivacyPolicyScreen
 }

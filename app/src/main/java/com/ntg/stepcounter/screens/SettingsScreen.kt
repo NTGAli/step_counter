@@ -131,7 +131,7 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
             })
 
             ItemOption(text = stringResource(id = R.string.privacy_policies), onClick = {
-
+                navHostController.navigate(Screens.PrivacyPolicyScreen.name)
             })
 
 

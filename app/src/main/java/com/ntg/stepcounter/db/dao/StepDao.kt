@@ -9,12 +9,13 @@ import androidx.room.Query
 import androidx.room.Update
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.TopRecord
+import com.ntg.stepcounter.util.extension.dateOfToday
 
 @Dao
 interface StepDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(step: Step)
+    suspend fun insert(step: Step): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(step: List<Step>)
@@ -28,11 +29,11 @@ interface StepDao {
     @Query("UPDATE Step SET count = count + 1 WHERE date = :date")
     suspend fun updateCount(date: String?): Int
 
-    @Query("UPDATE Step SET count =:count, exp =:exp WHERE id = :id AND count <:count")
-    suspend fun updateCount(id: Int?, count: Int?, exp: Boolean = false): Int
+    @Query("UPDATE Step SET count =:count, exp =:exp WHERE id = :id AND count <:count AND start<=:count AND date=:date")
+    suspend fun updateCount(id: Int?,date: String, count: Int?, exp: Boolean = false): Int
 
-    @Query("UPDATE Step SET synced =:sync+synced WHERE id = :id")
-    suspend fun updateSync(id: Int, sync: Int)
+    @Query("UPDATE Step SET synced =:count WHERE date = :date AND count - start > 0")
+    suspend fun updateSync(date: String, count: Int)
 
     @Query("SELECT SUM(count - start) FROM Step WHERE count != 0")
     fun getAllSteps(): LiveData<Int>
@@ -54,6 +55,11 @@ interface StepDao {
             "FROM Step\n" +
             "WHERE count != synced")
     fun getUnSyncedSteps(): LiveData<List<Step?>>
+
+    @Query("SELECT *\n" +
+            "FROM Step\n" +
+            "WHERE count != synced AND DATE(date)=:date")
+    fun getUnSyncedStepsOfDate(date: String = dateOfToday()): LiveData<List<Step?>>
 
 
 

@@ -157,11 +157,13 @@ private fun Content(navHostController: NavHostController) {
             btnText = stringResource(id = R.string.access),
             isGranted = notificationStatusPermission,
             onClick = {
-                if (setManually.value) {
-                    openAppSettings(context)
-                } else {
-                    notificationPermission.launchPermissionRequest()
-                }
+//                if (setManually.value) {
+//                    openAppSettings(context)
+//                } else {
+//                    notificationPermission.launchPermissionRequest()
+//                }
+                notificationPermission.launchPermissionRequest()
+
             })
 
         PermissionItem(id = 0,

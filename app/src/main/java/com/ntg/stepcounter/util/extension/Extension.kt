@@ -4,7 +4,6 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.Build
 import android.widget.Toast
 import androidx.compose.runtime.Composable
@@ -28,7 +27,10 @@ import timber.log.Timber
 import java.io.IOException
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.time.LocalDate
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.temporal.TemporalField
 import java.util.Date
 import java.util.Locale
 
@@ -37,6 +39,7 @@ fun Float?.orZero() = this ?: 0f
 fun Long?.orDefault() = this ?: 0L
 fun String?.orDefault() = this ?: ""
 fun Int?.orZero() = this ?: 0
+fun Double?.orZero() = this ?: 0.0
 fun Boolean?.orFalse() = this ?: false
 fun Boolean?.orTrue() = this ?: true
 fun Int?.orNull() = this ?: null
@@ -173,12 +176,21 @@ fun notNull(
     }
 
 fun dateOfToday(): String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-    LocalDate.now().toString()
+    val z = ZoneId.of("Asia/Tehran")
+    val zdt = ZonedDateTime.now(z)
+    zdt.toLocalDate().toString()
 } else {
     val currentDate = Date()
     val dateFormat = SimpleDateFormat("yyyy-MM-dd")
     dateFormat.format(currentDate)
 }
+
+//fun randStr(length: Int = 5) : String {
+//    val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
+//    return (1..length)
+//        .map { allowedChars.random() }
+//        .joinToString("")
+//}
 
 fun Context.checkInternet(): Boolean {
     return (this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).activeNetworkInfo != null

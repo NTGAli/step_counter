@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.ntg.stepcounter.components.PrivacyPolicyScreen
 import com.ntg.stepcounter.components.TermAndConditionsScreen
 import com.ntg.stepcounter.screens.AccountScreen
 import com.ntg.stepcounter.screens.EditPhoneNumberScreen
@@ -252,6 +253,10 @@ fun AppNavHost(
 
         composable(Screens.TermAndConditionsScreen.name) {
             TermAndConditionsScreen()
+        }
+
+        composable(Screens.PrivacyPolicyScreen.name) {
+            PrivacyPolicyScreen()
         }
 
 

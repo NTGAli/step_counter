@@ -3,6 +3,7 @@ package com.ntg.stepcounter.models.res
 data class UserProfile(
     val totalDays: Int? = null,
     val steps: Int? = null,
+    val state: String? = null,
     val fullName: String? = null,
     val gradeId: Int? = null,
     val isVerified: Boolean? = false,

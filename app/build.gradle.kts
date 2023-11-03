@@ -165,6 +165,7 @@ dependencies {
     debugImplementation("com.github.chuckerteam.chucker:library:4.0.0")
     releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
 
+    implementation("com.jjoe64:graphview:4.2.2")
 
 
 }
@@ -172,4 +173,5 @@ dependencies {
 kapt {
     correctErrorTypes = true
 }
+
 

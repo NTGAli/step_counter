@@ -328,11 +328,11 @@ fun RegisterScreen(
                                 loading.value = true
 
                                 if (edit.orFalse()) {
-                                    timber("akdjklawjdkjwaldkjwalkjdlwakjd ${loginViewModel.fieldOfStudy?.id.toString()}")
+
 
                                     loginViewModel.editUserDate(
                                         phone = phoneNumber.orEmpty(),
-                                        fullName = fullName.value,
+                                        fullName = fullName.value.trim(),
                                         state = "1",
                                         uid = sId.value,
                                         fosId = loginViewModel.fieldOfStudy?.id.toString(),
@@ -354,7 +354,7 @@ fun RegisterScreen(
                                                     userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
                                                     userDataViewModel.setUserId(sId.value)
                                                     userDataViewModel.setPhone(phoneNumber.orEmpty())
-                                                    userDataViewModel.setUsername(fullName.value)
+                                                    userDataViewModel.setUsername(fullName.value.trim())
                                                     userDataViewModel.setGradeId(gradeId.value)
                                                     userDataViewModel.setFosId(loginViewModel.fieldOfStudy?.id.orZero())
                                                     ctx.toast(ctx.getString(R.string.user_updated_successfully))
@@ -374,7 +374,7 @@ fun RegisterScreen(
                                 } else {
                                     loginViewModel.register(
                                         phoneNumber.orEmpty(),
-                                        fullName.value,
+                                        fullName.value.trim(),
                                         "1",
                                         sId.value,
                                         loginViewModel.fieldOfStudy?.id.toString(),
@@ -397,7 +397,7 @@ fun RegisterScreen(
                                                     userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
                                                     userDataViewModel.setUserId(sId.value)
                                                     userDataViewModel.setPhone(phoneNumber.orEmpty())
-                                                    userDataViewModel.setUsername(fullName.value)
+                                                    userDataViewModel.setUsername(fullName.value.trim())
                                                     userDataViewModel.setGradeId(gradeId.value)
                                                     userDataViewModel.setFosId(loginViewModel.fieldOfStudy?.id.orZero())
                                                 } else if (it.data?.message == "UID_ALREADY_EXIST") {

@@ -12,6 +12,7 @@ import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.models.res.SummaryRes
 import com.ntg.stepcounter.models.res.UserProfile
 import com.ntg.stepcounter.models.res.UserRes
+import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -63,11 +64,18 @@ interface ApiService {
     @FormUrlEncoded
     @POST("userStep.php")
     suspend fun syncSteps(
-        @Field("uid") uid: String,
         @Field("date") date: String,
-        @Field("steps") steps: Int?,
-        @Field("id") id: Int?,
+        @Field("steps") steps: Int,
+        @Field("uid") uid: String?,
     ): Response<ResponseBody<StepSynced?>>
+
+    @FormUrlEncoded
+    @POST("userStep.php")
+    fun syncStepsInBack(
+        @Field("date") date: String,
+        @Field("steps") steps: Int,
+        @Field("uid") uid: String?,
+    ): Call<ResponseBody<StepSynced?>>
 
     @FormUrlEncoded
     @POST("rankData.php")
@@ -163,6 +171,14 @@ interface ApiService {
         @Field("uid") uid: String,
         @Field("isLock") isLock: Boolean
     ): Response<ResponseBody<Boolean?>>
+
+
+    @FormUrlEncoded
+    @POST("deleteSocial.php")
+    suspend fun deleteSocial(
+        @Field("uid") uid: String,
+        @Field("id") id: Int
+    ): Response<ResponseBody<Int?>>
 
 
 }

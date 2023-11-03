@@ -93,6 +93,7 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
                         is NetworkResult.Success -> {
 
                             if (it.data?.isSuccess.orFalse()){
+                                userDataViewModel.setTimeSign(it.data?.data?.timeSign.orEmpty())
                                 stepViewModel.insertAll(it.data?.data?.stepsList.orEmpty().map { Step(id=0, date = it.date, start = 0, count = it.steps.orZero(),synced = it.steps) })
                                 socialNetworkViewModel.insertAll(it.data?.data?.socials.orEmpty().map { Social(id=it.id, name = it.title.orEmpty(), pageId = it.url.orEmpty()) })
                                 userDataViewModel.setUserStatus(state.orEmpty())
@@ -102,7 +103,6 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
                                 userDataViewModel.setUsername(it.data?.data?.fullName.orEmpty())
                                 userDataViewModel.setGradeId(it.data?.data?.gradeId.orZero())
                                 userDataViewModel.setFosId(it.data?.data?.fosId.orZero())
-                                userDataViewModel.setTimeSign(it.data?.data?.timeSign.orEmpty())
 
                             }else{
                                 context.toast(context.getString(R.string.wrong_info))
