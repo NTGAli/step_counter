@@ -58,8 +58,8 @@ interface StepDao {
 
     @Query("SELECT *\n" +
             "FROM Step\n" +
-            "WHERE count != synced AND DATE(date)=:date")
-    fun getUnSyncedStepsOfDate(date: String = dateOfToday()): LiveData<List<Step?>>
+            "WHERE count != synced")
+    fun getUnSyncedStepsOfDate(): LiveData<List<Step?>>
 
 
 

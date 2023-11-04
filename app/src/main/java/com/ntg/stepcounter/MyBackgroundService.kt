@@ -97,12 +97,16 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
         }
 
 
-        appDB.stepDao().getToday(dateOfToday()).observe(this) {
+        appDB.stepDao().getAllDate().observe(this) {allList ->
+
+            val it = allList.filter { it.date == dateOfToday() }
+
             updateId = if (it.lastOrNull() != null) {
                 it.last().id.toString()
             } else ""
 
-            toDayDate = it.last().date
+            if (it.isNotEmpty())
+                toDayDate = it.last().date
 
             timber("aklwjdaklwjdlkawjdlkwlkd $updateId")
 
@@ -112,8 +116,16 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
                     steps.value = steps.value.orZero() + (step.count - step.start.orZero())
                 }
             }
+        }
 
 
+        steps.observe(this){
+            try {
+                notificationBuilder.setContentText("$it --- $toDayDate -- $updateId")
+                notificationManager.notify(1414, notificationBuilder.build())
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -131,7 +143,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
         if (stepSensor != null) {
             sensorManager!!.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
-        }else if (accSensor != null){
+        } else if (accSensor != null) {
             sensorManager!!.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
         }
 
@@ -143,7 +155,9 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
 
 
-        appDB.stepDao().getUnSyncedStepsOfDate().observe(this@MyBackgroundService) {
+        appDB.stepDao().getUnSyncedStepsOfDate().observe(this@MyBackgroundService) {unSyncedList ->
+
+            val it = unSyncedList.filter { it?.date == dateOfToday() }
 
 
             var totalSteps = 0
@@ -157,13 +171,6 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
             }
 
-            try {
-                notificationBuilder.setContentText("$totalSteps --- $toDayDate -- $updateId")
-                notificationManager.notify(1414, notificationBuilder.build())
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
 
             if (totalSteps - totalSynced > 50 && totalSteps != 0 && totalSteps != needToSync) {
 
@@ -172,19 +179,26 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
                     val call = apiService.syncStepsInBack(dateOfToday(), totalSteps, userId)
                     call.enqueue(object : Callback<ResponseBody<StepSynced?>> {
-                        override fun onResponse(call: Call<ResponseBody<StepSynced?>>, response: Response<ResponseBody<StepSynced?>>) {
+                        override fun onResponse(
+                            call: Call<ResponseBody<StepSynced?>>,
+                            response: Response<ResponseBody<StepSynced?>>
+                        ) {
                             if (response.isSuccessful) {
                                 val data = response.body()
                                 needToSync = totalSteps
-                                if (data?.data?.date != null && data.data.count != null){
+                                if (data?.data?.date != null && data.data.count != null) {
                                     scope.launch {
-                                        appDB.stepDao().updateSync(data.data.date, data.data.count.orZero())
+                                        appDB.stepDao()
+                                            .updateSync(data.data.date, data.data.count.orZero())
                                     }
                                 }
                             }
                         }
 
-                        override fun onFailure(call: Call<ResponseBody<StepSynced?>>, t: Throwable) {
+                        override fun onFailure(
+                            call: Call<ResponseBody<StepSynced?>>,
+                            t: Throwable
+                        ) {
                             // Handle the network or other errors here
                         }
                     })
@@ -272,16 +286,20 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
         scope.launch {
             if (::updateId.isInitialized) {
                 if (updateId.isNotEmpty()) {
-                    val rowsUpdated = appDB.stepDao().updateCount(updateId.toInt(), dateOfToday() ,count, true)
+                    val rowsUpdated =
+                        appDB.stepDao().updateCount(updateId.toInt(), dateOfToday(), count, true)
                     if (rowsUpdated == 0) {
+                        timber("wkahdkjwahdjkhawjkdhwkajdhawkwjdkh ::: 3")
                         val newEntity = Step(0, date = dateOfToday(), start = count, exp = true)
                         appDB.stepDao().insert(newEntity)
                     }
                 } else {
+                    timber("wkahdkjwahdjkhawjkdhwkajdhawkwjdkh ::: 2")
                     val newEntity = Step(0, date = dateOfToday(), start = count, exp = true)
                     appDB.stepDao().insert(newEntity)
                 }
             } else {
+                timber("wkahdkjwahdjkhawjkdhwkajdhawkwjdkh ::: 1")
                 val newEntity = Step(0, date = dateOfToday(), start = count, exp = true)
                 updateId = appDB.stepDao().insert(newEntity).toString()
             }
