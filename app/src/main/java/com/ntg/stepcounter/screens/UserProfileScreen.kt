@@ -1,5 +1,6 @@
 package com.ntg.stepcounter.screens
 
+import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -76,6 +77,7 @@ import com.ntg.stepcounter.components.DateItem
 import com.ntg.stepcounter.components.ErrorMessage
 import com.ntg.stepcounter.components.Loading
 import com.ntg.stepcounter.components.ReportWidget
+import com.ntg.stepcounter.components.SingleColumnChartWithNegativeValues
 import com.ntg.stepcounter.components.SocialView
 import com.ntg.stepcounter.models.ErrorStatus
 import com.ntg.stepcounter.models.RGBColor
@@ -104,6 +106,7 @@ import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -192,7 +195,7 @@ fun UserProfileScreen(
     }
 
 
-    if (userName.isEmpty() && internetConnection || tryAgain){
+    if (userName.isEmpty() && internetConnection || tryAgain) {
 
         userDataViewModel.getUserProfile(uid, userId).observe(LocalLifecycleOwner.current) {
             when (it) {
@@ -231,9 +234,11 @@ fun UserProfileScreen(
                                 it.data?.data?.fosName.orEmpty()
                             )
                         }
+
                         "2" -> {
                             ctx.getString(R.string.prof_of, it.data?.data?.fosName.orEmpty())
                         }
+
                         else -> ""
                     }
                     loading = false
@@ -275,7 +280,6 @@ fun UserProfileScreen(
     })
 
 
-
     var aaa by remember { mutableFloatStateOf(0f) }
     var radius by remember { mutableFloatStateOf(32f) }
     val topOffset = with(LocalDensity.current) { aaa.toDp() }
@@ -283,6 +287,7 @@ fun UserProfileScreen(
     var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
 
     var dateSelected by remember { mutableStateOf("") }
+    val showChart = remember { mutableStateOf(true) }
 
 
     if (dateSelected.isEmpty() && steps.isNotEmpty()) dateSelected =
@@ -301,11 +306,11 @@ fun UserProfileScreen(
         val animateRotation = remember { Animatable(0f) }
         val coroutineScope = rememberCoroutineScope()
 
-        LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded){
-            coroutineScope.launch{
-                if (scaffoldState.bottomSheetState.isExpanded){
+        LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded) {
+            coroutineScope.launch {
+                if (scaffoldState.bottomSheetState.isExpanded) {
                     animateRotation.animateTo(180f)
-                }else{
+                } else {
                     animateRotation.animateTo(0f)
                 }
             }
@@ -379,13 +384,27 @@ fun UserProfileScreen(
                         )
                         {
 
-                            Text(
+                            Row(
                                 modifier = Modifier.padding(top = 24.dp, start = 16.dp),
-                                text = stringResource(id = R.string.report_workout),
-                                style = fontMedium14(
-                                    SECONDARY500
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.report_workout),
+                                    style = fontMedium14(
+                                        SECONDARY500
+                                    )
                                 )
-                            )
+
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isLock.value){
+                                    IconButton(onClick = {
+                                        showChart.value =! showChart.value
+
+                                    }) {
+                                        Icon(painter = painterResource(id = if (showChart.value) R.drawable.calendar_03 else R.drawable.bar_chart_square_03), contentDescription = null)
+                                    }
+                                }
+
+                            }
 
                             if (isLock.value) {
 
@@ -410,49 +429,73 @@ fun UserProfileScreen(
                                 }
 
                             } else if (steps.isNotEmpty()) {
-                                LazyRow(
-                                    modifier = Modifier
-                                        .padding(top = 16.dp),
-                                    contentPadding = PaddingValues(horizontal = 16.dp)
-                                ) {
-                                    itemsIndexed(
-                                        steps.distinctBy { it.date }) { index, it ->
-                                        DateItem(
-                                            modifier = Modifier.padding(end = 8.dp),
-                                            date = it.date,
-                                            isSelected = if (dateSelected.isNotEmpty()) dateSelected == it.date else index == 0
-                                        ) { date ->
-                                            dateSelected = date
-                                        }
+
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    if (showChart.value) {
+
+                                        val stepsMap: Map<LocalDate, Float> =
+                                            steps.associate { step ->
+                                                val localDate = LocalDate.parse(step.date)
+                                                val pair: Pair<LocalDate, Float> =
+                                                    localDate to step.steps.orZero().toFloat()
+                                                pair
+                                            }
+                                        SingleColumnChartWithNegativeValues(
+                                            modifier = Modifier.padding(
+                                                bottom = 24.dp
+                                            ), stepsMap
+                                        )
                                     }
+
+                                } else {
+                                    showChart.value = false
                                 }
 
-                                Text(
-                                    modifier = Modifier.padding(top = 24.dp, start = 16.dp),
-                                    text = if (daysUntilToday(dateSelected) == 0L) {
-                                        stringResource(id = R.string.today)
-                                    } else if (daysUntilToday(dateSelected) == 1L) {
-                                        stringResource(id = R.string.yestrday)
-                                    } else {
-                                        stringResource(
-                                            id = R.string.days_ago,
-                                            daysUntilToday(dateSelected)
-                                        )
-                                    }, style = fontMedium12(SECONDARY500)
-                                )
+                                if (!showChart.value) {
+                                    LazyRow(
+                                        modifier = Modifier
+                                            .padding(top = 16.dp),
+                                        contentPadding = PaddingValues(horizontal = 16.dp)
+                                    ) {
+                                        itemsIndexed(
+                                            steps.distinctBy { it.date }) { index, it ->
+                                            DateItem(
+                                                modifier = Modifier.padding(end = 8.dp),
+                                                date = it.date,
+                                                isSelected = if (dateSelected.isNotEmpty()) dateSelected == it.date else index == 0
+                                            ) { date ->
+                                                dateSelected = date
+                                            }
+                                        }
+                                    }
 
-                                Text(
-                                    modifier = Modifier.padding(
-                                        top = 2.dp,
-                                        start = 16.dp,
-                                        bottom = 24.dp
-                                    ),
-                                    text = stringResource(
-                                        id = R.string.step_format,
-                                        steps
-                                            .first { it.date == dateSelected }.steps.orZero()
-                                    ), style = fontMedium12(SECONDARY500)
-                                )
+                                    Text(
+                                        modifier = Modifier.padding(top = 24.dp, start = 16.dp),
+                                        text = if (daysUntilToday(dateSelected) == 0L) {
+                                            stringResource(id = R.string.today)
+                                        } else if (daysUntilToday(dateSelected) == 1L) {
+                                            stringResource(id = R.string.yestrday)
+                                        } else {
+                                            stringResource(
+                                                id = R.string.days_ago,
+                                                daysUntilToday(dateSelected)
+                                            )
+                                        }, style = fontMedium12(SECONDARY500)
+                                    )
+
+                                    Text(
+                                        modifier = Modifier.padding(
+                                            top = 2.dp,
+                                            start = 16.dp,
+                                            bottom = 24.dp
+                                        ),
+                                        text = stringResource(
+                                            id = R.string.step_format,
+                                            steps
+                                                .first { it.date == dateSelected }.steps.orZero()
+                                        ), style = fontMedium12(SECONDARY500)
+                                    )
+                                }
                             } else {
                                 Text(
                                     modifier = Modifier.padding(
@@ -492,56 +535,76 @@ fun UserProfileScreen(
                             )
 
 
-                            if (achievement.totalTop != 0 || achievement.is10.orFalse()){
+                            if (achievement.totalTop != 0 || achievement.is10.orFalse()) {
 
-                                if (achievement.totalTop != 0){
-                                    AchievementItem(text = ctx.getString(R.string.total_top_achievement, achievement.totalTop.toString()))
+                                if (achievement.totalTop != 0) {
+                                    AchievementItem(
+                                        text = ctx.getString(
+                                            R.string.total_top_achievement,
+                                            achievement.totalTop.toString()
+                                        )
+                                    )
                                 }
 
-                                if (achievement.n3Days != 0){
-                                    AchievementItem(text = ctx.getString(R.string.n3days_achievement, achievement.n3Days.toString()))
+                                if (achievement.n3Days != 0) {
+                                    AchievementItem(
+                                        text = ctx.getString(
+                                            R.string.n3days_achievement,
+                                            achievement.n3Days.toString()
+                                        )
+                                    )
                                 }
 
-                                if (achievement.n7Days != 0){
-                                    AchievementItem(text = ctx.getString(R.string.n7days_achievement, achievement.n7Days.toString()))
+                                if (achievement.n7Days != 0) {
+                                    AchievementItem(
+                                        text = ctx.getString(
+                                            R.string.n7days_achievement,
+                                            achievement.n7Days.toString()
+                                        )
+                                    )
                                 }
 
-                                if (achievement.n30Days != 0){
-                                    AchievementItem(text = ctx.getString(R.string.n30days_achievement, achievement.n30Days.toString()))
+                                if (achievement.n30Days != 0) {
+                                    AchievementItem(
+                                        text = ctx.getString(
+                                            R.string.n30days_achievement,
+                                            achievement.n30Days.toString()
+                                        )
+                                    )
                                 }
 
-                                if (achievement.is10.orFalse()){
+                                if (achievement.is10.orFalse()) {
                                     AchievementItem(text = ctx.getString(R.string.n10_steps_achievement))
                                 }
 
-                                if (achievement.is20.orFalse()){
+                                if (achievement.is20.orFalse()) {
                                     AchievementItem(text = ctx.getString(R.string.n20_steps_achievement))
                                 }
 
-                                if (achievement.is30.orFalse()){
+                                if (achievement.is30.orFalse()) {
                                     AchievementItem(text = ctx.getString(R.string.n30_steps_achievement))
                                 }
 
-                                if (achievement.is40.orFalse()){
+                                if (achievement.is40.orFalse()) {
                                     AchievementItem(text = ctx.getString(R.string.n40_steps_achievement))
                                 }
 
-                                if (achievement.is50.orFalse()){
+                                if (achievement.is50.orFalse()) {
                                     AchievementItem(text = ctx.getString(R.string.n50_steps_achievement))
                                 }
 
 
-                            }else{
-                                    androidx.compose.material.Text(
-                                        modifier = androidx.compose.ui.Modifier.padding(
-                                            top = 8.dp,
-                                            start = 16.dp
-                                        ),
-                                        text = androidx.compose.ui.res.stringResource(id = com.ntg.stepcounter.R.string.no_achievment),
-                                        style = com.ntg.stepcounter.ui.theme.fontRegular12(
-                                            com.ntg.stepcounter.ui.theme.SECONDARY500
-                                        )
+                            } else {
+                                androidx.compose.material.Text(
+                                    modifier = androidx.compose.ui.Modifier.padding(
+                                        top = 8.dp,
+                                        start = 16.dp
+                                    ),
+                                    text = androidx.compose.ui.res.stringResource(id = com.ntg.stepcounter.R.string.no_achievment),
+                                    style = com.ntg.stepcounter.ui.theme.fontRegular12(
+                                        com.ntg.stepcounter.ui.theme.SECONDARY500
                                     )
+                                )
 
                             }
 
@@ -606,8 +669,7 @@ fun UserProfileScreen(
             sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp),
             floatingActionButton = {
                 Box(
-                    modifier = Modifier
-                    , contentAlignment = Alignment.Center
+                    modifier = Modifier, contentAlignment = Alignment.Center
                 ) {
                     Card(
                         modifier = Modifier
@@ -616,7 +678,7 @@ fun UserProfileScreen(
                             if (!isClap && userId.isNotEmpty()) {
                                 userDataViewModel.clap(userId, uid)
                                 isClap = true
-                                totalClaps+=1
+                                totalClaps += 1
                             }
                         },
                         shape = RoundedCornerShape(8.dp),
@@ -690,7 +752,7 @@ fun UserProfileScreen(
                     }
 
 
-                    if (userSate.isNotEmpty()){
+                    if (userSate.isNotEmpty()) {
                         Box(
                             modifier = Modifier
                                 .padding(top = 16.dp, bottom = 48.dp)
@@ -711,16 +773,16 @@ fun UserProfileScreen(
         }
 
 
-        if (loading){
+        if (loading) {
             Loading()
         }
 
-        if (!internetConnection){
+        if (!internetConnection) {
             ErrorMessage(modifier = Modifier.fillMaxHeight(), status = ErrorStatus.Internet) {
                 internetConnection = true
                 error = false
             }
-        }else if (error){
+        } else if (error) {
             ErrorMessage(modifier = Modifier.fillMaxHeight(), status = ErrorStatus.Failed) {
                 tryAgain = true
                 error = false

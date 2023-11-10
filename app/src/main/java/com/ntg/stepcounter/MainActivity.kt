@@ -204,17 +204,19 @@ class MainActivity : ComponentActivity(), SensorEventListener, StepListener {
 
 
 
-            userDataViewModel.userAchievement(uid).observe(LocalLifecycleOwner.current){
-                when(it){
-                    is NetworkResult.Error -> {
+            if (uid.isNotEmpty()){
+                userDataViewModel.userAchievement(uid).observe(LocalLifecycleOwner.current){
+                    when(it){
+                        is NetworkResult.Error -> {
 
-                    }
-                    is NetworkResult.Loading -> {
+                        }
+                        is NetworkResult.Loading -> {
 
-                    }
-                    is NetworkResult.Success -> {
-                        if (it.data?.data != null){
-                            userDataViewModel.setAchievement(Gson().toJson(it.data.data))
+                        }
+                        is NetworkResult.Success -> {
+                            if (it.data?.data != null){
+                                userDataViewModel.setAchievement(Gson().toJson(it.data.data))
+                            }
                         }
                     }
                 }

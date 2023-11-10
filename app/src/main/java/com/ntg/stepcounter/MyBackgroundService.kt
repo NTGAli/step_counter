@@ -108,7 +108,6 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
             if (it.isNotEmpty())
                 toDayDate = it.last().date
 
-            timber("aklwjdaklwjdlkawjdlkwlkd $updateId")
 
             steps.value = 0
             it.forEach { step ->
@@ -121,7 +120,8 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
         steps.observe(this){
             try {
-                notificationBuilder.setContentText("$it --- $toDayDate -- $updateId")
+                notificationBuilder.setContentText("$it")
+//                notificationBuilder.setContentText("$it --- $toDayDate -- $updateId")
                 notificationManager.notify(1414, notificationBuilder.build())
             } catch (e: Exception) {
                 e.printStackTrace()

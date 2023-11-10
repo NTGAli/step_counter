@@ -1,5 +1,6 @@
 package com.ntg.stepcounter.screens
 
+import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -58,6 +59,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.gson.Gson
@@ -68,6 +70,7 @@ import com.ntg.stepcounter.components.AchievementItem
 import com.ntg.stepcounter.components.CustomButton
 import com.ntg.stepcounter.components.DateItem
 import com.ntg.stepcounter.components.ReportWidget
+import com.ntg.stepcounter.components.SingleColumnChartWithNegativeValues
 import com.ntg.stepcounter.components.SocialItem
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.Social
@@ -89,6 +92,7 @@ import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.ui.theme.fontRegular14
+import com.ntg.stepcounter.util.Constants
 import com.ntg.stepcounter.util.extension.daysUntilToday
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
@@ -97,6 +101,7 @@ import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -598,6 +603,8 @@ private fun UserDataSteps(
     val isOpenToView = userDataViewModel.isShowReport().collectAsState(initial = true).value
     val allDate = stepViewModel.getAllDate().observeAsState().value
     var dateSelected by remember { mutableStateOf("") }
+    val showChart = remember { mutableStateOf(true) }
+
     if (dateSelected.isEmpty() && allDate.orEmpty().isNotEmpty()) dateSelected =
         allDate?.lastOrNull()?.date.orEmpty()
 
@@ -647,53 +654,84 @@ private fun UserDataSteps(
                     contentDescription = null
                 )
             }
-        }
 
-        if (allDate.orEmpty().isNotEmpty()) {
-            LazyRow(
-                modifier = Modifier
-                    .padding(top = 16.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp)
-            ) {
-                itemsIndexed(
-                    allDate.orEmpty().distinctBy { it.date }.sortedByDescending { it.date }) { index, step ->
-                    DateItem(
-                        modifier = Modifier.padding(end = 8.dp),
-                        date = step.date,
-                        isSelected = if (dateSelected.isNotEmpty()) dateSelected == step.date else index == 0
-                    ) { date ->
-                        countSelected = 0
-                        dateSelected = date
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                IconButton(onClick = {
+                    showChart.value =! showChart.value
 
-                    }
+                }) {
+                    Icon(painter = painterResource(id = if (showChart.value) R.drawable.calendar_03 else R.drawable.bar_chart_square_03), contentDescription = null)
                 }
             }
 
-            Text(
-                modifier = Modifier.padding(top = 24.dp, start = 16.dp),
-                text = if (daysUntilToday(dateSelected) == 0L) {
-                    stringResource(id = R.string.today)
-                } else if (daysUntilToday(dateSelected) == 1L) {
-                    stringResource(id = R.string.yestrday)
-                } else {
-                    stringResource(
-                        id = R.string.days_ago,
-                        daysUntilToday(dateSelected)
-                    )
-                }, style = fontMedium12(SECONDARY500)
-            )
+        }
 
-            Text(
-                modifier = Modifier.padding(
-                    top = 2.dp,
-                    start = 16.dp,
-                    bottom = 24.dp
-                ),
-                text = stringResource(
-                    id = R.string.step_format,
-                    countSelected
-                ), style = fontMedium12(SECONDARY500)
-            )
+        if (allDate.orEmpty().isNotEmpty()) {
+
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                if (showChart.value){
+                    val groupedSteps = allDate?.groupBy { it.date }
+                    val result = groupedSteps?.mapKeys { LocalDate.parse(it.key) }
+                        ?.mapValues { (_, steps) -> steps.filter { it.count.orZero() > it.start.orZero() && it.count.orZero() != 0 }.sumOf { it.count.orZero() - it.start.orZero() }.toFloat() }
+
+                    SingleColumnChartWithNegativeValues(modifier = Modifier.padding(bottom = 24.dp),result)
+                }
+
+            }else{
+                showChart.value = false
+            }
+
+
+            if (!showChart.value){
+
+                LazyRow(
+                    modifier = Modifier
+                        .padding(top = 16.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    itemsIndexed(
+                        allDate.orEmpty().distinctBy { it.date }.sortedByDescending { it.date }) { index, step ->
+                        DateItem(
+                            modifier = Modifier.padding(end = 8.dp),
+                            date = step.date,
+                            isSelected = if (dateSelected.isNotEmpty()) dateSelected == step.date else index == 0
+                        ) { date ->
+                            countSelected = 0
+                            dateSelected = date
+
+                        }
+                    }
+                }
+
+                Text(
+                    modifier = Modifier.padding(top = 24.dp, start = 16.dp),
+                    text = if (daysUntilToday(dateSelected) == 0L) {
+                        stringResource(id = R.string.today)
+                    } else if (daysUntilToday(dateSelected) == 1L) {
+                        stringResource(id = R.string.yestrday)
+                    } else {
+                        stringResource(
+                            id = R.string.days_ago,
+                            daysUntilToday(dateSelected)
+                        )
+                    }, style = fontMedium12(SECONDARY500)
+                )
+
+                Text(
+                    modifier = Modifier.padding(
+                        top = 2.dp,
+                        start = 16.dp,
+                        bottom = 24.dp
+                    ),
+                    text = stringResource(
+                        id = R.string.step_format,
+                        countSelected
+                    ), style = fontMedium12(SECONDARY500)
+                )
+
+            }
+
         } else {
             Text(
                 modifier = Modifier.padding(
@@ -707,6 +745,77 @@ private fun UserDataSteps(
                 )
             )
         }
+
+
+
+        //test chart
+
+
+
+
+
+//        chartEntryModelProducer.setEntries(getRandomEntries())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // test chart
+
+//        val groupedSteps = allDate?.groupBy { it.date }
+//
+//        val xValues = arrayListOf<Float>()
+//        var xCount = 0f
+//
+//        groupedSteps?.forEach { (date, steps) ->
+//
+//            var nSteps = 0
+//            steps.filter { it.start.orZero() < it.count.orZero() && it.count != 0 }.forEach {
+//                nSteps += it.count.orZero() - it.start.orZero()
+//            }
+//
+//            xValues.add(nSteps.toFloat())
+//
+//            xCount++
+//        }
+//
+////        val xValues = groupedSteps?.map { it.value }
+//
+//
+////        val chartEntryModel = entryModelOf(xValues)
+//        val chartEntryModel = entryModelOf(*xValues.toTypedArray())
+//
+//        timber("kwajdlkawjlkdjwalkdj ::: $chartEntryModel -- $xValues")
+//
+//
+//
+//
+//        Chart(
+//            chart = lineChart(),
+//            model = chartEntryModel,
+////            startAxis = rememberStartAxis(),
+////            bottomAxis = rememberBottomAxis(),
+//        )
+
+
+
+
+
+
+
+
 
 
     }

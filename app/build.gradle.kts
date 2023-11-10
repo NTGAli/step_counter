@@ -41,6 +41,7 @@ android {
         jvmTarget = "17"
     }
     buildFeatures {
+        viewBinding = true
         compose = true
     }
     composeOptions {
@@ -166,6 +167,22 @@ dependencies {
     releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
 
     implementation("com.jjoe64:graphview:4.2.2")
+
+
+    // For Jetpack Compose.
+    implementation("com.patrykandpatrick.vico:compose:1.12.0")
+
+    // For `compose`. Creates a `ChartStyle` based on an M2 Material Theme.
+    implementation("com.patrykandpatrick.vico:compose-m2:1.12.0")
+
+    // Houses the core logic for charts and other elements. Included in all other modules.
+    implementation("com.patrykandpatrick.vico:core:1.12.0")
+
+    // For the view system.
+    implementation("com.patrykandpatrick.vico:views:1.12.0")
+
+
+    implementation("androidx.compose.ui:ui-viewbinding:1.5.4")
 
 
 }
