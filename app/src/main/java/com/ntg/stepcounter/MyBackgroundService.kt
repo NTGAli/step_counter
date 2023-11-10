@@ -28,6 +28,7 @@ import com.ntg.stepcounter.models.res.StepSynced
 import com.ntg.stepcounter.util.Constants.NOTIFICATION_CHANNEL_ID
 import com.ntg.stepcounter.util.StepDetector
 import com.ntg.stepcounter.util.StepListener
+import com.ntg.stepcounter.util.extension.checkInternet
 import com.ntg.stepcounter.util.extension.dateOfToday
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.safeApiCall
@@ -83,7 +84,11 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
     private var sensorManager: SensorManager? = null
 
-    var userId = ""
+    private var userId = ""
+
+    init {
+        steps.value = 0
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -109,7 +114,6 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
                 toDayDate = it.last().date
 
 
-            steps.value = 0
             it.forEach { step ->
                 if (step.count != 0) {
                     steps.value = steps.value.orZero() + (step.count - step.start.orZero())
@@ -176,32 +180,35 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
                 scope.launch {
 
+                    if (this@MyBackgroundService.checkInternet()){
 
-                    val call = apiService.syncStepsInBack(dateOfToday(), totalSteps, userId)
-                    call.enqueue(object : Callback<ResponseBody<StepSynced?>> {
-                        override fun onResponse(
-                            call: Call<ResponseBody<StepSynced?>>,
-                            response: Response<ResponseBody<StepSynced?>>
-                        ) {
-                            if (response.isSuccessful) {
-                                val data = response.body()
-                                needToSync = totalSteps
-                                if (data?.data?.date != null && data.data.count != null) {
-                                    scope.launch {
-                                        appDB.stepDao()
-                                            .updateSync(data.data.date, data.data.count.orZero())
+                        val call = apiService.syncStepsInBack(dateOfToday(), totalSteps, userId)
+                        call.enqueue(object : Callback<ResponseBody<StepSynced?>> {
+                            override fun onResponse(
+                                call: Call<ResponseBody<StepSynced?>>,
+                                response: Response<ResponseBody<StepSynced?>>
+                            ) {
+                                if (response.isSuccessful) {
+                                    val data = response.body()
+                                    needToSync = totalSteps
+                                    if (data?.data?.date != null && data.data.count != null) {
+                                        scope.launch {
+                                            appDB.stepDao()
+                                                .updateSync(data.data.date, data.data.count.orZero())
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        override fun onFailure(
-                            call: Call<ResponseBody<StepSynced?>>,
-                            t: Throwable
-                        ) {
-                            // Handle the network or other errors here
-                        }
-                    })
+                            override fun onFailure(
+                                call: Call<ResponseBody<StepSynced?>>,
+                                t: Throwable
+                            ) {
+                                // Handle the network or other errors here
+                            }
+                        })
+
+                    }
 
                 }
 
