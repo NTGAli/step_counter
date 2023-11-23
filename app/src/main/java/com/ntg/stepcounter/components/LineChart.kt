@@ -12,10 +12,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ntg.stepcounter.R
+import com.ntg.stepcounter.ui.theme.SECONDARY100
+import com.ntg.stepcounter.ui.theme.SECONDARY500
 import com.ntg.stepcounter.util.extension.timber
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
@@ -135,7 +139,9 @@ fun SingleColumnChartWithNegativeValues(
                 background = null,
                 lineCount = 1,
                 typeface = LocalContext.current.resources.getFont(R.font.yekan_regular),
-            )
+            ),
+            axis = LineComponent(color = SECONDARY100.toArgb()),
+            guideline = LineComponent(color = Color.White.toArgb())
         ),
         isZoomEnabled = false,
 

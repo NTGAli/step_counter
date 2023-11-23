@@ -395,7 +395,7 @@ fun UserProfileScreen(
                                     )
                                 )
 
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isLock.value){
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isLock.value && steps.size != 1){
                                     IconButton(onClick = {
                                         showChart.value =! showChart.value
 
@@ -430,7 +430,7 @@ fun UserProfileScreen(
 
                             } else if (steps.isNotEmpty()) {
 
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && steps.size != 1) {
                                     if (showChart.value) {
 
                                         val stepsMap: Map<LocalDate, Float> =
@@ -496,6 +496,10 @@ fun UserProfileScreen(
                                         ), style = fontMedium12(SECONDARY500)
                                     )
                                 }
+                            }else if (loadData){
+
+                                Loading(isFull = false)
+
                             } else {
                                 Text(
                                     modifier = Modifier.padding(
@@ -595,14 +599,14 @@ fun UserProfileScreen(
 
 
                             } else {
-                                androidx.compose.material.Text(
-                                    modifier = androidx.compose.ui.Modifier.padding(
+                                Text(
+                                    modifier = Modifier.padding(
                                         top = 8.dp,
                                         start = 16.dp
                                     ),
-                                    text = androidx.compose.ui.res.stringResource(id = com.ntg.stepcounter.R.string.no_achievment),
-                                    style = com.ntg.stepcounter.ui.theme.fontRegular12(
-                                        com.ntg.stepcounter.ui.theme.SECONDARY500
+                                    text = stringResource(id = com.ntg.stepcounter.R.string.no_achievment),
+                                    style = fontRegular12(
+                                        SECONDARY500
                                     )
                                 )
 

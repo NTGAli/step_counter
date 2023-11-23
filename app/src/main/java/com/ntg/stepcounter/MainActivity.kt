@@ -368,9 +368,10 @@ private fun SyncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: 
 
                 }
 
-                if (date != dateOfToday() && totalSteps > totalSynced || totalSteps - totalSynced > 10){
+                if ((date != dateOfToday() && totalSteps > totalSynced) || totalSteps - totalSynced > 10){
                     dateSync = date.orEmpty()
-                    needToSync = totalSteps != stepNeedSync
+                    if (totalSteps != stepNeedSync) needToSync= true
+                    timber("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 000 ${needToSync}")
                 }
             }
         }
@@ -378,9 +379,13 @@ private fun SyncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: 
     }
 
 
+    timber("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL $needToSync")
+
     LaunchedEffect(key1 = needToSync, block = {
+        timber("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 1111")
 
         if (dateSync.isNotEmpty()){
+            timber("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 222 ")
 
             stepViewModel.syncStep(dateSync, totalSteps, uid).observe(owner){
                 when(it){
@@ -388,13 +393,14 @@ private fun SyncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: 
 
                     }
                     is NetworkResult.Loading -> {
-
+                        timber("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
                     }
                     is NetworkResult.Success -> {
                         stepNeedSync = totalSteps
                         if (it.data?.data?.date.orEmpty().isNotEmpty() && it.data?.data?.count.orZero() != 0){
                             stepViewModel.updateSync(it.data?.data?.date.orEmpty(), it.data?.data?.count.orZero())
                             stepViewModel.clearSummaries()
+                            needToSync = false
                         }
                     }
                 }

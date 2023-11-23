@@ -655,7 +655,7 @@ private fun UserDataSteps(
                 )
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && allDate?.groupBy { it.date }?.size != 1){
                 IconButton(onClick = {
                     showChart.value =! showChart.value
 
@@ -669,7 +669,7 @@ private fun UserDataSteps(
         if (allDate.orEmpty().isNotEmpty()) {
 
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && allDate?.groupBy { it.date }?.size != 1){
                 if (showChart.value){
                     val groupedSteps = allDate?.groupBy { it.date }
                     val result = groupedSteps?.mapKeys { LocalDate.parse(it.key) }

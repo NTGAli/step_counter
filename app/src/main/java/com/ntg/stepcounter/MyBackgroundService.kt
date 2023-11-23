@@ -110,8 +110,10 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
                 it.last().id.toString()
             } else ""
 
-            if (it.isNotEmpty())
+            if (it.isNotEmpty()){
                 toDayDate = it.last().date
+                steps.value = 0
+            }
 
 
             it.forEach { step ->
@@ -175,12 +177,15 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
             }
 
+            timber("ealjfajwakfjlajwaaffjlkwajwafkkkkkk 1 -- ${totalSteps - totalSynced}")
 
             if (totalSteps - totalSynced > 50 && totalSteps != 0 && totalSteps != needToSync) {
 
                 scope.launch {
 
+                    timber("ealjfajwakfjlajwaaffjlkwajwafkkkkkk 2")
                     if (this@MyBackgroundService.checkInternet()){
+                        timber("ealjfajwakfjlajwaaffjlkwajwafkkkkkk 3")
 
                         val call = apiService.syncStepsInBack(dateOfToday(), totalSteps, userId)
                         call.enqueue(object : Callback<ResponseBody<StepSynced?>> {
@@ -204,7 +209,6 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
                                 call: Call<ResponseBody<StepSynced?>>,
                                 t: Throwable
                             ) {
-                                // Handle the network or other errors here
                             }
                         })
 
