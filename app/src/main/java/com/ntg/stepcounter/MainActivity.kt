@@ -45,14 +45,11 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.gson.Gson
-import com.jjoe64.graphview.series.DataPoint
-import com.jjoe64.graphview.series.LineGraphSeries
 import com.ntg.mywords.model.components.ButtonStyle
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.CustomButton
 import com.ntg.stepcounter.nav.AppNavHost
 import com.ntg.stepcounter.nav.Screens
-import com.ntg.stepcounter.screens.NotSupportScreen
 import com.ntg.stepcounter.ui.theme.Background
 import com.ntg.stepcounter.ui.theme.ERROR500
 import com.ntg.stepcounter.ui.theme.SECONDARY700

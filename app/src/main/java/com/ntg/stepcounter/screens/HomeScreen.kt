@@ -280,7 +280,7 @@ fun HomeScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = username[0].toString(),
+                                    text = try{username[0].toString()} catch (e: Exception){"ش"},
                                     style = fontRegular12(PRIMARY500)
                                 )
                             }

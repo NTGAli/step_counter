@@ -18,20 +18,20 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ServiceLifecycleDispatcher
+import com.ntg.stepcounter.MainActivity.Companion.sensorType
 import com.ntg.stepcounter.api.ApiService
-import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.db.AppDB
 import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.UserStore
 import com.ntg.stepcounter.models.res.StepSynced
+import com.ntg.stepcounter.util.Constants
 import com.ntg.stepcounter.util.Constants.NOTIFICATION_CHANNEL_ID
 import com.ntg.stepcounter.util.StepDetector
 import com.ntg.stepcounter.util.StepListener
 import com.ntg.stepcounter.util.extension.checkInternet
 import com.ntg.stepcounter.util.extension.dateOfToday
 import com.ntg.stepcounter.util.extension.orZero
-import com.ntg.stepcounter.util.extension.safeApiCall
 import com.ntg.stepcounter.util.extension.timber
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -42,10 +42,6 @@ import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.util.Date
 import javax.inject.Inject
 
 
@@ -69,7 +65,9 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
     private var stepDetector: StepDetector = StepDetector()
 
-    private var needToSync = 0
+    private var stepSynced = 0
+    private var stepsWaitForSync = 0
+
 
     @Inject
     lateinit var appDB: AppDB
@@ -102,7 +100,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
         }
 
 
-        appDB.stepDao().getAllDate().observe(this) {allList ->
+        appDB.stepDao().getAllDate().observe(this) { allList ->
 
             val it = allList.filter { it.date == dateOfToday() }
 
@@ -110,7 +108,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
                 it.last().id.toString()
             } else ""
 
-            if (it.isNotEmpty()){
+            if (it.isNotEmpty()) {
                 toDayDate = it.last().date
                 steps.value = 0
             }
@@ -124,7 +122,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
         }
 
 
-        steps.observe(this){
+        steps.observe(this) {
             try {
                 notificationBuilder.setContentText("$it")
 //                notificationBuilder.setContentText("$it --- $toDayDate -- $updateId")
@@ -149,8 +147,12 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
         if (stepSensor != null) {
             sensorManager!!.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
+            sensorType = Constants.STEP_COUNTER
         } else if (accSensor != null) {
             sensorManager!!.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
+            sensorType = Constants.ACCELEROMETER
+        } else {
+            sensorType = "NOT SUPPORT"
         }
 
         val scope = CoroutineScope(Dispatchers.IO)
@@ -161,62 +163,53 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
 
 
-        appDB.stepDao().getUnSyncedStepsOfDate().observe(this@MyBackgroundService) {unSyncedList ->
+        appDB.stepDao().getUnSyncedStepsOfDate().observe(this@MyBackgroundService) { unSyncedList ->
 
-            val it = unSyncedList.filter { it?.date == dateOfToday() }
+//            val it = unSyncedList.filter { it?.date == dateOfToday() }
+//
+//
+//            var totalSteps = 0
+//            var totalSynced = 0
+//            it.forEach {
+//
+//                if (it?.count.orZero() > it?.start.orZero()) {
+//                    totalSteps += it?.count.orZero() - it?.start.orZero()
+//                    totalSynced = it?.synced.orZero()
+//                }
+//
+//            }
+//
+//            timber("TOTAL_STEPS_NEED_TO_SYNC 1 -- ${totalSteps - totalSynced}")
+//
+//            if (totalSteps - totalSynced > 50 && totalSteps != 0 && totalSteps != stepSynced && totalSteps != stepsWaitForSync) {
+//                syncStep(scope, totalSteps)
+//            }
 
+            val userSteps = unSyncedList.groupBy { it?.date }
 
-            var totalSteps = 0
-            var totalSynced = 0
-            it.forEach {
+            userSteps.forEach { (date, steps) ->
 
-                if (it?.count.orZero() > it?.start.orZero()) {
-                    totalSteps += it?.count.orZero() - it?.start.orZero()
-                    totalSynced = it?.synced.orZero()
-                }
+                var totalSteps = 0
+                var totalSynced = 0
+                steps.forEach {
 
-            }
-
-            timber("ealjfajwakfjlajwaaffjlkwajwafkkkkkk 1 -- ${totalSteps - totalSynced}")
-
-            if (totalSteps - totalSynced > 50 && totalSteps != 0 && totalSteps != needToSync) {
-
-                scope.launch {
-
-                    timber("ealjfajwakfjlajwaaffjlkwajwafkkkkkk 2")
-                    if (this@MyBackgroundService.checkInternet()){
-                        timber("ealjfajwakfjlajwaaffjlkwajwafkkkkkk 3")
-
-                        val call = apiService.syncStepsInBack(dateOfToday(), totalSteps, userId)
-                        call.enqueue(object : Callback<ResponseBody<StepSynced?>> {
-                            override fun onResponse(
-                                call: Call<ResponseBody<StepSynced?>>,
-                                response: Response<ResponseBody<StepSynced?>>
-                            ) {
-                                if (response.isSuccessful) {
-                                    val data = response.body()
-                                    needToSync = totalSteps
-                                    if (data?.data?.date != null && data.data.count != null) {
-                                        scope.launch {
-                                            appDB.stepDao()
-                                                .updateSync(data.data.date, data.data.count.orZero())
-                                        }
-                                    }
-                                }
-                            }
-
-                            override fun onFailure(
-                                call: Call<ResponseBody<StepSynced?>>,
-                                t: Throwable
-                            ) {
-                            }
-                        })
-
+                    if (it?.count.orZero() > it?.start.orZero()) {
+                        totalSteps += it?.count.orZero() - it?.start.orZero()
+                        totalSynced = it?.synced.orZero()
                     }
 
                 }
 
+                timber("TOTAL_STEPS_NEED_TO_SYNC DATE = $date :::: steps need to sync = ${totalSteps - totalSynced}")
+
+                if ((date != dateOfToday() && totalSteps != stepsWaitForSync) ||  (totalSteps - totalSynced > 50 && totalSteps != 0 && totalSteps != stepSynced && totalSteps > stepsWaitForSync + 5)) {
+                    if (date != null){
+                        syncStep(scope, totalSteps, date)
+                    }
+                }
+
             }
+
 
         }
 
@@ -225,6 +218,46 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
 
         return START_NOT_STICKY
+    }
+
+    private fun syncStep(scope: CoroutineScope, totalSteps: Int, date: String) {
+        stepsWaitForSync = totalSteps
+        scope.launch {
+
+            timber("TOTAL_STEPS_NEED_TO_SYNC ::: START")
+            if (this@MyBackgroundService.checkInternet()) {
+                timber("TOTAL_STEPS_NEED_TO_SYNC ::: INTERNET-OK")
+
+                val call = apiService.syncStepsInBack(date, totalSteps, userId)
+                call.enqueue(object : Callback<ResponseBody<StepSynced?>> {
+                    override fun onResponse(
+                        call: Call<ResponseBody<StepSynced?>>,
+                        response: Response<ResponseBody<StepSynced?>>
+                    ) {
+                        if (response.isSuccessful) {
+                            timber("TOTAL_STEPS_NEED_TO_SYNC ::: STEP-SYNCED")
+                            val data = response.body()
+                            stepSynced = totalSteps
+                            if (data?.data?.date != null && data.data.count != null) {
+                                scope.launch {
+                                    appDB.stepDao()
+                                        .updateSync(data.data.date, data.data.count.orZero())
+                                }
+                            }
+                        }
+                        stepsWaitForSync = 0
+                    }
+
+                    override fun onFailure(
+                        call: Call<ResponseBody<StepSynced?>>,
+                        t: Throwable
+                    ) {
+                    }
+                })
+
+            }
+
+        }
     }
 
 

@@ -86,13 +86,21 @@ fun divideNumber(number: Int): String {
 fun stepsToKilometers(steps: Int): String {
     // Conversion factor: On average, 1 step is approximately 0.000762 kilometers (or 76.2 cm).
     val kilometers = steps * 0.000762
-    return formatNumber("%.2f".format(kilometers).toDouble())
+    return try {
+        formatNumber("%.2f".format(kilometers).toDouble())
+    }catch (e: Exception){
+        "0"
+    }
 }
 
 fun stepsToCalories(steps: Int): String {
     // Conversion factor: On average, walking burns about 0.035 calories per step.
     val calories = steps * 0.035
-    return formatNumber("%.2f".format(calories).toDouble())
+    return try {
+        formatNumber("%.2f".format(calories).toDouble())
+    }catch (e: Exception){
+        "0"
+    }
 }
 
 fun daysUntilToday(targetDateStr: String): Long {
