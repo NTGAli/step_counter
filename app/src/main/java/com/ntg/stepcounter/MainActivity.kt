@@ -365,10 +365,10 @@ private fun SyncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: 
 
                 }
 
-                if ((date != dateOfToday() && totalSteps > totalSynced) || totalSteps - totalSynced > 10){
+                if ((date != dateOfToday() && totalSteps > totalSynced) || totalSteps - totalSynced > 1){
                     dateSync = date.orEmpty()
                     if (totalSteps != stepNeedSync) needToSync= true
-                    timber("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 000 ${needToSync}")
+                    timber("FOREGROUND_SYNC ::: $needToSync")
                 }
             }
         }
@@ -376,23 +376,24 @@ private fun SyncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: 
     }
 
 
-    timber("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL $needToSync")
+    timber("FOREGROUND_SYNC $needToSync")
 
     LaunchedEffect(key1 = needToSync, block = {
-        timber("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 1111")
+        timber("FOREGROUND_SYNC ::: Launched")
 
         if (dateSync.isNotEmpty()){
-            timber("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL 222 ")
+            timber("FOREGROUND_SYNC ::: START ")
 
             stepViewModel.syncStep(dateSync, totalSteps, uid).observe(owner){
                 when(it){
                     is NetworkResult.Error -> {
-
+                        timber("FOREGROUND_SYNC ::: ERR")
                     }
                     is NetworkResult.Loading -> {
-                        timber("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
+                        timber("FOREGROUND_SYNC ::: LOADING")
                     }
                     is NetworkResult.Success -> {
+                        timber("FOREGROUND_SYNC ::: Success")
                         stepNeedSync = totalSteps
                         if (it.data?.data?.date.orEmpty().isNotEmpty() && it.data?.data?.count.orZero() != 0){
                             stepViewModel.updateSync(it.data?.data?.date.orEmpty(), it.data?.data?.count.orZero())

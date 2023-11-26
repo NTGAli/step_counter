@@ -24,6 +24,7 @@ import com.ntg.stepcounter.components.CustomButton
 import com.ntg.stepcounter.components.EditText
 import com.ntg.stepcounter.models.Social
 import com.ntg.stepcounter.models.Step
+import com.ntg.stepcounter.util.extension.dateOfToday
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.toast
@@ -94,7 +95,7 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
 
                             if (it.data?.isSuccess.orFalse()){
                                 userDataViewModel.setTimeSign(it.data?.data?.timeSign.orEmpty())
-                                stepViewModel.insertAll(it.data?.data?.stepsList.orEmpty().map { Step(id=0, date = it.date, start = 0, count = it.steps.orZero(),synced = it.steps) })
+                                stepViewModel.insertAll(it.data?.data?.stepsList.orEmpty().map { Step(id=0, date = it.date, start = if (it.date != dateOfToday()) 0 else 1, count = if (it.date != dateOfToday()) it.steps.orZero() else {it.steps.orZero() + 1},synced = it.steps) })
                                 socialNetworkViewModel.insertAll(it.data?.data?.socials.orEmpty().map { Social(id=it.id, name = it.title.orEmpty(), pageId = it.url.orEmpty()) })
                                 userDataViewModel.setUserStatus(state.orEmpty())
                                 userDataViewModel.setFieldStudy(it.data?.data?.fosName.orEmpty())

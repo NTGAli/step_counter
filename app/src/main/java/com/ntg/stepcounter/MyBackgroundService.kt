@@ -213,10 +213,6 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
         }
 
-
-
-
-
         return START_NOT_STICKY
     }
 
