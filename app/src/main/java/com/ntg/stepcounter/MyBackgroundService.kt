@@ -42,6 +42,7 @@ import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.lang.Thread.sleep
 import javax.inject.Inject
 
 
@@ -92,6 +93,8 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
         super.onCreate()
         timber("BackgroundService:::onCreate")
         stepDetector.registerListener(this)
+
+
         notification = createNotification()
         try {
             startForeground(1414, notification)
@@ -145,14 +148,15 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
         val stepSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         val accSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
-        if (stepSensor != null) {
+
+        sensorType = if (stepSensor != null) {
             sensorManager!!.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
-            sensorType = Constants.STEP_COUNTER
+            Constants.STEP_COUNTER
         } else if (accSensor != null) {
             sensorManager!!.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
-            sensorType = Constants.ACCELEROMETER
+            Constants.ACCELEROMETER
         } else {
-            sensorType = "NOT SUPPORT"
+            "NOT SUPPORT"
         }
 
         val scope = CoroutineScope(Dispatchers.IO)
@@ -160,6 +164,14 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
         runBlocking(Dispatchers.IO) {
             userId = userStore.getUserID.first()
         }
+
+
+
+//        scope.launch {
+//            sleep(3000)
+//            val newEntity = Step(0, date = dateOfToday(), start = 0, count= 20, exp = true)
+//            appDB.stepDao().insert(newEntity)
+//        }
 
 
 
@@ -202,7 +214,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
                 timber("TOTAL_STEPS_NEED_TO_SYNC DATE = $date :::: steps need to sync = ${totalSteps - totalSynced}")
 
-                if ((date != dateOfToday() && totalSteps != stepsWaitForSync) ||  (totalSteps - totalSynced > 50 && totalSteps != 0 && totalSteps != stepSynced && totalSteps > stepsWaitForSync + 5)) {
+                if ((date != dateOfToday() && totalSteps != stepsWaitForSync && totalSteps > totalSynced) ||  (totalSteps - totalSynced > 50 && totalSteps != 0 && totalSteps != stepSynced && totalSteps > stepsWaitForSync + 5)) {
                     if (date != null){
                         syncStep(scope, totalSteps, date)
                     }
@@ -353,8 +365,8 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
     override fun onDestroy() {
         super.onDestroy()
         timber("BackgroundService:::destroy")
-        sensorManager?.unregisterListener(this)
-        sensorManager = null
+//        sensorManager?.unregisterListener(this)
+//        sensorManager = null
         stopSelf()
     }
 

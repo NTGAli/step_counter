@@ -2,6 +2,7 @@ package com.ntg.stepcounter
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.hardware.Sensor
@@ -71,7 +72,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity(), SensorEventListener, StepListener {
+class MainActivity : ComponentActivity() {
 
     private val stepViewModel: StepViewModel by viewModels()
     private val userDataViewModel: UserDataViewModel by viewModels()
@@ -82,6 +83,7 @@ class MainActivity : ComponentActivity(), SensorEventListener, StepListener {
     private var updateId = -1
     private var mStepCounter = 0
     private lateinit var stepDetector: StepDetector
+    private var isInBackgroundStarted = false
 
     companion object{
         lateinit var sensorType: String
@@ -91,7 +93,7 @@ class MainActivity : ComponentActivity(), SensorEventListener, StepListener {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         stepDetector = StepDetector()
-        stepDetector.registerListener(this)
+//        stepDetector.registerListener(this)
         super.onCreate(savedInstanceState)
         setContent {
 
@@ -147,6 +149,7 @@ class MainActivity : ComponentActivity(), SensorEventListener, StepListener {
 
     @Composable
     fun SetupDataUser(uid: String?) {
+        timber("SetupDataUser :::: UID :::: $uid")
         var syncCalled by remember {
             mutableStateOf(false)
         }
@@ -155,7 +158,24 @@ class MainActivity : ComponentActivity(), SensorEventListener, StepListener {
             mutableStateOf("")
         }
 
+
         val context = LocalContext.current
+
+        if (uid.orEmpty().isNotEmpty()){
+            timber("isInBackgroundStarted ::: UID ::: $uid")
+            val serviceIntent = Intent(this, MyBackgroundService::class.java)
+            startService(serviceIntent)
+//            if (!isInBackgroundStarted && !isMyServiceRunning(MyBackgroundService::class.java)){
+//                timber("isInBackgroundStarted ::: RUN")
+//                isInBackgroundStarted = true
+//                val serviceIntent = Intent(this, MyBackgroundService::class.java)
+//                startService(serviceIntent)
+//            }
+
+        }
+
+
+
 
         if (uid != null) {
             if (uid.isNotEmpty() && !syncCalled) {
@@ -224,96 +244,107 @@ class MainActivity : ComponentActivity(), SensorEventListener, StepListener {
 
     }
 
-    private fun registerListener() {
-        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-        val stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        val accSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
-        if (stepSensor != null) {
-            sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
-            sensorType = Constants.STEP_COUNTER
-        } else if (accSensor != null) {
-            sensorManager?.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
-            sensorType = Constants.ACCELEROMETER
-        }else{
-            this.toast(getString(R.string.sensor_not_support))
+    private fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
         }
+        return false
+    }
+
+    private fun registerListener() {
+//        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+//        val stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+//        val accSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+//
+//        if (stepSensor != null) {
+//            sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
+//            sensorType = Constants.STEP_COUNTER
+//        } else if (accSensor != null) {
+//            sensorManager?.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
+//            sensorType = Constants.ACCELEROMETER
+//        }else{
+//            this.toast(getString(R.string.sensor_not_support))
+//        }
     }
 
     private fun unRegisterListener() {
-        sensorManager?.unregisterListener(this)
+//        sensorManager?.unregisterListener(this)
     }
 
-    override fun onSensorChanged(p0: SensorEvent?) {
+//    override fun onSensorChanged(p0: SensorEvent?) {
 
-        if (!isInBackground){
-            val serviceIntent = Intent(this, MyBackgroundService::class.java)
-            this.stopService(serviceIntent)
-        }
+//        if (!isInBackground){
+//            val serviceIntent = Intent(this, MyBackgroundService::class.java)
+//            this.stopService(serviceIntent)
+//        }
+//
+//        when(p0?.sensor?.type){
+//
+//            Sensor.TYPE_STEP_COUNTER ->{
+//                timber("onSensorChanged :: For")
+//                if (!isInBackground) {
+//                    timber("wakdjjwhadjkwahdkjhawkjdhakwjhd 3:: $mStepCounter")
+//                    stepViewModel.insertStep(p0.values?.firstOrNull().orZero().toInt(), updateId)
+//                }
+//            }
+//
+//
+//            Sensor.TYPE_ACCELEROMETER ->{
+//                if (!isInBackground){
+//                    stepDetector.updateAccel(p0.timestamp, p0.values[0],p0.values[1],p0.values[2])
+//                }
+//
+//            }
+//        }
 
-        when(p0?.sensor?.type){
 
-            Sensor.TYPE_STEP_COUNTER ->{
-                timber("onSensorChanged :: For")
-                if (!isInBackground) {
-                    timber("wakdjjwhadjkwahdkjhawkjdhakwjhd 3:: $mStepCounter")
-                    stepViewModel.insertStep(p0.values?.firstOrNull().orZero().toInt(), updateId)
-                }
-            }
-
-
-            Sensor.TYPE_ACCELEROMETER ->{
-                if (!isInBackground){
-                    stepDetector.updateAccel(p0.timestamp, p0.values[0],p0.values[1],p0.values[2])
-                }
-
-            }
-        }
-
-
-    }
+//    }
     
 
-    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
-    }
+//    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
+//    }
 
-    override fun onResume() {
-        super.onResume()
-        isInBackground = false
-        val serviceIntent = Intent(this, MyBackgroundService::class.java)
-        stopService(serviceIntent)
-        registerListener()
-    }
+//    override fun onResume() {
+//        super.onResume()
+//        isInBackground = false
+//        val serviceIntent = Intent(this, MyBackgroundService::class.java)
+//        stopService(serviceIntent)
+//        registerListener()
+//    }
+//
+//    override fun onStop() {
+//        super.onStop()
+//        isInBackground = true
+////        val serviceIntent = Intent(this, MyBackgroundService::class.java)
+////        startService(serviceIntent)
+//        unRegisterListener()
+//    }
+//
+//    override fun onPause() {
+//        super.onPause()
+//        isInBackground = true
+//        val serviceIntent = Intent(this, MyBackgroundService::class.java)
+//        startService(serviceIntent)
+//        unRegisterListener()
+//    }
+//
+//    override fun onDestroy() {
+//        super.onDestroy()
+//        isInBackground = true
+//        val serviceIntent = Intent(this, MyBackgroundService::class.java)
+//        startService(serviceIntent)
+//        unRegisterListener()
+//    }
 
-    override fun onStop() {
-        super.onStop()
-        isInBackground = true
-        val serviceIntent = Intent(this, MyBackgroundService::class.java)
-        startService(serviceIntent)
-        unRegisterListener()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        isInBackground = true
-        val serviceIntent = Intent(this, MyBackgroundService::class.java)
-        startService(serviceIntent)
-        unRegisterListener()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        isInBackground = true
-        val serviceIntent = Intent(this, MyBackgroundService::class.java)
-        startService(serviceIntent)
-        unRegisterListener()
-    }
-
-    override fun step(timeNs: Long) {
-        mStepCounter++
-        timber("wakdjjwhadjkwahdkjhawkjdhakwjhd 2:: $mStepCounter")
-        stepViewModel.insertStep(mStepCounter, updateId)
-    }
+//    override fun step(timeNs: Long) {
+//        mStepCounter++
+//        timber("wakdjjwhadjkwahdkjhawkjdhakwjhd 2:: $mStepCounter")
+//        stepViewModel.insertStep(mStepCounter, updateId)
+//    }
 
 }
 
