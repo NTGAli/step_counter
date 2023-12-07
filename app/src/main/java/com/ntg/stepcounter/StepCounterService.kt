@@ -43,12 +43,11 @@ import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.lang.Thread.sleep
 import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, StepListener {
+class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepListener {
 
     private lateinit var notificationManager: NotificationManager
     private lateinit var notification: Notification
@@ -126,7 +125,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
         steps.observe(this) {
             try {
-                notificationBuilder.setContentText("$it")
+                notificationBuilder.setContentText(it.toString())
                 notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -164,7 +163,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
         }
 
 
-        appDB.stepDao().getUnSyncedStepsOfDate().observe(this@MyBackgroundService) { unSyncedList ->
+        appDB.stepDao().getUnSyncedStepsOfDate().observe(this@StepCounterService) { unSyncedList ->
 
             val userSteps = unSyncedList.groupBy { it?.date }
 
@@ -202,7 +201,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
         scope.launch {
 
             timber("TOTAL_STEPS_NEED_TO_SYNC ::: START")
-            if (this@MyBackgroundService.checkInternet()) {
+            if (this@StepCounterService.checkInternet()) {
                 timber("TOTAL_STEPS_NEED_TO_SYNC ::: INTERNET-OK")
 
                 val call = apiService.syncStepsInBack(date, totalSteps, userId)

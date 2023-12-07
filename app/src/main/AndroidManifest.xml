@@ -41,7 +41,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".MyBackgroundService"/>
+        <service android:name=".StepCounterService"/>
 
         <receiver
             android:enabled="true"

@@ -125,4 +125,5 @@
     <string name="version">ورژن %s</string>
     <string name="step_counter">قدم شمار</string>
     <string name="counting">در حال شمارش ..</string>
+    <string name="block_user">حساب کاربری شما مسدود شده است!</string>
 </resources>

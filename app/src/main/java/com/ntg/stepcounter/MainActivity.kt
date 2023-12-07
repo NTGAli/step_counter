@@ -2,13 +2,8 @@ package com.ntg.stepcounter
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
@@ -56,14 +51,11 @@ import com.ntg.stepcounter.ui.theme.ERROR500
 import com.ntg.stepcounter.ui.theme.SECONDARY700
 import com.ntg.stepcounter.ui.theme.StepCounterTheme
 import com.ntg.stepcounter.ui.theme.fontMedium14
-import com.ntg.stepcounter.util.Constants
 import com.ntg.stepcounter.util.StepDetector
-import com.ntg.stepcounter.util.StepListener
 import com.ntg.stepcounter.util.extension.dateOfToday
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.timber
-import com.ntg.stepcounter.util.extension.toast
 import com.ntg.stepcounter.vm.LoginViewModel
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
@@ -78,12 +70,8 @@ class MainActivity : ComponentActivity() {
     private val userDataViewModel: UserDataViewModel by viewModels()
     private val socialNetworkViewModel: SocialNetworkViewModel by viewModels()
     private val loginViewModel: LoginViewModel by viewModels()
-    private var sensorManager: SensorManager? = null
-    private var isInBackground = false
     private var updateId = -1
-    private var mStepCounter = 0
     private lateinit var stepDetector: StepDetector
-    private var isInBackgroundStarted = false
 
     companion object{
         lateinit var sensorType: String
@@ -93,7 +81,6 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         stepDetector = StepDetector()
-//        stepDetector.registerListener(this)
         super.onCreate(savedInstanceState)
         setContent {
 
@@ -104,8 +91,6 @@ class MainActivity : ComponentActivity() {
             var startDes by remember {
                 mutableStateOf("")
             }
-
-
 
             userDataViewModel.getUsername().collectAsState(initial = null).value.let {
                 if (it != null) {
@@ -125,8 +110,8 @@ class MainActivity : ComponentActivity() {
                                 socialNetworkViewModel = socialNetworkViewModel,
                                 loginViewModel = loginViewModel,
                                 startDestination = startDes,
-                                onDestinationChangedListener = { nav, des, bundle ->
-
+                                onDestinationChangedListener = { _, des, bundle ->
+                                    timber("onDestinationChangedListener ::: ${des.displayName} :: ${bundle.toString()}")
                                 })
                         }
                     }
@@ -142,7 +127,7 @@ class MainActivity : ComponentActivity() {
             val isBlocked = userDataViewModel.isBlocked().collectAsState(initial = false).value
 
             if (isBlocked) {
-                UserBlocked(blockReasons = "حساب کاربری شما مسدود شده است!")
+                UserBlocked(blockReasons = getString(R.string.block_user))
             }
         }
     }
@@ -159,19 +144,11 @@ class MainActivity : ComponentActivity() {
         }
 
 
-        val context = LocalContext.current
 
         if (uid.orEmpty().isNotEmpty()){
             timber("isInBackgroundStarted ::: UID ::: $uid")
-            val serviceIntent = Intent(this, MyBackgroundService::class.java)
+            val serviceIntent = Intent(this, StepCounterService::class.java)
             startService(serviceIntent)
-//            if (!isInBackgroundStarted && !isMyServiceRunning(MyBackgroundService::class.java)){
-//                timber("isInBackgroundStarted ::: RUN")
-//                isInBackgroundStarted = true
-//                val serviceIntent = Intent(this, MyBackgroundService::class.java)
-//                startService(serviceIntent)
-//            }
-
         }
 
 
@@ -202,16 +179,6 @@ class MainActivity : ComponentActivity() {
                                 if (it.data?.isSuccess.orFalse()) {
                                     userDataViewModel.isVerified(it.data?.data?.isVerified.orFalse())
                                     userDataViewModel.isBlocked(it.data?.data?.isBlock.orFalse())
-//                                    if (timeSign.isNotEmpty()) {
-//                                        if (timeSign != it.data?.data?.timeSign.orEmpty()) {
-//                                            context.toast(context.getString(R.string.max_login))
-//                                            logout(
-//                                                userDataViewModel,
-//                                                stepViewModel,
-//                                                socialNetworkViewModel
-//                                            )
-//                                        }
-//                                    }
                                 }
                             }
                         }
@@ -244,108 +211,6 @@ class MainActivity : ComponentActivity() {
 
     }
 
-
-    private fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
-        val manager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
-        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
-            if (serviceClass.name == service.service.className) {
-                return true
-            }
-        }
-        return false
-    }
-
-    private fun registerListener() {
-//        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-//        val stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-//        val accSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-//
-//        if (stepSensor != null) {
-//            sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
-//            sensorType = Constants.STEP_COUNTER
-//        } else if (accSensor != null) {
-//            sensorManager?.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
-//            sensorType = Constants.ACCELEROMETER
-//        }else{
-//            this.toast(getString(R.string.sensor_not_support))
-//        }
-    }
-
-    private fun unRegisterListener() {
-//        sensorManager?.unregisterListener(this)
-    }
-
-//    override fun onSensorChanged(p0: SensorEvent?) {
-
-//        if (!isInBackground){
-//            val serviceIntent = Intent(this, MyBackgroundService::class.java)
-//            this.stopService(serviceIntent)
-//        }
-//
-//        when(p0?.sensor?.type){
-//
-//            Sensor.TYPE_STEP_COUNTER ->{
-//                timber("onSensorChanged :: For")
-//                if (!isInBackground) {
-//                    timber("wakdjjwhadjkwahdkjhawkjdhakwjhd 3:: $mStepCounter")
-//                    stepViewModel.insertStep(p0.values?.firstOrNull().orZero().toInt(), updateId)
-//                }
-//            }
-//
-//
-//            Sensor.TYPE_ACCELEROMETER ->{
-//                if (!isInBackground){
-//                    stepDetector.updateAccel(p0.timestamp, p0.values[0],p0.values[1],p0.values[2])
-//                }
-//
-//            }
-//        }
-
-
-//    }
-    
-
-//    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
-//    }
-
-//    override fun onResume() {
-//        super.onResume()
-//        isInBackground = false
-//        val serviceIntent = Intent(this, MyBackgroundService::class.java)
-//        stopService(serviceIntent)
-//        registerListener()
-//    }
-//
-//    override fun onStop() {
-//        super.onStop()
-//        isInBackground = true
-////        val serviceIntent = Intent(this, MyBackgroundService::class.java)
-////        startService(serviceIntent)
-//        unRegisterListener()
-//    }
-//
-//    override fun onPause() {
-//        super.onPause()
-//        isInBackground = true
-//        val serviceIntent = Intent(this, MyBackgroundService::class.java)
-//        startService(serviceIntent)
-//        unRegisterListener()
-//    }
-//
-//    override fun onDestroy() {
-//        super.onDestroy()
-//        isInBackground = true
-//        val serviceIntent = Intent(this, MyBackgroundService::class.java)
-//        startService(serviceIntent)
-//        unRegisterListener()
-//    }
-
-//    override fun step(timeNs: Long) {
-//        mStepCounter++
-//        timber("wakdjjwhadjkwahdkjhawkjdhakwjhd 2:: $mStepCounter")
-//        stepViewModel.insertStep(mStepCounter, updateId)
-//    }
-
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -368,10 +233,10 @@ private fun checkPermissions(): String {
 
 @Composable
 private fun SyncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: String) {
-    timber("StepSync **********")
+    timber("StepSync")
     var stepNeedSync = 0
     var totalSteps = 0
-    var totalSynced = 0
+    var totalSynced: Int
     var dateSync = ""
 
     var needToSync by remember {
@@ -380,18 +245,18 @@ private fun SyncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: 
 
     stepViewModel.needToSyncSteps().observe(owner) {
 
-        val groupedSteps = it.groupBy { it?.date }
+        val groupedSteps = it.groupBy { userSteps -> userSteps?.date }
 
         groupedSteps.forEach { (date, steps) ->
 
             if (date.orEmpty().isNotEmpty()){
                 totalSteps = 0
                 totalSynced = 0
-                steps.forEach {
+                steps.forEach {dataStep ->
 
-                    if (it?.count.orZero() > it?.start.orZero()){
-                        totalSteps += it?.count.orZero() - it?.start.orZero()
-                        totalSynced = it?.synced.orZero()
+                    if (dataStep?.count.orZero() > dataStep?.start.orZero()){
+                        totalSteps += dataStep?.count.orZero() - dataStep?.start.orZero()
+                        totalSynced = dataStep?.synced.orZero()
                     }
 
                 }
