@@ -123,4 +123,6 @@
     <string name="field">رشته</string>
     <string name="sensor_not_support">متاسفانه این برنامه برای گوشی شما پشتیبانی نمی شود.</string>
     <string name="version">ورژن %s</string>
+    <string name="step_counter">قدم شمار</string>
+    <string name="counting">در حال شمارش ..</string>
 </resources>

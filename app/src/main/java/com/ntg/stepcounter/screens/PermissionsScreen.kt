@@ -98,12 +98,6 @@ private fun Content(navHostController: NavHostController) {
     val check = remember {
         mutableStateOf(false)
     }
-    LaunchedEffect(key1 = check, block = {
-        timber("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ 1")
-
-    })
-
-    timber("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ 2")
 
     val setManually = remember {
         mutableStateOf(false)

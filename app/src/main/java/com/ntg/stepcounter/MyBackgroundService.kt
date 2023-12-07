@@ -27,6 +27,7 @@ import com.ntg.stepcounter.models.UserStore
 import com.ntg.stepcounter.models.res.StepSynced
 import com.ntg.stepcounter.util.Constants
 import com.ntg.stepcounter.util.Constants.NOTIFICATION_CHANNEL_ID
+import com.ntg.stepcounter.util.Constants.NOTIFICATION_ID
 import com.ntg.stepcounter.util.StepDetector
 import com.ntg.stepcounter.util.StepListener
 import com.ntg.stepcounter.util.extension.checkInternet
@@ -51,7 +52,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
     private lateinit var notificationManager: NotificationManager
     private lateinit var notification: Notification
-    var mSteps: Int = 0
+    private var mSteps: Int = 0
     private lateinit var notificationBuilder: NotificationCompat.Builder
     private val mServiceLifecycleDispatcher = ServiceLifecycleDispatcher(this)
     private val channelId =
@@ -80,14 +81,14 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
     lateinit var userStore: UserStore
 
     private var toDayDate = ""
-
     private var sensorManager: SensorManager? = null
-
     private var userId = ""
-
     init {
         steps.value = 0
     }
+
+    override val lifecycle: Lifecycle
+        get() = mServiceLifecycleDispatcher.lifecycle
 
     override fun onCreate() {
         super.onCreate()
@@ -97,7 +98,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
         notification = createNotification()
         try {
-            startForeground(1414, notification)
+            startForeground(NOTIFICATION_ID, notification)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -116,7 +117,6 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
                 steps.value = 0
             }
 
-
             it.forEach { step ->
                 if (step.count != 0) {
                     steps.value = steps.value.orZero() + (step.count - step.start.orZero())
@@ -124,12 +124,10 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
             }
         }
 
-
         steps.observe(this) {
             try {
                 notificationBuilder.setContentText("$it")
-//                notificationBuilder.setContentText("$it --- $toDayDate -- $updateId")
-                notificationManager.notify(1414, notificationBuilder.build())
+                notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -166,36 +164,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
         }
 
 
-
-//        scope.launch {
-//            sleep(3000)
-//            val newEntity = Step(0, date = dateOfToday(), start = 0, count= 20, exp = true)
-//            appDB.stepDao().insert(newEntity)
-//        }
-
-
-
         appDB.stepDao().getUnSyncedStepsOfDate().observe(this@MyBackgroundService) { unSyncedList ->
-
-//            val it = unSyncedList.filter { it?.date == dateOfToday() }
-//
-//
-//            var totalSteps = 0
-//            var totalSynced = 0
-//            it.forEach {
-//
-//                if (it?.count.orZero() > it?.start.orZero()) {
-//                    totalSteps += it?.count.orZero() - it?.start.orZero()
-//                    totalSynced = it?.synced.orZero()
-//                }
-//
-//            }
-//
-//            timber("TOTAL_STEPS_NEED_TO_SYNC 1 -- ${totalSteps - totalSynced}")
-//
-//            if (totalSteps - totalSynced > 50 && totalSteps != 0 && totalSteps != stepSynced && totalSteps != stepsWaitForSync) {
-//                syncStep(scope, totalSteps)
-//            }
 
             val userSteps = unSyncedList.groupBy { it?.date }
 
@@ -270,8 +239,6 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
 
     private fun createNotification(): Notification {
-
-
         val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this,
@@ -281,22 +248,17 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
         )
 
 
-
         notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.icons8_trainers_1) // Replace with your notification icon
-//            .setContentTitle("Step Counting Service")
-//            .setContentText("Counting your steps...")
-            .setContentTitle("قدم شمار")
-            .setContentText("در حال شمارش ..")
+            .setSmallIcon(R.drawable.icons8_trainers_1)
+            .setContentTitle(getString(R.string.step_counter))
+            .setContentText(getString(R.string.counting))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent) // Set the PendingIntent when the notification is clicked
-            .setOngoing(true) // Makes the notification persistent
-            .setAutoCancel(false) // Prevents the notification from being dismissed when clicked
+            .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .setAutoCancel(false)
             .setVibrate(longArrayOf(0))
             .setChannelId(channelId)
-//
-//        // Create a notification channel (if needed) for Android Oreo and later
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
         notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -333,7 +295,7 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
     }
 
     private fun insertStep(count: Int) {
-        timber("wakdjjwhadjkwahdkjhawkjdhakwjhd $count")
+        timber("insertStepInService $count")
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             if (::updateId.isInitialized) {
@@ -341,17 +303,14 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
                     val rowsUpdated =
                         appDB.stepDao().updateCount(updateId.toInt(), dateOfToday(), count, true)
                     if (rowsUpdated == 0) {
-                        timber("wkahdkjwahdjkhawjkdhwkajdhawkwjdkh ::: 3")
                         val newEntity = Step(0, date = dateOfToday(), start = count, exp = true)
                         appDB.stepDao().insert(newEntity)
                     }
                 } else {
-                    timber("wkahdkjwahdjkhawjkdhwkajdhawkwjdkh ::: 2")
                     val newEntity = Step(0, date = dateOfToday(), start = count, exp = true)
                     appDB.stepDao().insert(newEntity)
                 }
             } else {
-                timber("wkahdkjwahdjkhawjkdhwkajdhawkwjdkh ::: 1")
                 val newEntity = Step(0, date = dateOfToday(), start = count, exp = true)
                 updateId = appDB.stepDao().insert(newEntity).toString()
             }
@@ -362,21 +321,19 @@ class MyBackgroundService : Service(), SensorEventListener, LifecycleOwner, Step
 
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        timber("BackgroundService:::destroy")
-//        sensorManager?.unregisterListener(this)
-//        sensorManager = null
-        stopSelf()
-    }
 
-    override val lifecycle: Lifecycle
-        get() = mServiceLifecycleDispatcher.lifecycle
 
     override fun step(timeNs: Long) {
         mSteps++
         insertStep(mSteps)
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        timber("BackgroundService:::destroy")
+        stopSelf()
+    }
+
 }
 
 

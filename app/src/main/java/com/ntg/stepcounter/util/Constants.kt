@@ -9,6 +9,7 @@ object Constants {
     const val ACCELEROMETER = "TYPE_ACCELEROMETER"
     const val CHART = "CHART"
     const val DATE = "DATE"
+    const val NOTIFICATION_ID = 1414
 
 
 }
