@@ -119,18 +119,6 @@ fun HomeScreen(
     claps = userDataViewModel.getClaps().collectAsState(initial = -1).value
     val ctx = LocalContext.current
 
-
-    val userStepsToday = stepViewModel.getToday().observeAsState().value
-    var stepsOfToday = 0
-
-
-    userStepsToday?.forEach {
-        if (it.count != 0 && it.count.orZero() >= it.start.orZero()) {
-            stepsOfToday += it.count.orZero() - it.start.orZero()
-        }
-    }
-
-    val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
     username = userDataViewModel.getUsername().collectAsState(initial = ".").value
 
     internetConnection = ctx.checkInternet()
@@ -185,58 +173,9 @@ fun HomeScreen(
             sheetElevation = radius.dp / 2,
             sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp)
         ) {
-            Box(
-                Modifier
-                    .background(Color.LightGray)
-                    .onGloballyPositioned { layoutCoordinates ->
-                        val b = layoutCoordinates.size.height
-                        contentHeight = b.toFloat()
-                    })
-            {
-
-
-                Column(
-                    modifier = Modifier
-                        .wrapContentHeight()
-                        .fillMaxWidth()
-                        .background(Color(ctx.resources.getColor(R.color.background, null))),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    ReportWidget(
-                        modifier = Modifier
-                            .padding(horizontal = 32.dp)
-                            .padding(top = 24.dp),
-                        viewType = ReportWidgetType.Default,
-                        firstText = topRecord?.record_count.orZero(),
-                        secondText = if (topRecord?.date != null) daysUntilToday(topRecord.date).toInt() else -1
-                    )
-
-
-                    Text(
-                        modifier = Modifier
-                            .padding(top = 32.dp),
-                        text = divideNumber(
-                            stepsOfToday
-                        ),
-                        style = fontBlack24(PRIMARY900)
-                    )
-                    Text(
-                        modifier = Modifier.padding(top = 8.dp, bottom = 48.dp),
-                        text = stringResource(
-                            id = R.string.km_cal,
-                            stepsToKilometers(
-                                stepsOfToday
-                            ),
-                            stepsToCalories(
-                                stepsOfToday
-                            )
-                        ),
-                        style = fontBold12(SECONDARY500)
-                    )
-                }
+            ReportItem(stepViewModel){
+                contentHeight = it
             }
-
         }
 
 
@@ -320,6 +259,77 @@ private fun TopBar(
     )
 }
 
+
+@Composable
+private fun ReportItem(
+    stepViewModel: StepViewModel,
+    contentHeight: (Float) -> Unit
+){
+    val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
+    val ctx = LocalContext.current
+    val userStepsToday = stepViewModel.getToday().observeAsState().value
+    var stepsOfToday = 0
+
+
+    userStepsToday?.forEach {
+        if (it.count != 0 && it.count.orZero() >= it.start.orZero()) {
+            stepsOfToday += it.count.orZero() - it.start.orZero()
+        }
+    }
+    Box(
+        Modifier
+            .background(Color.LightGray)
+            .onGloballyPositioned { layoutCoordinates ->
+                val boxHeight = layoutCoordinates.size.height
+                contentHeight.invoke(boxHeight.toFloat())
+            })
+    {
+
+
+        Column(
+            modifier = Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()
+                .background(Color(ctx.resources.getColor(R.color.background, null))),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            ReportWidget(
+                modifier = Modifier
+                    .padding(horizontal = 32.dp)
+                    .padding(top = 24.dp),
+                viewType = ReportWidgetType.Default,
+                firstText = topRecord?.record_count.orZero(),
+                secondText = if (topRecord?.date != null) daysUntilToday(topRecord.date).toInt() else -1
+            )
+
+
+            Text(
+                modifier = Modifier
+                    .padding(top = 32.dp),
+                text = divideNumber(
+                    stepsOfToday
+                ),
+                style = fontBlack24(PRIMARY900)
+            )
+            Text(
+                modifier = Modifier.padding(top = 8.dp, bottom = 48.dp),
+                text = stringResource(
+                    id = R.string.km_cal,
+                    stepsToKilometers(
+                        stepsOfToday
+                    ),
+                    stepsToCalories(
+                        stepsOfToday
+                    )
+                ),
+                style = fontBold12(SECONDARY500)
+            )
+        }
+    }
+}
+
+
 @Composable
 private fun Content(
     navHostController: NavHostController,
@@ -337,18 +347,11 @@ private fun Content(
     var loadData by remember {
         mutableStateOf(false)
     }
-    val loading by remember {
-        mutableStateOf(false)
-    }
-
     var error by remember {
         mutableStateOf(false)
     }
 
     var tryAgain by remember {
-        mutableStateOf(false)
-    }
-    var updateSummaries by remember {
         mutableStateOf(false)
     }
     var summaries by remember {
@@ -360,7 +363,7 @@ private fun Content(
 
             if (userId.isNotEmpty()) {
 
-                LaunchedEffect(key1 = updateSummaries, block = {
+                LaunchedEffect(key1 = Unit, block = {
 
                     stepViewModel.summariesData(userId, summaries == null || tryAgain)
                         .observe(owner) {
@@ -391,9 +394,10 @@ private fun Content(
     }
 
 
-    if (loading) {
+    if (loadData) {
         Loading(isFull = false)
-    } else if (!internetConnection) {
+    }
+    else if (!internetConnection) {
         ErrorMessage(
             modifier = Modifier.padding(top = 32.dp),
             status = ErrorStatus.Internet
@@ -401,7 +405,8 @@ private fun Content(
             internetConnection = true
             error = false
         }
-    } else if (error) {
+    }
+    else if (error) {
         tryAgain = false
         ErrorMessage(
             modifier = Modifier.padding(top = 32.dp),
@@ -410,7 +415,8 @@ private fun Content(
             tryAgain = true
             error = false
         }
-    } else {
+    }
+    else {
         Column(
             modifier = Modifier
                 .height(sheetHeight)
