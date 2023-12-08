@@ -310,24 +310,20 @@ private fun ReportItem(
 
 
 
-            var ccc by remember {
-                mutableIntStateOf(8542)
-            }
+//            var ccc by remember {
+//                mutableIntStateOf(8542)
+//            }
 //            stepsOfToday
-            TextAnimated(ccc) {digit ->
+            TextAnimated(stepsOfToday) {digit ->
                 Text(
-                    modifier = Modifier.clickable {
-                        ccc++
-                    }
+                    modifier = Modifier
+//                        .clickable {
+//                        ccc++
+//                    }
                         .padding(top = 24.dp, bottom = 8.dp),
                     text = digit.digitChar.toString(),
                     style = fontMedium36(PRIMARY900)
                 )
-//                Text(
-//                    "${digit.digitChar}",
-//                    style = MaterialTheme.typography.h1,
-//                    textAlign = TextAlign.Center,
-//                )
             }
             Text(
                 modifier = Modifier.padding(bottom = 48.dp),

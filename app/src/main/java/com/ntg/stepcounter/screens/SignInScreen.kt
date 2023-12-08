@@ -44,7 +44,7 @@ fun SignInScreen(
     stepViewModel: StepViewModel,
     phoneNumber: String?,
     state: String?
-){
+) {
     Scaffold(
         topBar = {
             Appbar(
@@ -53,13 +53,31 @@ fun SignInScreen(
             )
         },
         content = { innerPadding ->
-            Content(paddingValues = innerPadding, navHostController = navHostController, loginViewModel, userDataViewModel, socialNetworkViewModel,stepViewModel, state, phoneNumber)
+            Content(
+                paddingValues = innerPadding,
+                navHostController = navHostController,
+                loginViewModel,
+                userDataViewModel,
+                socialNetworkViewModel,
+                stepViewModel,
+                state,
+                phoneNumber
+            )
         }
     )
 }
 
 @Composable
-private fun Content(paddingValues: PaddingValues, navHostController: NavHostController, loginViewModel: LoginViewModel, userDataViewModel: UserDataViewModel,socialNetworkViewModel: SocialNetworkViewModel,stepViewModel: StepViewModel, state: String?, phoneNumber: String?){
+private fun Content(
+    paddingValues: PaddingValues,
+    navHostController: NavHostController,
+    loginViewModel: LoginViewModel,
+    userDataViewModel: UserDataViewModel,
+    socialNetworkViewModel: SocialNetworkViewModel,
+    stepViewModel: StepViewModel,
+    state: String?,
+    phoneNumber: String?
+) {
 
     val uid = remember {
         mutableStateOf("")
@@ -79,24 +97,54 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
             keyboardType = KeyboardType.Number
         )
 
-        CustomButton(modifier = Modifier.padding(top = 16.dp).fillMaxWidth(), text = stringResource(id = R.string.sign_in), size = ButtonSize.XL){
+        CustomButton(
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .fillMaxWidth(),
+            text = stringResource(id = R.string.sign_in),
+            size = ButtonSize.XL
+        ) {
 
-            if (uid.value.isNotEmpty()){
-                userDataViewModel.signIn(uid.value, phoneNumber.orEmpty(), System.currentTimeMillis().toString()).observe(owner){
+            if (uid.value.isNotEmpty()) {
+                userDataViewModel.signIn(
+                    uid.value,
+                    phoneNumber.orEmpty(),
+                    System.currentTimeMillis().toString()
+                ).observe(owner) {
 
-                    when(it){
+                    when (it) {
                         is NetworkResult.Error -> {
 
                         }
+
                         is NetworkResult.Loading -> {
 
                         }
+
                         is NetworkResult.Success -> {
 
-                            if (it.data?.isSuccess.orFalse()){
+                            if (it.data?.isSuccess.orFalse()) {
                                 userDataViewModel.setTimeSign(it.data?.data?.timeSign.orEmpty())
-                                stepViewModel.insertAll(it.data?.data?.stepsList.orEmpty().map { Step(id=0, date = it.date, start = if (it.date != dateOfToday()) 0 else 1, count = if (it.date != dateOfToday()) it.steps.orZero() else {it.steps.orZero() + 1},synced = it.steps) })
-                                socialNetworkViewModel.insertAll(it.data?.data?.socials.orEmpty().map { Social(id=it.id, name = it.title.orEmpty(), pageId = it.url.orEmpty()) })
+                                stepViewModel.insertAll(
+                                    it.data?.data?.stepsList.orEmpty().map {
+                                        Step(
+                                            id = 0,
+                                            date = it.date,
+                                            start = if (it.date != dateOfToday()) 0 else 1,
+                                            count = if (it.date != dateOfToday()) it.steps.orZero() else {
+                                                it.steps.orZero() + 1
+                                            },
+                                            synced = it.steps
+                                        )
+                                    })
+                                socialNetworkViewModel.insertAll(
+                                    it.data?.data?.socials.orEmpty().map {
+                                        Social(
+                                            id = it.id,
+                                            name = it.title.orEmpty(),
+                                            pageId = it.url.orEmpty()
+                                        )
+                                    })
                                 userDataViewModel.setUserStatus(state.orEmpty())
                                 userDataViewModel.setFieldStudy(it.data?.data?.fosName.orEmpty())
                                 userDataViewModel.setUserId(uid.value)
@@ -106,7 +154,7 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
                                 userDataViewModel.setGradeId(it.data?.data?.gradeId.orZero())
                                 userDataViewModel.setFosId(it.data?.data?.fosId.orZero())
 
-                            }else{
+                            } else {
                                 context.toast(context.getString(R.string.wrong_info))
                             }
 
@@ -114,13 +162,12 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
                     }
 
                 }
-            }else{
+            } else {
                 context.toast(context.getString(if (state == "1") R.string.student_id_empty else R.string.prof_id_empty))
             }
 
         }
     }
-
 
 
 }
