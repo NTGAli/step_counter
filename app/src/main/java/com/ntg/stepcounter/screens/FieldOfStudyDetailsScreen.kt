@@ -1,6 +1,7 @@
 package com.ntg.stepcounter.screens
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -45,6 +46,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.ntg.stepcounter.R
@@ -133,7 +135,7 @@ fun FieldOfStudyDetailsScreen(
         userId = it
     }
 
-    if (fosName.isEmpty() && internetConnection || tryAgain){
+    if (fosName.isEmpty() && internetConnection || tryAgain) {
 
         userDataViewModel.getFosDetails(uid).observe(LocalLifecycleOwner.current) {
             when (it) {
@@ -161,16 +163,18 @@ fun FieldOfStudyDetailsScreen(
 
     }
 
-    if (users.isEmpty() && internetConnection || tryAgain){
-        userDataViewModel.userOfFos(uid).observe(LocalLifecycleOwner.current){
-            when(it){
+    if (users.isEmpty() && internetConnection || tryAgain) {
+        userDataViewModel.userOfFos(uid).observe(LocalLifecycleOwner.current) {
+            when (it) {
                 is NetworkResult.Error -> {
                     timber("UsersOfFos ::: ERR")
                     error = true
                 }
+
                 is NetworkResult.Loading -> {
                     timber("UsersOfFos ::: Loading")
                 }
+
                 is NetworkResult.Success -> {
                     timber("UsersOfFos ::: ${it.data}")
                     users = it.data?.data.orEmpty()
@@ -180,13 +184,9 @@ fun FieldOfStudyDetailsScreen(
     }
 
 
-
-
-
-
-    var aaa by remember { mutableFloatStateOf(0f) }
+    var appbarHeight by remember { mutableFloatStateOf(0f) }
     var radius by remember { mutableFloatStateOf(32f) }
-    val topOffset = with(LocalDensity.current) { aaa.toDp() }
+    val topOffset = with(LocalDensity.current) { appbarHeight.toDp() }
     var contentHeight by remember { mutableFloatStateOf(0f) }
     var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
 
@@ -205,11 +205,11 @@ fun FieldOfStudyDetailsScreen(
         val animateRotation = remember { Animatable(0f) }
         val coroutineScope = rememberCoroutineScope()
 
-        LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded){
-            coroutineScope.launch{
-                if (scaffoldState.bottomSheetState.isExpanded){
+        LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded) {
+            coroutineScope.launch {
+                if (scaffoldState.bottomSheetState.isExpanded) {
                     animateRotation.animateTo(180f)
-                }else{
+                } else {
                     animateRotation.animateTo(0f)
                 }
             }
@@ -221,72 +221,12 @@ fun FieldOfStudyDetailsScreen(
         BottomSheetScaffold(
             sheetPeekHeight = sheetPeekHeight,
             topBar = {
-                TopAppBar(
-                    modifier = Modifier
-                        .onGloballyPositioned { layoutCoordinates ->
-                            val a = layoutCoordinates.size.height
-                            aaa = a.toFloat()
-                        },
-                    backgroundColor = Color(topBarColor.red, topBarColor.blue, topBarColor.green),
-                    title = {
-                        Text(
-                            text = stringResource(id = R.string.field),
-                            style = fontMedium14(
-                                SECONDARY500
-                            )
-                        )
-                    },
-                    elevation = 0.dp,
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            navHostController.popBackStack()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Rounded.ChevronRight,
-                                contentDescription = null
-                            )
-                        }
-                    }
-                )
+                AppBarFos(navHostController, topBarColor) {
+                    appbarHeight = it
+                }
             },
             sheetContent = {
-
-                LazyColumn(modifier = Modifier
-                    .height(sheetHeight)
-                    .background(Background)
-                    .padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally){
-
-                    item {
-                        Icon(
-                            modifier = Modifier.padding(top = 8.dp)
-                                .rotate(animateRotation.value),
-                            painter = painterResource(id = R.drawable.chevron_up),
-                            contentDescription = null
-                        )
-                    }
-
-
-                    item {
-                        Text(modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp), text = stringResource(id = R.string.members), style = fontBold14(
-                            SECONDARY500))
-                    }
-
-                    items(users){
-                        Record(
-                            modifier = Modifier.padding(bottom = 8.dp),
-                            uid = it.uid,
-                            record = it.rank.orZero()-1,
-                            title = it.fullName.orEmpty(),
-                            steps = it.steps.orZero(),
-                            onClick = {
-                                navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
-                            }
-                        )
-                    }
-
-
-                }
-
+                Content(navHostController,sheetHeight, animateRotation, users)
             },
             scaffoldState = scaffoldState,
             sheetElevation = radius.dp / 2,
@@ -300,66 +240,22 @@ fun FieldOfStudyDetailsScreen(
                         contentHeight = b.toFloat()
                     })
             {
-
-
-                Column(
-                    modifier = Modifier
-                        .wrapContentHeight()
-                        .fillMaxWidth()
-                        .background(Color(ctx.resources.getColor(R.color.background, null))),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    ReportWidget(
-                        modifier = Modifier
-                            .padding(horizontal = 32.dp)
-                            .padding(top = 24.dp),
-                        viewType = ReportWidgetType.Group,
-                        firstText = totalSteps.orZero(),
-                        secondText = userCount
-                    )
-
-
-                    Row(
-                        modifier = Modifier.padding(top = 32.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = fosName,
-                            style = fontBlack24(PRIMARY900)
-                        )
-                    }
-
-
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 16.dp, bottom = 48.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(PRIMARY100)
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                            text = userBio,
-                            style = fontRegular12(SECONDARY900)
-                        )
-                    }
-
-                }
+                BaseFosData(totalSteps, userCount, fosName, userBio)
             }
 
         }
 
 
-        if (loading){
+        if (loading) {
             Loading()
         }
 
-        if (!internetConnection){
+        if (!internetConnection) {
             ErrorMessage(modifier = Modifier.fillMaxHeight(), status = ErrorStatus.Internet) {
                 internetConnection = true
                 error = false
             }
-        }else if (error){
+        } else if (error) {
             ErrorMessage(modifier = Modifier.fillMaxHeight(), status = ErrorStatus.Failed) {
                 tryAgain = true
                 error = false
@@ -381,3 +277,142 @@ fun FieldOfStudyDetailsScreen(
     }
 }
 
+@Composable
+private fun BaseFosData(
+    totalSteps: Int,
+    userCount: Int,
+    fosName: String,
+    userBio: String
+){
+    val ctx = LocalContext.current
+    Column(
+        modifier = Modifier
+            .wrapContentHeight()
+            .fillMaxWidth()
+            .background(Color(ctx.resources.getColor(R.color.background, null))),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        ReportWidget(
+            modifier = Modifier
+                .padding(horizontal = 32.dp)
+                .padding(top = 24.dp),
+            viewType = ReportWidgetType.Group,
+            firstText = totalSteps.orZero(),
+            secondText = userCount
+        )
+
+
+        Row(
+            modifier = Modifier.padding(top = 32.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = fosName,
+                style = fontBlack24(PRIMARY900)
+            )
+        }
+
+
+        Box(
+            modifier = Modifier
+                .padding(top = 16.dp, bottom = 48.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(PRIMARY100)
+        ) {
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                text = userBio,
+                style = fontRegular12(SECONDARY900)
+            )
+        }
+
+    }
+}
+
+@Composable
+private fun AppBarFos(
+    navHostController: NavHostController,
+    topBarColor: RGBColor,
+    appbarHeight: (Float) -> Unit,
+) {
+    TopAppBar(
+        modifier = Modifier
+            .onGloballyPositioned { layoutCoordinates ->
+                val height = layoutCoordinates.size.height
+                appbarHeight.invoke(height.toFloat())
+            },
+        backgroundColor = Color(topBarColor.red, topBarColor.blue, topBarColor.green),
+        title = {
+            Text(
+                text = stringResource(id = R.string.field),
+                style = fontMedium14(
+                    SECONDARY500
+                )
+            )
+        },
+        elevation = 0.dp,
+        navigationIcon = {
+            IconButton(onClick = {
+                navHostController.popBackStack()
+            }) {
+                Icon(
+                    imageVector = Icons.Rounded.ChevronRight,
+                    contentDescription = null
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun Content(
+    navHostController: NavHostController,
+    sheetHeight: Dp,
+    animateRotation: Animatable<Float, AnimationVector1D>,
+    users: List<UserRes>,
+) {
+    LazyColumn(
+        modifier = Modifier
+            .height(sheetHeight)
+            .background(Background)
+            .padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        item {
+            Icon(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .rotate(animateRotation.value),
+                painter = painterResource(id = R.drawable.chevron_up),
+                contentDescription = null
+            )
+        }
+
+
+        item {
+            Text(
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
+                text = stringResource(id = R.string.members),
+                style = fontBold14(
+                    SECONDARY500
+                )
+            )
+        }
+
+        items(users) {
+            Record(
+                modifier = Modifier.padding(bottom = 8.dp),
+                uid = it.uid,
+                record = it.rank.orZero() - 1,
+                title = it.fullName.orEmpty(),
+                steps = it.steps.orZero(),
+                onClick = {
+                    navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
+                }
+            )
+        }
+
+
+    }
+}

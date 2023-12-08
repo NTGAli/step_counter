@@ -111,7 +111,7 @@ class MainActivity : ComponentActivity() {
                                 loginViewModel = loginViewModel,
                                 startDestination = startDes,
                                 onDestinationChangedListener = { _, des, bundle ->
-                                    timber("onDestinationChangedListener ::: ${des.displayName} :: ${bundle.toString()}")
+                                    timber("onDestinationChangedListener ::: ${des.route} :: ${bundle.toString()}")
                                 })
                         }
                     }
