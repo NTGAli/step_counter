@@ -18,6 +18,7 @@ import androidx.lifecycle.liveData
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.models.Failure
+import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.Result
 import com.ntg.stepcounter.models.Success
 import kotlinx.coroutines.CoroutineDispatcher
@@ -192,6 +193,28 @@ fun dateOfToday(): String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 
     val dateFormat = SimpleDateFormat("yyyy-MM-dd")
     dateFormat.format(currentDate)
 }
+
+fun calculateRadius(first: Float, end: Float, third: Float): Float {
+    if (third > end) return 32f
+    if (third < first) return 0f
+    val range = end - first
+    val normalizedThird = third - first
+    return ((normalizedThird.toDouble() / range.toDouble()) * 32).toFloat()
+}
+
+fun getColorComponentsForNumber(number: Int): RGBColor {
+    require(number in 0..32) { "Number must be between 0 and 32" }
+
+    val startColor = RGBColor(255, 255, 255) // #FFFFFF
+    val endColor = RGBColor(248, 248, 248)   // #FCFCFF
+
+    val interpolatedRed = startColor.red + (endColor.red - startColor.red) * number / 32
+    val interpolatedGreen = startColor.green + (endColor.green - startColor.green) * number / 32
+    val interpolatedBlue = startColor.blue + (endColor.blue - startColor.blue) * number / 32
+
+    return RGBColor(interpolatedRed, interpolatedGreen, interpolatedBlue)
+}
+
 
 //fun randStr(length: Int = 5) : String {
 //    val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')

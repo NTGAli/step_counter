@@ -59,7 +59,6 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.gson.Gson
@@ -92,8 +91,9 @@ import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.ui.theme.fontRegular14
-import com.ntg.stepcounter.util.Constants
+import com.ntg.stepcounter.util.extension.calculateRadius
 import com.ntg.stepcounter.util.extension.daysUntilToday
+import com.ntg.stepcounter.util.extension.getColorComponentsForNumber
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.timber

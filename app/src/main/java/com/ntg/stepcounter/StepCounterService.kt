@@ -95,14 +95,6 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
         stepDetector.registerListener(this)
 
 
-        notification = createNotification()
-        try {
-            startForeground(NOTIFICATION_ID, notification)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-
         appDB.stepDao().getAllDate().observe(this) { allList ->
 
             val it = allList.filter { it.date == dateOfToday() }
@@ -155,6 +147,14 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
         } else {
             "NOT SUPPORT"
         }
+
+        notification = createNotification()
+        try {
+            startForeground(NOTIFICATION_ID, notification)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
 
         val scope = CoroutineScope(Dispatchers.IO)
 
@@ -299,17 +299,21 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
         scope.launch {
             if (::updateId.isInitialized) {
                 if (updateId.isNotEmpty()) {
+                    timber("insertStepInService -updated $count")
                     val rowsUpdated =
                         appDB.stepDao().updateCount(updateId.toInt(), dateOfToday(), count, true)
                     if (rowsUpdated == 0) {
                         val newEntity = Step(0, date = dateOfToday(), start = count, exp = true)
-                        appDB.stepDao().insert(newEntity)
+                        updateId = appDB.stepDao().insert(newEntity).toString()
+                        timber("insertStepInService -inserted -noUpdate $count -- $updateId")
                     }
                 } else {
+                    timber("insertStepInService -updated -emptyId $count")
                     val newEntity = Step(0, date = dateOfToday(), start = count, exp = true)
-                    appDB.stepDao().insert(newEntity)
+                    updateId = appDB.stepDao().insert(newEntity).toString()
                 }
             } else {
+                timber("insertStepInService -inserted -noInitialized $count")
                 val newEntity = Step(0, date = dateOfToday(), start = count, exp = true)
                 updateId = appDB.stepDao().insert(newEntity).toString()
             }

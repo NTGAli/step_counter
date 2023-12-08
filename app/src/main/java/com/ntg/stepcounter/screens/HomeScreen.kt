@@ -1,32 +1,23 @@
 package com.ntg.stepcounter.screens
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.util.Log
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetScaffoldState
-import androidx.compose.material.Button
-import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
@@ -54,14 +45,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavHostController
-import com.ntg.stepcounter.FullSizeBlur
 import com.ntg.stepcounter.R
-import com.ntg.stepcounter.StepCounterListener
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.EmptyWidget
 import com.ntg.stepcounter.components.ErrorMessage
@@ -71,28 +58,23 @@ import com.ntg.stepcounter.components.ReportWidget
 import com.ntg.stepcounter.components.Title
 import com.ntg.stepcounter.models.ErrorStatus
 import com.ntg.stepcounter.models.RGBColor
-import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.components.ReportWidgetType
 import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.nav.Screens
-import com.ntg.stepcounter.ui.theme.Background
 import com.ntg.stepcounter.ui.theme.ERROR300
-import com.ntg.stepcounter.ui.theme.ERROR400
-import com.ntg.stepcounter.ui.theme.ERROR500
 import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY500
 import com.ntg.stepcounter.ui.theme.PRIMARY900
 import com.ntg.stepcounter.ui.theme.SECONDARY500
 import com.ntg.stepcounter.ui.theme.fontBlack24
 import com.ntg.stepcounter.ui.theme.fontBold12
-import com.ntg.stepcounter.ui.theme.fontBold24
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
+import com.ntg.stepcounter.util.extension.calculateRadius
 import com.ntg.stepcounter.util.extension.checkInternet
 import com.ntg.stepcounter.util.extension.daysUntilToday
 import com.ntg.stepcounter.util.extension.divideNumber
-import com.ntg.stepcounter.util.extension.orDefault
-import com.ntg.stepcounter.util.extension.orNull
+import com.ntg.stepcounter.util.extension.getColorComponentsForNumber
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.stepsToCalories
 import com.ntg.stepcounter.util.extension.stepsToKilometers
@@ -100,7 +82,6 @@ import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
 import kotlinx.coroutines.launch
-import java.lang.Exception
 
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -111,25 +92,12 @@ fun HomeScreen(
     userDataViewModel: UserDataViewModel
 ) {
 
-    var aaa by remember { mutableFloatStateOf(0f) }
+    var topBarHeight by remember { mutableFloatStateOf(0f) }
     var radius by remember { mutableFloatStateOf(32f) }
     var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
     var contentHeight by remember { mutableFloatStateOf(0f) }
-    val topOffset = with(LocalDensity.current) { aaa.toDp() }
-    var summaries by remember {
-        mutableStateOf<SummariesRes?>(null)
-    }
-    var loading by remember {
-        mutableStateOf(false)
-    }
+    val topOffset = with(LocalDensity.current) { topBarHeight.toDp() }
 
-    var error by remember {
-        mutableStateOf(false)
-    }
-
-    var tryAgain by remember {
-        mutableStateOf(false)
-    }
 
     var internetConnection by remember {
         mutableStateOf(true)
@@ -139,27 +107,17 @@ fun HomeScreen(
         mutableStateOf(".")
     }
 
-    var loadData by remember {
-        mutableStateOf(false)
-    }
 
-    var updateSummaries by remember {
-        mutableStateOf(false)
-    }
-
-    var clpas by remember {
+    var claps by remember {
         mutableIntStateOf(-1)
     }
 
-    var newClpas by remember {
+    var newClaps by remember {
         mutableIntStateOf(-1)
     }
 
-    clpas = userDataViewModel.getClaps().collectAsState(initial = -1).value
-
-
+    claps = userDataViewModel.getClaps().collectAsState(initial = -1).value
     val ctx = LocalContext.current
-    val owner = LocalLifecycleOwner.current
 
 
     val userStepsToday = stepViewModel.getToday().observeAsState().value
@@ -172,8 +130,6 @@ fun HomeScreen(
         }
     }
 
-    if (stepsOfToday % 10 == 0) updateSummaries = !updateSummaries
-
     val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
     username = userDataViewModel.getUsername().collectAsState(initial = ".").value
 
@@ -181,60 +137,14 @@ fun HomeScreen(
 
 
 
-    if (internetConnection && !loadData) {
-        userDataViewModel.getUserId().collectAsState(initial = "").value.let { userId ->
-
-
-            if (userId.isNotEmpty()) {
-
-                LaunchedEffect(key1 = updateSummaries, block = {
-
-                    stepViewModel.summariesData(userId, summaries == null || tryAgain)
-                        .observe(owner) {
-                            when (it) {
-                                is NetworkResult.Error -> {
-                                    timber("SUMMARISE ::: ERR :: ${it.message}")
-                                    error = true
-                                    loadData = true
-                                }
-
-                                is NetworkResult.Loading -> {
-                                    timber("SUMMARISE ::: Loading")
-                                    loadData = true
-                                }
-
-                                is NetworkResult.Success -> {
-                                    summaries = it.data?.data
-                                    newClpas = it.data?.data?.claps ?: -1
-                                    loadData = false
-                                }
-                            }
-                        }
-
-                })
-
-            }
-        }
-    }
-
-    LaunchedEffect(key1 = summaries, block = {
-        loading = summaries == null
-    })
-
 
     BoxWithConstraints {
         val sheetHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() - topOffset }
         val sheetPeekHeight =
             with(LocalDensity.current) { constraints.maxHeight.toDp() - contentHeight.toDp() - topOffset }
         val scaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState()
-
-        val maxOffset =
-            LocalDensity.current.run { (sheetHeight - sheetPeekHeight + topOffset).toPx() }
-        val minOffset = LocalDensity.current.run { topOffset.toPx() }
-        topBarColor = getColorComponentsForNumber(radius.toInt())
         val animateRotation = remember { Animatable(0f) }
         val coroutineScope = rememberCoroutineScope()
-
         LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded) {
             coroutineScope.launch {
                 if (scaffoldState.bottomSheetState.isExpanded) {
@@ -245,206 +155,31 @@ fun HomeScreen(
             }
         }
 
+        val maxOffset =
+            LocalDensity.current.run { (sheetHeight - sheetPeekHeight + topOffset).toPx() }
+        val minOffset = LocalDensity.current.run { topOffset.toPx() }
+        topBarColor = getColorComponentsForNumber(radius.toInt())
+
+
 
 
         BottomSheetScaffold(
             sheetPeekHeight = sheetPeekHeight,
             topBar = {
-                TopAppBar(
-                    modifier = Modifier
-                        .onGloballyPositioned { layoutCoordinates ->
-                            val a = layoutCoordinates.size.height
-                            aaa = a.toFloat()
-                        },
-                    backgroundColor = Color(topBarColor.red, topBarColor.blue, topBarColor.green),
-                    title = {
-                        Text(
-                            text = stringResource(id = R.string.app_name_farsi),
-                            style = fontMedium14(
-                                SECONDARY500
-                            )
-                        )
-
-                    },
-                    actions = {
-
-                        Box(modifier = Modifier.padding(end = 8.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(PRIMARY100)
-                                    .clickable {
-                                        navHostController.navigate(Screens.ProfileScreen.name)
-                                    }
-                                    .size(32.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = try{username[0].toString()} catch (e: Exception){"ش"},
-                                    style = fontRegular12(PRIMARY500)
-                                )
-                            }
-
-                            if (clpas != -1 && newClpas.orZero() != -1 && clpas < newClpas.orZero()){
-                                Box(modifier = Modifier
-                                    .padding(start = 4.dp)
-                                    .clip(CircleShape)
-                                    .size(6.dp)
-                                    .background(ERROR300)
-                                    .align(
-                                        Alignment.TopStart
-                                    ))
-                            }
-                        }
-                    },
-                    elevation = 0.dp
-                )
+                TopBar(navHostController, topBarColor, username, claps, newClaps){
+                    topBarHeight = it
+                }
             },
             sheetContent = {
-                if (loading) {
-                    Loading(isFull = false)
-                } else if (!internetConnection) {
-                    ErrorMessage(
-                        modifier = Modifier.padding(top = 32.dp),
-                        status = ErrorStatus.Internet
-                    ) {
-                        internetConnection = true
-                        error = false
-                    }
-                } else if (error) {
-                    tryAgain = false
-                    ErrorMessage(
-                        modifier = Modifier.padding(top = 32.dp),
-                        status = ErrorStatus.Failed
-                    ) {
-                        tryAgain = true
-                        error = false
-                    }
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .height(sheetHeight)
-                            .background(Color.White)
-                            .padding(horizontal = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    )
-                    {
-
-
-                        Icon(
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                                .rotate(animateRotation.value),
-                            painter = painterResource(id = R.drawable.chevron_up),
-                            contentDescription = null
-                        )
-
-                        Text(
-                            modifier = Modifier
-                                .padding(top = 16.dp, bottom = 24.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(PRIMARY100)
-                                .padding(horizontal = 32.dp, vertical = 4.dp),
-                            text = if (summaries?.rank != null) stringResource(
-                                id = R.string.your_rank_format,
-                                summaries?.rank.orEmpty()
-                            ) else stringResource(id = R.string.no_record_format),
-                            style = fontRegular12(PRIMARY900)
-                        )
-
-                        Title(
-                            modifier = Modifier
-                                .padding(bottom = 8.dp)
-                                .padding(horizontal = 16.dp),
-                            title = stringResource(id = R.string.top_today),
-                            action = stringResource(
-                                id = R.string.see_all
-                            )
-                        ) {
-                            navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopToday")
-                        }
-                        if (summaries?.today.orEmpty().isNotEmpty()) {
-                            LazyColumn(content = {
-                                itemsIndexed(summaries?.today.orEmpty()) { index, it ->
-                                    Record(
-                                        modifier = Modifier.padding(top = 8.dp),
-                                        uid = it.uid,
-                                        record = index,
-                                        title = it.title.orEmpty(),
-                                        steps = it.steps
-                                    ) {
-                                        navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
-                                    }
-                                }
-                            })
-                        } else {
-                            EmptyWidget(title = ctx.getString(R.string.no_record_today))
-                        }
-
-
-                        Title(
-                            modifier = Modifier
-                                .padding(top = 24.dp, bottom = 8.dp)
-                                .padding(horizontal = 16.dp),
-                            title = stringResource(id = R.string.top_rank_base_fos),
-                            action = stringResource(
-                                id = R.string.see_all
-                            )
-                        ) {
-                            navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopBaseFos")
-                        }
-
-                        if (summaries?.fos.orEmpty().isNotEmpty()) {
-                            LazyColumn(content = {
-                                itemsIndexed(summaries?.fos.orEmpty()) { index, it ->
-                                    Record(
-                                        modifier = Modifier.padding(top = 8.dp),
-                                        uid = it.uid,
-                                        record = index,
-                                        title = it.title.orEmpty(),
-                                        steps = it.steps
-                                    ) {
-                                        navHostController.navigate(Screens.FieldOfStudyDetailsScreen.name + "?uid=$it&rank=${index + 1}")
-                                    }
-                                }
-                            })
-                        } else {
-                            EmptyWidget(title = ctx.getString(R.string.no_fos_record))
-                        }
-
-                        Title(
-                            modifier = Modifier
-                                .padding(top = 24.dp, bottom = 8.dp)
-                                .padding(horizontal = 16.dp),
-                            title = stringResource(id = R.string.top_rank_base_user),
-                            action = stringResource(
-                                id = R.string.see_all
-                            )
-                        ) {
-                            navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopUsers")
-                        }
-
-                        if (summaries?.all.orEmpty().isNotEmpty()) {
-                            LazyColumn(modifier = Modifier.padding(bottom = 64.dp), content = {
-                                itemsIndexed(summaries?.all.orEmpty()) { index, it ->
-                                    Record(
-                                        modifier = Modifier.padding(top = 8.dp),
-                                        uid = it.uid,
-                                        record = index,
-                                        title = it.title.orEmpty(),
-                                        steps = it.steps
-                                    ) {
-                                        navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
-                                    }
-                                }
-                            })
-                        } else {
-                            EmptyWidget(title = ctx.getString(R.string.no_fos_record))
-                        }
-                    }
+                Content(
+                    navHostController,
+                    userDataViewModel,
+                    stepViewModel,
+                    sheetHeight,
+                    animateRotation
+                ){
+                    newClaps = it
                 }
-
-
             },
             scaffoldState = scaffoldState,
             sheetElevation = radius.dp / 2,
@@ -519,90 +254,283 @@ fun HomeScreen(
 
 }
 
+@Composable
+private fun TopBar(
+    navHostController: NavHostController,
+    topBarColor: RGBColor,
+    username: String,
+    claps: Int,
+    newClaps: Int,
+    layoutCoordinate:(Float) -> Unit
+) {
+    TopAppBar(
+        modifier = Modifier
+            .onGloballyPositioned { layoutCoordinates ->
+                val height = layoutCoordinates.size.height
+                layoutCoordinate.invoke(height.toFloat())
+            },
+        backgroundColor = Color(topBarColor.red, topBarColor.blue, topBarColor.green),
+        title = {
+            Text(
+                text = stringResource(id = R.string.app_name_farsi),
+                style = fontMedium14(
+                    SECONDARY500
+                )
+            )
 
-fun calculateRadius(first: Float, end: Float, third: Float): Float {
-    if (third > end) return 32f
-    if (third < first) return 0f
-    val range = end - first
-    val normalizedThird = third - first
-    return ((normalizedThird.toDouble() / range.toDouble()) * 32).toFloat()
+        },
+        actions = {
+
+            Box(modifier = Modifier.padding(end = 8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(PRIMARY100)
+                        .clickable {
+                            navHostController.navigate(Screens.ProfileScreen.name)
+                        }
+                        .size(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = try {
+                            username[0].toString()
+                        } catch (e: Exception) {
+                            "ش"
+                        },
+                        style = fontRegular12(PRIMARY500)
+                    )
+                }
+
+                if (claps != -1 && newClaps.orZero() != -1 && claps < newClaps.orZero()) {
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .clip(CircleShape)
+                            .size(6.dp)
+                            .background(ERROR300)
+                            .align(
+                                Alignment.TopStart
+                            )
+                    )
+                }
+            }
+        },
+        elevation = 0.dp
+    )
 }
 
-fun getColorComponentsForNumber(number: Int): RGBColor {
-    require(number in 0..32) { "Number must be between 0 and 32" }
+@Composable
+private fun Content(
+    navHostController: NavHostController,
+    userDataViewModel: UserDataViewModel,
+    stepViewModel: StepViewModel,
+    sheetHeight: Dp,
+    animateRotation: Animatable<Float, AnimationVector1D>,
+    newClaps:(Int) -> Unit
+) {
+    val ctx = LocalContext.current
+    var internetConnection = ctx.checkInternet()
+    val owner = LocalLifecycleOwner.current
 
-    val startColor = RGBColor(255, 255, 255) // #FFFFFF
-    val endColor = RGBColor(248, 248, 248)   // #FCFCFF
 
-    val interpolatedRed = startColor.red + (endColor.red - startColor.red) * number / 32
-    val interpolatedGreen = startColor.green + (endColor.green - startColor.green) * number / 32
-    val interpolatedBlue = startColor.blue + (endColor.blue - startColor.blue) * number / 32
+    var loadData by remember {
+        mutableStateOf(false)
+    }
+    val loading by remember {
+        mutableStateOf(false)
+    }
 
-    return RGBColor(interpolatedRed, interpolatedGreen, interpolatedBlue)
+    var error by remember {
+        mutableStateOf(false)
+    }
+
+    var tryAgain by remember {
+        mutableStateOf(false)
+    }
+    var updateSummaries by remember {
+        mutableStateOf(false)
+    }
+    var summaries by remember {
+        mutableStateOf<SummariesRes?>(null)
+    }
+    if (internetConnection && !loadData) {
+        userDataViewModel.getUserId().collectAsState(initial = "").value.let { userId ->
+
+
+            if (userId.isNotEmpty()) {
+
+                LaunchedEffect(key1 = updateSummaries, block = {
+
+                    stepViewModel.summariesData(userId, summaries == null || tryAgain)
+                        .observe(owner) {
+                            when (it) {
+                                is NetworkResult.Error -> {
+                                    timber("SUMMARISE ::: ERR :: ${it.message}")
+                                    error = true
+                                    loadData = true
+                                }
+
+                                is NetworkResult.Loading -> {
+                                    timber("SUMMARISE ::: Loading")
+                                    loadData = true
+                                }
+
+                                is NetworkResult.Success -> {
+                                    summaries = it.data?.data
+                                    newClaps.invoke(it.data?.data?.claps ?: -1)
+                                    loadData = false
+                                }
+                            }
+                        }
+
+                })
+
+            }
+        }
+    }
+
+
+    if (loading) {
+        Loading(isFull = false)
+    } else if (!internetConnection) {
+        ErrorMessage(
+            modifier = Modifier.padding(top = 32.dp),
+            status = ErrorStatus.Internet
+        ) {
+            internetConnection = true
+            error = false
+        }
+    } else if (error) {
+        tryAgain = false
+        ErrorMessage(
+            modifier = Modifier.padding(top = 32.dp),
+            status = ErrorStatus.Failed
+        ) {
+            tryAgain = true
+            error = false
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .height(sheetHeight)
+                .background(Color.White)
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        )
+        {
+
+
+            Icon(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .rotate(animateRotation.value),
+                painter = painterResource(id = R.drawable.chevron_up),
+                contentDescription = null
+            )
+
+            Text(
+                modifier = Modifier
+                    .padding(top = 16.dp, bottom = 24.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(PRIMARY100)
+                    .padding(horizontal = 32.dp, vertical = 4.dp),
+                text = if (summaries?.rank != null) stringResource(
+                    id = R.string.your_rank_format,
+                    summaries?.rank.orEmpty()
+                ) else stringResource(id = R.string.no_record_format),
+                style = fontRegular12(PRIMARY900)
+            )
+
+            Title(
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.top_today),
+                action = stringResource(
+                    id = R.string.see_all
+                )
+            ) {
+                navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopToday")
+            }
+            if (summaries?.today.orEmpty().isNotEmpty()) {
+                LazyColumn(content = {
+                    itemsIndexed(summaries?.today.orEmpty()) { index, it ->
+                        Record(
+                            modifier = Modifier.padding(top = 8.dp),
+                            uid = it.uid,
+                            record = index,
+                            title = it.title.orEmpty(),
+                            steps = it.steps
+                        ) {
+                            navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
+                        }
+                    }
+                })
+            } else {
+                EmptyWidget(title = ctx.getString(R.string.no_record_today))
+            }
+
+
+            Title(
+                modifier = Modifier
+                    .padding(top = 24.dp, bottom = 8.dp)
+                    .padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.top_rank_base_fos),
+                action = stringResource(
+                    id = R.string.see_all
+                )
+            ) {
+                navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopBaseFos")
+            }
+
+            if (summaries?.fos.orEmpty().isNotEmpty()) {
+                LazyColumn(content = {
+                    itemsIndexed(summaries?.fos.orEmpty()) { index, it ->
+                        Record(
+                            modifier = Modifier.padding(top = 8.dp),
+                            uid = it.uid,
+                            record = index,
+                            title = it.title.orEmpty(),
+                            steps = it.steps
+                        ) {
+                            navHostController.navigate(Screens.FieldOfStudyDetailsScreen.name + "?uid=$it&rank=${index + 1}")
+                        }
+                    }
+                })
+            } else {
+                EmptyWidget(title = ctx.getString(R.string.no_fos_record))
+            }
+
+            Title(
+                modifier = Modifier
+                    .padding(top = 24.dp, bottom = 8.dp)
+                    .padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.top_rank_base_user),
+                action = stringResource(
+                    id = R.string.see_all
+                )
+            ) {
+                navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopUsers")
+            }
+
+            if (summaries?.all.orEmpty().isNotEmpty()) {
+                LazyColumn(modifier = Modifier.padding(bottom = 64.dp), content = {
+                    itemsIndexed(summaries?.all.orEmpty()) { index, it ->
+                        Record(
+                            modifier = Modifier.padding(top = 8.dp),
+                            uid = it.uid,
+                            record = index,
+                            title = it.title.orEmpty(),
+                            steps = it.steps
+                        ) {
+                            navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
+                        }
+                    }
+                })
+            } else {
+                EmptyWidget(title = ctx.getString(R.string.no_fos_record))
+            }
+        }
+    }
 }
-
-//var isFakeDtaSet = false
-private fun fakeData(stepViewModel: StepViewModel) {
-
-//    if (!isFakeDtaSet){
-//
-//        val fakeDate = arrayListOf(
-//            Step(0,"2023-05-14",20,500,480),
-//            Step(0,"2023-05-14",68,0,0),
-//            Step(0,"2023-05-14",100,400,300),
-//            Step(0,"2023-05-15",200,800,600),
-//            Step(0,"2023-05-16",400,900,500),
-//            Step(0,"2023-05-17",10,50,40),
-//            Step(0,"2023-10-22",100,600,500),
-//        )
-//
-//
-//        fakeDate.forEach{
-//            stepViewModel.insertManually(it)
-//        }
-//
-//        isFakeDtaSet = true
-//    }
-
-
-//
-//
-//    for (i in 0 until 6000)
-//        fakeDate.add(Step(id = 0, timeUnix = null, date = "2023-10-2", inBackground = false))
-//
-//    fakeDate.forEach {
-//        stepViewModel.insertManually(it)
-//    }
-
-//    val data = listOf(
-//        Step(id = 0, timeUnix = null, date = "2023-10-12", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-12", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-12", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-12", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-12", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-13", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-13", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-13", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-15", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-15", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-16", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-17", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-18", inBackground = false),
-//        Step(id = 0, timeUnix = null, date = "2023-10-19", inBackground = false),
-//    )
-//
-//    data.forEach {
-//        stepViewModel.insertManually(it)
-//    }
-
-}
-
-

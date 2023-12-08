@@ -29,7 +29,7 @@ interface StepDao {
     @Query("UPDATE Step SET count = count + 1 WHERE date = :date")
     suspend fun updateCount(date: String?): Int
 
-    @Query("UPDATE Step SET count =:count, exp =:exp WHERE id = :id AND count <:count AND start<=:count AND date=:date")
+    @Query("UPDATE Step SET count =:count, exp =:exp WHERE id = :id AND count <:count AND (:count-count < 50 OR count == 0) AND start<=:count AND date=:date")
     suspend fun updateCount(id: Int?,date: String, count: Int?, exp: Boolean = false): Int
 
     @Query("UPDATE Step SET synced =:count WHERE date = :date AND count - start > 0")
