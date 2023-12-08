@@ -20,6 +20,7 @@ import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.rememberBottomSheetScaffoldState
@@ -45,6 +46,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -55,6 +57,7 @@ import com.ntg.stepcounter.components.ErrorMessage
 import com.ntg.stepcounter.components.Loading
 import com.ntg.stepcounter.components.Record
 import com.ntg.stepcounter.components.ReportWidget
+import com.ntg.stepcounter.components.TextAnimated
 import com.ntg.stepcounter.components.Title
 import com.ntg.stepcounter.models.ErrorStatus
 import com.ntg.stepcounter.models.RGBColor
@@ -69,6 +72,8 @@ import com.ntg.stepcounter.ui.theme.SECONDARY500
 import com.ntg.stepcounter.ui.theme.fontBlack24
 import com.ntg.stepcounter.ui.theme.fontBold12
 import com.ntg.stepcounter.ui.theme.fontMedium14
+import com.ntg.stepcounter.ui.theme.fontMedium24
+import com.ntg.stepcounter.ui.theme.fontMedium36
 import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.util.extension.calculateRadius
 import com.ntg.stepcounter.util.extension.checkInternet
@@ -154,7 +159,7 @@ fun HomeScreen(
         BottomSheetScaffold(
             sheetPeekHeight = sheetPeekHeight,
             topBar = {
-                TopBar(navHostController, topBarColor, username, claps, newClaps){
+                TopBar(navHostController, topBarColor, username, claps, newClaps) {
                     topBarHeight = it
                 }
             },
@@ -165,7 +170,7 @@ fun HomeScreen(
                     stepViewModel,
                     sheetHeight,
                     animateRotation
-                ){
+                ) {
                     newClaps = it
                 }
             },
@@ -173,7 +178,7 @@ fun HomeScreen(
             sheetElevation = radius.dp / 2,
             sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp)
         ) {
-            ReportItem(stepViewModel){
+            ReportItem(stepViewModel) {
                 contentHeight = it
             }
         }
@@ -200,7 +205,7 @@ private fun TopBar(
     username: String,
     claps: Int,
     newClaps: Int,
-    layoutCoordinate:(Float) -> Unit
+    layoutCoordinate: (Float) -> Unit
 ) {
     TopAppBar(
         modifier = Modifier
@@ -264,7 +269,7 @@ private fun TopBar(
 private fun ReportItem(
     stepViewModel: StepViewModel,
     contentHeight: (Float) -> Unit
-){
+) {
     val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
     val ctx = LocalContext.current
     val userStepsToday = stepViewModel.getToday().observeAsState().value
@@ -304,16 +309,28 @@ private fun ReportItem(
             )
 
 
+
+            var ccc by remember {
+                mutableIntStateOf(8542)
+            }
+//            stepsOfToday
+            TextAnimated(ccc) {digit ->
+                Text(
+                    modifier = Modifier.clickable {
+                        ccc++
+                    }
+                        .padding(top = 24.dp, bottom = 8.dp),
+                    text = digit.digitChar.toString(),
+                    style = fontMedium36(PRIMARY900)
+                )
+//                Text(
+//                    "${digit.digitChar}",
+//                    style = MaterialTheme.typography.h1,
+//                    textAlign = TextAlign.Center,
+//                )
+            }
             Text(
-                modifier = Modifier
-                    .padding(top = 32.dp),
-                text = divideNumber(
-                    stepsOfToday
-                ),
-                style = fontBlack24(PRIMARY900)
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp, bottom = 48.dp),
+                modifier = Modifier.padding(bottom = 48.dp),
                 text = stringResource(
                     id = R.string.km_cal,
                     stepsToKilometers(
@@ -337,7 +354,7 @@ private fun Content(
     stepViewModel: StepViewModel,
     sheetHeight: Dp,
     animateRotation: Animatable<Float, AnimationVector1D>,
-    newClaps:(Int) -> Unit
+    newClaps: (Int) -> Unit
 ) {
     val ctx = LocalContext.current
     var internetConnection = ctx.checkInternet()
@@ -396,8 +413,7 @@ private fun Content(
 
     if (loadData) {
         Loading(isFull = false)
-    }
-    else if (!internetConnection) {
+    } else if (!internetConnection) {
         ErrorMessage(
             modifier = Modifier.padding(top = 32.dp),
             status = ErrorStatus.Internet
@@ -405,8 +421,7 @@ private fun Content(
             internetConnection = true
             error = false
         }
-    }
-    else if (error) {
+    } else if (error) {
         tryAgain = false
         ErrorMessage(
             modifier = Modifier.padding(top = 32.dp),
@@ -415,8 +430,7 @@ private fun Content(
             tryAgain = true
             error = false
         }
-    }
-    else {
+    } else {
         Column(
             modifier = Modifier
                 .height(sheetHeight)
