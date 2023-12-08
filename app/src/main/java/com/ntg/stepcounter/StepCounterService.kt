@@ -16,7 +16,6 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ServiceLifecycleDispatcher
 import com.ntg.stepcounter.MainActivity.Companion.sensorType
 import com.ntg.stepcounter.api.ApiService
@@ -62,10 +61,7 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
             ""
         }
     private lateinit var updateId: String
-    private var steps: MutableLiveData<Int> = MutableLiveData()
-
     private var stepDetector: StepDetector = StepDetector()
-
     private var stepSynced = 0
     private var stepsWaitForSync = 0
 
@@ -79,12 +75,8 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
     @Inject
     lateinit var userStore: UserStore
 
-    private var toDayDate = ""
     private var sensorManager: SensorManager? = null
     private var userId = ""
-    init {
-        steps.value = 0
-    }
 
     override val lifecycle: Lifecycle
         get() = mServiceLifecycleDispatcher.lifecycle
@@ -92,37 +84,6 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
     override fun onCreate() {
         super.onCreate()
         timber("BackgroundService:::onCreate")
-        stepDetector.registerListener(this)
-
-
-        appDB.stepDao().getAllDate().observe(this) { allList ->
-
-            val it = allList.filter { it.date == dateOfToday() }
-
-            updateId = if (it.lastOrNull() != null) {
-                it.last().id.toString()
-            } else ""
-
-            if (it.isNotEmpty()) {
-                toDayDate = it.last().date
-                steps.value = 0
-            }
-
-            it.forEach { step ->
-                if (step.count != 0) {
-                    steps.value = steps.value.orZero() + (step.count - step.start.orZero())
-                }
-            }
-        }
-
-        steps.observe(this) {
-            try {
-                notificationBuilder.setContentText(it.toString())
-                notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
     }
 
 
@@ -155,6 +116,29 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
             e.printStackTrace()
         }
 
+
+        stepDetector.registerListener(this)
+
+        appDB.stepDao().getAllDate().observe(this) { allList ->
+            var stepsCount = 0
+            val it = allList.filter { it.date == dateOfToday() }
+
+            updateId = if (it.lastOrNull() != null) {
+                it.last().id.toString()
+            } else ""
+
+            it.forEach { step ->
+                if (step.count != 0) {
+                    stepsCount += (step.count - step.start.orZero())
+                }
+            }
+            try {
+                notificationBuilder.setContentText(stepsCount.toString())
+                notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
 
         val scope = CoroutineScope(Dispatchers.IO)
 
@@ -290,7 +274,6 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
 
         }
 
-
     }
 
     private fun insertStep(count: Int) {
@@ -305,7 +288,7 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
                     if (rowsUpdated == 0) {
                         val newEntity = Step(0, date = dateOfToday(), start = count, exp = true)
                         updateId = appDB.stepDao().insert(newEntity).toString()
-                        timber("insertStepInService -inserted -noUpdate $count -- $updateId")
+                        timber("insertStepInService -inserted -noUpdated $count -- $updateId")
                     }
                 } else {
                     timber("insertStepInService -updated -emptyId $count")

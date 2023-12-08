@@ -64,29 +64,6 @@ class StepViewModel @Inject constructor(
         }
     }
 
-    fun insertStep(count: Int, updateId: Int) = viewModelScope.launch {
-
-        val dateOfToday = dateOfToday()
-
-        if (updateId != -1) {
-            val rowsUpdated = appDB.stepDao().updateCount(updateId,dateOfToday, count)
-            if (rowsUpdated == 0) {
-                val newEntity = Step(0, date = dateOfToday, start = count)
-                appDB.stepDao().insert(newEntity)
-            }
-        } else {
-            val newEntity = Step(0, date = dateOfToday, start = count)
-            appDB.stepDao().insert(newEntity)
-        }
-
-    }
-
-    fun insertManually(step: Step) {
-        viewModelScope.launch {
-            appDB.stepDao().insert(step)
-        }
-    }
-
     fun updateSync(date: String, count: Int) =
         viewModelScope.launch { appDB.stepDao().updateSync(date, count) }
 
