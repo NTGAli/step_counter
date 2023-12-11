@@ -128,6 +128,7 @@ fun FieldOfStudyDetailsScreen(
     }
 
     val ctx = LocalContext.current
+    val owner = LocalLifecycleOwner.current
 
     internetConnection = ctx.checkInternet()
 
@@ -137,50 +138,54 @@ fun FieldOfStudyDetailsScreen(
 
     if (fosName.isEmpty() && internetConnection || tryAgain) {
 
-        userDataViewModel.getFosDetails(uid).observe(LocalLifecycleOwner.current) {
-            when (it) {
-                is NetworkResult.Error -> {
-                    error = true
-                }
+       LaunchedEffect(key1 = Unit, block = {
+           userDataViewModel.getFosDetails(uid).observe(owner) {
+               when (it) {
+                   is NetworkResult.Error -> {
+                       error = true
+                   }
 
-                is NetworkResult.Loading -> {
-                    loading = true
-                }
+                   is NetworkResult.Loading -> {
+                       loading = true
+                   }
 
-                is NetworkResult.Success -> {
-                    totalSteps = it.data?.data?.totalSteps.orZero()
-                    userCount = it.data?.data?.userCount.orZero()
-                    fosName = it.data?.data?.title.orEmpty()
-                    userBio = ctx.getString(
-                        R.string.rank_formar,
-                        rank
-                    )
-                    loading = false
-                }
-            }
-        }
+                   is NetworkResult.Success -> {
+                       totalSteps = it.data?.data?.totalSteps.orZero()
+                       userCount = it.data?.data?.userCount.orZero()
+                       fosName = it.data?.data?.title.orEmpty()
+                       userBio = ctx.getString(
+                           R.string.rank_formar,
+                           rank
+                       )
+                       loading = false
+                   }
+               }
+           }
+       })
 
 
     }
 
     if (users.isEmpty() && internetConnection || tryAgain) {
-        userDataViewModel.userOfFos(uid).observe(LocalLifecycleOwner.current) {
-            when (it) {
-                is NetworkResult.Error -> {
-                    timber("UsersOfFos ::: ERR")
-                    error = true
-                }
+        LaunchedEffect(key1 = Unit, block = {
+            userDataViewModel.userOfFos(uid).observe(owner) {
+                when (it) {
+                    is NetworkResult.Error -> {
+                        timber("UsersOfFos ::: ERR")
+                        error = true
+                    }
 
-                is NetworkResult.Loading -> {
-                    timber("UsersOfFos ::: Loading")
-                }
+                    is NetworkResult.Loading -> {
+                        timber("UsersOfFos ::: Loading")
+                    }
 
-                is NetworkResult.Success -> {
-                    timber("UsersOfFos ::: ${it.data}")
-                    users = it.data?.data.orEmpty()
+                    is NetworkResult.Success -> {
+                        timber("UsersOfFos ::: ${it.data}")
+                        users = it.data?.data.orEmpty()
+                    }
                 }
             }
-        }
+        })
     }
 
 
@@ -375,7 +380,7 @@ private fun Content(
     LazyColumn(
         modifier = Modifier
             .height(sheetHeight)
-            .background(Background)
+            .background(Color.White)
             .padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally
     ) {
 

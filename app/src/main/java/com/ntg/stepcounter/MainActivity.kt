@@ -2,6 +2,7 @@ package com.ntg.stepcounter
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -148,7 +149,13 @@ class MainActivity : ComponentActivity() {
         if (uid.orEmpty().isNotEmpty()){
             timber("isInBackgroundStarted ::: UID ::: $uid")
             val serviceIntent = Intent(this, StepCounterService::class.java)
-            startService(serviceIntent)
+            if (!foregroundServiceRunning()){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(serviceIntent)
+                }else{
+                    startService(serviceIntent)
+                }
+            }
         }
 
 
@@ -209,6 +216,17 @@ class MainActivity : ComponentActivity() {
         }
 
 
+    }
+
+    private fun foregroundServiceRunning(): Boolean {
+        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        activityManager.getRunningServices(Int.MAX_VALUE).forEach {
+            timber("SERVICES_RUNNING :::: ${it.service.className} -- ${StepCounterService::class.java.name}")
+            if (StepCounterService::class.java.name == it.service.className) {
+                return true
+            }
+        }
+        return false
     }
 
 }

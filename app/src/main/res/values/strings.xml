@@ -126,4 +126,9 @@
     <string name="step_counter">قدم شمار</string>
     <string name="counting">در حال شمارش ..</string>
     <string name="block_user">حساب کاربری شما مسدود شده است!</string>
+    <string name="close">بستن</string>
+    <string name="physical_activity_permission_description">برای شمارش قدم های شما نیاز به این مجوز می باشد.</string>
+    <string name="battery_permission_description">برای محاسبه دقیق تر قدم ها،زمانی که برنامه به طورکامل بسته باشد نیاز به این مجوز می باشد.(برای غیرفعال کردن ثبت قدم ها زمانی که برنامه به طور کامل بسته شده می توانید از قسمت تنظیمات اقدام کنید.)</string>
+    <string name="notification_permission_description">برای نمایش میزان فعالیت شما در نوار اعلان ها و محاسبه ی قدم های در پس زمینه نیاز به این مجوز می باشد.</string>
+
 </resources>

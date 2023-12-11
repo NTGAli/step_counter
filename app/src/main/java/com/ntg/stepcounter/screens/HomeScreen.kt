@@ -34,6 +34,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,6 +72,7 @@ import com.ntg.stepcounter.ui.theme.PRIMARY900
 import com.ntg.stepcounter.ui.theme.SECONDARY500
 import com.ntg.stepcounter.ui.theme.fontBlack24
 import com.ntg.stepcounter.ui.theme.fontBold12
+import com.ntg.stepcounter.ui.theme.fontBold36
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontMedium24
 import com.ntg.stepcounter.ui.theme.fontMedium36
@@ -84,9 +86,14 @@ import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.stepsToCalories
 import com.ntg.stepcounter.util.extension.stepsToKilometers
 import com.ntg.stepcounter.util.extension.timber
+import com.ntg.stepcounter.util.extension.toast
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.lang.Thread.sleep
 
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -102,7 +109,6 @@ fun HomeScreen(
     var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
     var contentHeight by remember { mutableFloatStateOf(0f) }
     val topOffset = with(LocalDensity.current) { topBarHeight.toDp() }
-
 
     var internetConnection by remember {
         mutableStateOf(true)
@@ -268,19 +274,27 @@ private fun TopBar(
 @Composable
 private fun ReportItem(
     stepViewModel: StepViewModel,
-    contentHeight: (Float) -> Unit
+    contentHeight: (Float) -> Unit,
 ) {
     val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
     val ctx = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val userStepsToday = stepViewModel.getToday().observeAsState().value
-    var stepsOfToday = 0
+//    var stepsOfToday = 0
 
+    var stepsOfToday by remember {
+        mutableIntStateOf(0)
+    }
+
+
+    stepsOfToday = 0
 
     userStepsToday?.forEach {
         if (it.count != 0 && it.count.orZero() >= it.start.orZero()) {
             stepsOfToday += it.count.orZero() - it.start.orZero()
         }
     }
+
     Box(
         Modifier
             .background(Color.LightGray)
@@ -309,12 +323,11 @@ private fun ReportItem(
             )
 
 
-
 //            var ccc by remember {
 //                mutableIntStateOf(8542)
 //            }
 //            stepsOfToday
-            TextAnimated(stepsOfToday) {digit ->
+            TextAnimated(stepsOfToday) { digit ->
                 Text(
                     modifier = Modifier
 //                        .clickable {
@@ -322,7 +335,7 @@ private fun ReportItem(
 //                    }
                         .padding(top = 24.dp, bottom = 8.dp),
                     text = digit.digitChar.toString(),
-                    style = fontMedium36(PRIMARY900)
+                    style = fontBold36(PRIMARY900)
                 )
             }
             Text(
@@ -427,50 +440,53 @@ private fun Content(
             error = false
         }
     } else {
-        Column(
-            modifier = Modifier
-                .height(sheetHeight)
-                .background(Color.White)
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        )
-        {
+        LazyColumn(modifier = Modifier
+            .height(sheetHeight)
+            .background(Color.White)
+            .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            content = {
 
+                item {
+                    Icon(
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .rotate(animateRotation.value),
+                        painter = painterResource(id = R.drawable.chevron_up),
+                        contentDescription = null
+                    )
+                }
 
-            Icon(
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .rotate(animateRotation.value),
-                painter = painterResource(id = R.drawable.chevron_up),
-                contentDescription = null
-            )
+                item {
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 16.dp, bottom = 24.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(PRIMARY100)
+                            .padding(horizontal = 32.dp, vertical = 4.dp),
+                        text = if (summaries?.rank != null) stringResource(
+                            id = R.string.your_rank_format,
+                            summaries?.rank.orEmpty()
+                        ) else stringResource(id = R.string.no_record_format),
+                        style = fontRegular12(PRIMARY900)
+                    )
+                }
 
-            Text(
-                modifier = Modifier
-                    .padding(top = 16.dp, bottom = 24.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(PRIMARY100)
-                    .padding(horizontal = 32.dp, vertical = 4.dp),
-                text = if (summaries?.rank != null) stringResource(
-                    id = R.string.your_rank_format,
-                    summaries?.rank.orEmpty()
-                ) else stringResource(id = R.string.no_record_format),
-                style = fontRegular12(PRIMARY900)
-            )
+                item {
+                    Title(
+                        modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .padding(horizontal = 16.dp),
+                        title = stringResource(id = R.string.top_today),
+                        action = stringResource(
+                            id = R.string.see_all
+                        )
+                    ) {
+                        navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopToday")
+                    }
+                }
 
-            Title(
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .padding(horizontal = 16.dp),
-                title = stringResource(id = R.string.top_today),
-                action = stringResource(
-                    id = R.string.see_all
-                )
-            ) {
-                navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopToday")
-            }
-            if (summaries?.today.orEmpty().isNotEmpty()) {
-                LazyColumn(content = {
+                if (summaries?.today.orEmpty().isNotEmpty()) {
                     itemsIndexed(summaries?.today.orEmpty()) { index, it ->
                         Record(
                             modifier = Modifier.padding(top = 8.dp),
@@ -482,26 +498,27 @@ private fun Content(
                             navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
                         }
                     }
-                })
-            } else {
-                EmptyWidget(title = ctx.getString(R.string.no_record_today))
-            }
+                } else {
+                    item {
+                        EmptyWidget(title = ctx.getString(R.string.no_record_today))
+                    }
+                }
 
+                item {
+                    Title(
+                        modifier = Modifier
+                            .padding(top = 24.dp, bottom = 8.dp)
+                            .padding(horizontal = 16.dp),
+                        title = stringResource(id = R.string.top_rank_base_fos),
+                        action = stringResource(
+                            id = R.string.see_all
+                        )
+                    ) {
+                        navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopBaseFos")
+                    }
+                }
 
-            Title(
-                modifier = Modifier
-                    .padding(top = 24.dp, bottom = 8.dp)
-                    .padding(horizontal = 16.dp),
-                title = stringResource(id = R.string.top_rank_base_fos),
-                action = stringResource(
-                    id = R.string.see_all
-                )
-            ) {
-                navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopBaseFos")
-            }
-
-            if (summaries?.fos.orEmpty().isNotEmpty()) {
-                LazyColumn(content = {
+                if (summaries?.fos.orEmpty().isNotEmpty()) {
                     itemsIndexed(summaries?.fos.orEmpty()) { index, it ->
                         Record(
                             modifier = Modifier.padding(top = 8.dp),
@@ -513,25 +530,27 @@ private fun Content(
                             navHostController.navigate(Screens.FieldOfStudyDetailsScreen.name + "?uid=$it&rank=${index + 1}")
                         }
                     }
-                })
-            } else {
-                EmptyWidget(title = ctx.getString(R.string.no_fos_record))
-            }
+                } else {
+                    item {
+                        EmptyWidget(title = ctx.getString(R.string.no_fos_record))
+                    }
+                }
 
-            Title(
-                modifier = Modifier
-                    .padding(top = 24.dp, bottom = 8.dp)
-                    .padding(horizontal = 16.dp),
-                title = stringResource(id = R.string.top_rank_base_user),
-                action = stringResource(
-                    id = R.string.see_all
-                )
-            ) {
-                navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopUsers")
-            }
+                item {
+                    Title(
+                        modifier = Modifier
+                            .padding(top = 24.dp, bottom = 8.dp)
+                            .padding(horizontal = 16.dp),
+                        title = stringResource(id = R.string.top_rank_base_user),
+                        action = stringResource(
+                            id = R.string.see_all
+                        )
+                    ) {
+                        navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopUsers")
+                    }
+                }
 
-            if (summaries?.all.orEmpty().isNotEmpty()) {
-                LazyColumn(modifier = Modifier.padding(bottom = 64.dp), content = {
+                if (summaries?.all.orEmpty().isNotEmpty()) {
                     itemsIndexed(summaries?.all.orEmpty()) { index, it ->
                         Record(
                             modifier = Modifier.padding(top = 8.dp),
@@ -543,10 +562,11 @@ private fun Content(
                             navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
                         }
                     }
-                })
-            } else {
-                EmptyWidget(title = ctx.getString(R.string.no_fos_record))
-            }
-        }
+                } else {
+                    item {
+                        EmptyWidget(title = ctx.getString(R.string.no_fos_record))
+                    }
+                }
+            })
     }
 }

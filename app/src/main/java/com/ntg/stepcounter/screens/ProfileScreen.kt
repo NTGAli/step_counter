@@ -42,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -93,6 +94,7 @@ import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.ui.theme.fontRegular14
 import com.ntg.stepcounter.util.extension.calculateRadius
 import com.ntg.stepcounter.util.extension.daysUntilToday
+import com.ntg.stepcounter.util.extension.divideNumber
 import com.ntg.stepcounter.util.extension.getColorComponentsForNumber
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
@@ -100,6 +102,7 @@ import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
+import com.patrykandpatrick.vico.core.extension.getFieldValue
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -726,12 +729,11 @@ private fun UserDataSteps(
                     ),
                     text = stringResource(
                         id = R.string.step_format,
-                        countSelected
+                        divideNumber(countSelected)
                     ), style = fontMedium12(SECONDARY500)
                 )
 
             }
-
         } else {
             Text(
                 modifier = Modifier.padding(
@@ -745,78 +747,6 @@ private fun UserDataSteps(
                 )
             )
         }
-
-
-
-        //test chart
-
-
-
-
-
-//        chartEntryModelProducer.setEntries(getRandomEntries())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // test chart
-
-//        val groupedSteps = allDate?.groupBy { it.date }
-//
-//        val xValues = arrayListOf<Float>()
-//        var xCount = 0f
-//
-//        groupedSteps?.forEach { (date, steps) ->
-//
-//            var nSteps = 0
-//            steps.filter { it.start.orZero() < it.count.orZero() && it.count != 0 }.forEach {
-//                nSteps += it.count.orZero() - it.start.orZero()
-//            }
-//
-//            xValues.add(nSteps.toFloat())
-//
-//            xCount++
-//        }
-//
-////        val xValues = groupedSteps?.map { it.value }
-//
-//
-////        val chartEntryModel = entryModelOf(xValues)
-//        val chartEntryModel = entryModelOf(*xValues.toTypedArray())
-//
-//        timber("kwajdlkawjlkdjwalkdj ::: $chartEntryModel -- $xValues")
-//
-//
-//
-//
-//        Chart(
-//            chart = lineChart(),
-//            model = chartEntryModel,
-////            startAxis = rememberStartAxis(),
-////            bottomAxis = rememberBottomAxis(),
-//        )
-
-
-
-
-
-
-
-
-
 
     }
 }

@@ -135,6 +135,7 @@ private fun Content(navHostController: NavHostController) {
             ),
             btnText = stringResource(id = R.string.access),
             isGranted = physicalPermission,
+            permissionDestination= stringResource(id = R.string.physical_activity_permission_description),
             onClick = {
 //                if (setManuallyPhysicalActivity.value){
 //                    openAppSettings(context)
@@ -150,6 +151,7 @@ private fun Content(navHostController: NavHostController) {
             ),
             btnText = stringResource(id = R.string.access),
             isGranted = notificationStatusPermission,
+            permissionDestination= stringResource(id = R.string.notification_permission_description),
             onClick = {
 //                if (setManually.value) {
 //                    openAppSettings(context)
@@ -167,6 +169,7 @@ private fun Content(navHostController: NavHostController) {
             ),
             btnText = stringResource(id = R.string.access),
             isGranted = batteryState,
+            permissionDestination= stringResource(id = R.string.battery_permission_description),
             onClick = {
                 val intent = Intent()
                 intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS

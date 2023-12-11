@@ -416,7 +416,7 @@ private fun ClapButton(
             },
             shape = RoundedCornerShape(8.dp),
             elevation = 4.dp,
-            backgroundColor = if (isClap) PRIMARY100 else MaterialTheme.colors.surface
+            backgroundColor = if (isClapped) PRIMARY100 else MaterialTheme.colors.surface
         ) {
 
             Row(
@@ -425,7 +425,7 @@ private fun ClapButton(
             ) {
                 Text(
                     text = countClaps.toString(),
-                    style = fontBold14(if (isClap) PRIMARY500 else SECONDARY500)
+                    style = fontBold14(if (isClapped) PRIMARY500 else SECONDARY500)
                 )
                 Image(
                     modifier = Modifier

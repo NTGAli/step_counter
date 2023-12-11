@@ -48,11 +48,10 @@ fun SingleColumnChartWithNegativeValues(
     data: Map<LocalDate, Float>?,
     onMark: (String) -> Unit = {}
 ) {
-
+    timber("awkjdlkawdlkjawlkjdlkwajdlk")
     val z = ZoneId.of("Asia/Tehran")
     val zdt = ZonedDateTime.now(z)
     val today = zdt.toLocalDate()
-
 
     val xValuesToDates = data?.keys?.associateBy { it.toEpochDay().toFloat() }
     val chartEntryModel = xValuesToDates?.keys?.zip(data.values)
@@ -112,11 +111,6 @@ fun SingleColumnChartWithNegativeValues(
             persistentMarkers =
                 if (persistentMarkers.containsKey(markerXValue)) emptyMap() else
                     mapOf(markerXValue to marker)
-
-
-//            val date = Date(today.toEpochDay() - markerEntryModels.first().entry.x.toLong())
-//            val format = SimpleDateFormat("yyyy-MM-dd")
-//            onMark.invoke(format.format(date))
         }
     }
 
