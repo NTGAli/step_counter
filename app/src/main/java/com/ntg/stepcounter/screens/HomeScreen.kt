@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -106,7 +107,10 @@ fun HomeScreen(
 
     var topBarHeight by remember { mutableFloatStateOf(0f) }
     var radius by remember { mutableFloatStateOf(32f) }
-    var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
+//    var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
+    val backgroundColor = MaterialTheme.colors.onBackground
+    var topBarColor by remember { mutableStateOf(RGBColor(backgroundColor.red.toInt(), backgroundColor.green.toInt(), backgroundColor.blue.toInt())) }
+    timber("lhjsdsjdjkahdkjhdkjhwa${backgroundColor.red.toInt()} -- ${backgroundColor.green.toInt()} -- ${backgroundColor.blue.toInt()}")
     var contentHeight by remember { mutableFloatStateOf(0f) }
     val topOffset = with(LocalDensity.current) { topBarHeight.toDp() }
 
@@ -137,7 +141,7 @@ fun HomeScreen(
 
 
 
-    BoxWithConstraints {
+    BoxWithConstraints(modifier = Modifier.background(MaterialTheme.colors.onBackground)) {
         val sheetHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() - topOffset }
         val sheetPeekHeight =
             with(LocalDensity.current) { constraints.maxHeight.toDp() - contentHeight.toDp() - topOffset }
@@ -163,6 +167,7 @@ fun HomeScreen(
 
 
         BottomSheetScaffold(
+            modifier = Modifier.background(MaterialTheme.colors.onBackground),
             sheetPeekHeight = sheetPeekHeight,
             topBar = {
                 TopBar(navHostController, topBarColor, username, claps, newClaps) {
@@ -182,7 +187,10 @@ fun HomeScreen(
             },
             scaffoldState = scaffoldState,
             sheetElevation = radius.dp / 2,
-            sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp)
+            sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp),
+            sheetBackgroundColor = MaterialTheme.colors.background,
+            contentColor = MaterialTheme.colors.primary,
+            backgroundColor = MaterialTheme.colors.onBackground,
         ) {
             ReportItem(stepViewModel) {
                 contentHeight = it
@@ -224,7 +232,7 @@ private fun TopBar(
             Text(
                 text = stringResource(id = R.string.app_name_farsi),
                 style = fontMedium14(
-                    SECONDARY500
+                    MaterialTheme.colors.secondary
                 )
             )
 
@@ -235,7 +243,7 @@ private fun TopBar(
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(PRIMARY100)
+                        .background(MaterialTheme.colors.primaryVariant)
                         .clickable {
                             navHostController.navigate(Screens.ProfileScreen.name)
                         }
@@ -248,7 +256,7 @@ private fun TopBar(
                         } catch (e: Exception) {
                             "ش"
                         },
-                        style = fontRegular12(PRIMARY500)
+                        style = fontRegular12(MaterialTheme.colors.primary)
                     )
                 }
 
@@ -278,9 +286,7 @@ private fun ReportItem(
 ) {
     val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
     val ctx = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
     val userStepsToday = stepViewModel.getToday().observeAsState().value
-//    var stepsOfToday = 0
 
     var stepsOfToday by remember {
         mutableIntStateOf(0)
@@ -297,7 +303,7 @@ private fun ReportItem(
 
     Box(
         Modifier
-            .background(Color.LightGray)
+//            .background(Color.LightGray)
             .onGloballyPositioned { layoutCoordinates ->
                 val boxHeight = layoutCoordinates.size.height
                 contentHeight.invoke(boxHeight.toFloat())
@@ -309,7 +315,7 @@ private fun ReportItem(
             modifier = Modifier
                 .wrapContentHeight()
                 .fillMaxWidth()
-                .background(Color(ctx.resources.getColor(R.color.background, null))),
+                .background(MaterialTheme.colors.onBackground),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -335,7 +341,7 @@ private fun ReportItem(
 //                    }
                         .padding(top = 24.dp, bottom = 8.dp),
                     text = digit.digitChar.toString(),
-                    style = fontBold36(PRIMARY900)
+                    style = fontBold36(MaterialTheme.colors.onPrimary)
                 )
             }
             Text(
@@ -349,7 +355,7 @@ private fun ReportItem(
                         stepsOfToday
                     )
                 ),
-                style = fontBold12(SECONDARY500)
+                style = fontBold12(MaterialTheme.colors.secondary)
             )
         }
     }
@@ -442,7 +448,7 @@ private fun Content(
     } else {
         LazyColumn(modifier = Modifier
             .height(sheetHeight)
-            .background(Color.White)
+//            .background(MaterialTheme.colors.background)
             .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             content = {
@@ -453,7 +459,8 @@ private fun Content(
                             .padding(top = 8.dp)
                             .rotate(animateRotation.value),
                         painter = painterResource(id = R.drawable.chevron_up),
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = MaterialTheme.colors.secondary
                     )
                 }
 
@@ -462,13 +469,13 @@ private fun Content(
                         modifier = Modifier
                             .padding(top = 16.dp, bottom = 24.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(PRIMARY100)
+                            .background(MaterialTheme.colors.primaryVariant)
                             .padding(horizontal = 32.dp, vertical = 4.dp),
                         text = if (summaries?.rank != null) stringResource(
                             id = R.string.your_rank_format,
                             summaries?.rank.orEmpty()
                         ) else stringResource(id = R.string.no_record_format),
-                        style = fontRegular12(PRIMARY900)
+                        style = fontRegular12(MaterialTheme.colors.primary)
                     )
                 }
 

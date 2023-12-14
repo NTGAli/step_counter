@@ -8,6 +8,7 @@ import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -50,7 +51,7 @@ fun CustomButton(
     var textColor = Color.White
     var background = SECONDARY500
     var borderColor = SECONDARY500
-    var loadingColor = PRIMARY500
+    var loadingColor = MaterialTheme.colors.primary
     var textStyle = fontMedium14(textColor)
 
     when (type) {
@@ -59,20 +60,20 @@ fun CustomButton(
 
             when (style) {
                 ButtonStyle.Contained -> {
-                    background = PRIMARY500
-                    borderColor = PRIMARY500
+                    background = MaterialTheme.colors.primary
+                    borderColor = MaterialTheme.colors.primary
                     textColor = Color.White
                     loadingColor = Color.White
                 }
                 ButtonStyle.Outline -> {
                     background = Color.Transparent
-                    borderColor = PRIMARY500
-                    textColor = PRIMARY500
+                    borderColor = MaterialTheme.colors.primary
+                    textColor = MaterialTheme.colors.primary
                 }
                 ButtonStyle.TextOnly -> {
                     background = Color.Transparent
                     borderColor = Color.Transparent
-                    textColor = PRIMARY500
+                    textColor = MaterialTheme.colors.primary
                 }
             }
 

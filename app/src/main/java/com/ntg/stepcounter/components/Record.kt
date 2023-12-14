@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -41,7 +42,7 @@ fun Record(
     Box(modifier = modifier
         .fillMaxWidth()
         .clip(RoundedCornerShape(16.dp))
-        .border(width = 1.dp, shape = RoundedCornerShape(16.dp), color = SECONDARY100)
+        .border(width = 1.dp, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colors.onSurface)
         .clickable {
             onClick.invoke(uid)
         }){
@@ -57,7 +58,7 @@ fun Record(
                     }
 
                     1 -> {
-                        Icon(painter = painterResource(id = R.drawable.second), contentDescription = null, tint = SECONDARY500 )
+                        Icon(painter = painterResource(id = R.drawable.second), contentDescription = null, tint = MaterialTheme.colors.secondary )
                     }
 
                     2 -> {
@@ -65,17 +66,17 @@ fun Record(
                     }
 
                     else -> {
-                        Text(text = (record+1).toString(), style = fontMedium14(SECONDARY500))
+                        Text(text = (record+1).toString(), style = fontMedium14(MaterialTheme.colors.secondary))
                     }
                 }
             }
 
-            Text(modifier = Modifier.weight(1f), text = title, style = fontMedium14(SECONDARY500))
+            Text(modifier = Modifier.weight(1f), text = title, style = fontMedium14(MaterialTheme.colors.secondary))
 
             Text(text = stringResource(
                 id = R.string.step_format,
                 divideNumber(steps.orZero())
-            ), style = fontMedium12(SECONDARY500))
+            ), style = fontMedium12(MaterialTheme.colors.secondary))
 
         }
     }

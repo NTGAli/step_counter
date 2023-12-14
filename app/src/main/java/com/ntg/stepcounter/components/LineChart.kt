@@ -48,7 +48,6 @@ fun SingleColumnChartWithNegativeValues(
     data: Map<LocalDate, Float>?,
     onMark: (String) -> Unit = {}
 ) {
-    timber("awkjdlkawdlkjawlkjdlkwajdlk")
     val z = ZoneId.of("Asia/Tehran")
     val zdt = ZonedDateTime.now(z)
     val today = zdt.toLocalDate()
@@ -133,9 +132,10 @@ fun SingleColumnChartWithNegativeValues(
                 background = null,
                 lineCount = 1,
                 typeface = LocalContext.current.resources.getFont(R.font.yekan_regular),
+                color = MaterialTheme.colors.primary
             ),
-            axis = LineComponent(color = SECONDARY100.toArgb()),
-            guideline = LineComponent(color = Color.White.toArgb())
+            axis = LineComponent(color = MaterialTheme.colors.primaryVariant.toArgb()),
+            guideline = LineComponent(color = MaterialTheme.colors.background.toArgb())
         ),
         isZoomEnabled = false,
 

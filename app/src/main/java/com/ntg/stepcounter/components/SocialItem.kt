@@ -5,10 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,7 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.ntg.mywords.model.components.PopupItem
+import com.ntg.stepcounter.models.components.PopupItem
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.ui.theme.SECONDARY500
 import com.ntg.stepcounter.ui.theme.fontRegular12
@@ -36,7 +34,7 @@ fun SocialItem(
         PopupItem(
             id = 0,
             icon = painterResource(id = R.drawable.edit_16_1_5),
-            title = stringResource(id = R.string.edit)
+            title = stringResource(id = R.string.edit),
         ),
         PopupItem(
             id = 1,
@@ -56,7 +54,7 @@ fun SocialItem(
             Text(
                 modifier = Modifier.padding(vertical = 8.dp),
                 text = title,
-                style = fontRegular12(SECONDARY500)
+                style = fontRegular12(MaterialTheme.colors.secondary)
             )
         }
 //        Box(modifier = Modifier

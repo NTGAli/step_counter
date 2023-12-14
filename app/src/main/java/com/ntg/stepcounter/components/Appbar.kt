@@ -1,5 +1,6 @@
 package com.ntg.stepcounter.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,11 +19,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.ntg.stepcounter.models.components.AppbarItem
-import com.ntg.mywords.model.components.PopupItem
+import com.ntg.stepcounter.models.components.PopupItem
 import com.ntg.stepcounter.ui.theme.*
 
 @Composable
@@ -56,7 +58,7 @@ fun Appbar(
                     Text(
                         title,
                         maxLines = 1,
-                        style = fontBold14(SECONDARY500)
+                        style = fontBold14(MaterialTheme.colors.secondary)
                     )
                 },
                 navigationIcon = if (enableNavigation) {
@@ -87,7 +89,7 @@ fun Appbar(
                         }
                     }
                 },
-                backgroundColor = Background,
+                backgroundColor = MaterialTheme.colors.background,
                 elevation = 0.dp
 //                colors = TopAppBarDefaults.topAppBarColors(
 ////                        MaterialTheme.colorScheme.background
@@ -121,7 +123,7 @@ fun Popup(modifier: Modifier = Modifier, popupItems: List<PopupItem>, onClick: (
             Icon(
 //                modifier = Modifier.size(16.dp),
                 imageVector = Icons.Rounded.MoreVert,
-                tint = SECONDARY500,
+                tint = MaterialTheme.colors.secondary,
                 contentDescription = "action appbar"
             )
         }
@@ -130,10 +132,12 @@ fun Popup(modifier: Modifier = Modifier, popupItems: List<PopupItem>, onClick: (
 
 
         MaterialTheme(
-            shapes = MaterialTheme.shapes.copy(RoundedCornerShape(16.dp))
+            shapes = MaterialTheme.shapes.copy(RoundedCornerShape(16.dp)),
+            colors = MaterialTheme.colors
         ) {
 
             DropdownMenu(
+                modifier = Modifier.background(MaterialTheme.colors.onBackground),
                 expanded = expanded,
                 onDismissRequest = {
                     expanded = false
@@ -151,12 +155,12 @@ fun Popup(modifier: Modifier = Modifier, popupItems: List<PopupItem>, onClick: (
                             Icon(
                                 painter = it.icon,
                                 contentDescription = it.title,
-                                tint = SECONDARY500
+                                tint = MaterialTheme.colors.secondary
                             )
                             Text(
                                 modifier = Modifier.padding(start = 8.dp),
                                 text = it.title,
-                                style = fontRegular14(SECONDARY500)
+                                style = fontRegular14(MaterialTheme.colors.secondary)
                             )
 
                         }

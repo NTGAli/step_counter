@@ -1,6 +1,7 @@
 package com.ntg.stepcounter.util
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Brush
@@ -19,13 +20,17 @@ import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 @Composable
 internal fun rememberChartStyle(columnChartColors: List<Color>, lineChartColors: List<Color>): ChartStyle {
     val isSystemInDarkTheme = isSystemInDarkTheme()
+    val defaultColors = MaterialTheme.colors
     return remember(columnChartColors, lineChartColors, isSystemInDarkTheme) {
-        val defaultColors = if (isSystemInDarkTheme) DefaultColors.Dark else DefaultColors.Light
+        val defaultColor = if (isSystemInDarkTheme) DefaultColors.Dark else DefaultColors.Light
         ChartStyle(
             ChartStyle.Axis(
-                axisLabelColor = Color(defaultColors.axisLabelColor),
-                axisGuidelineColor = Color(defaultColors.axisGuidelineColor),
-                axisLineColor = Color(defaultColors.axisLineColor),
+//                axisLabelColor = Color(defaultColors.axisLabelColor),
+//                axisGuidelineColor = Color(defaultColors.axisGuidelineColor),
+//                axisLineColor = Color(defaultColors.axisLineColor),
+                axisLabelColor = defaultColors.error,
+                axisGuidelineColor = defaultColors.error,
+                axisLineColor = defaultColors.error,
             ),
             ChartStyle.ColumnChart(
                 columnChartColors.map { columnChartColor ->
@@ -52,7 +57,7 @@ internal fun rememberChartStyle(columnChartColors: List<Color>, lineChartColors:
                 },
             ),
             ChartStyle.Marker(),
-            Color(defaultColors.elevationOverlayColor),
+            Color(defaultColor.elevationOverlayColor),
         )
     }
 }

@@ -29,6 +29,7 @@ import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -141,16 +142,18 @@ fun ProfileScreen(
 
     val uid = userDataViewModel.getUserId().collectAsState(initial = null).value
 
-    if (uid != null){
+    if (uid != null) {
         LaunchedEffect(key1 = Unit, block = {
-            userDataViewModel.clapsData(uid).observe(observer){
-                when(it){
+            userDataViewModel.clapsData(uid).observe(observer) {
+                when (it) {
                     is NetworkResult.Error -> {
                         loadClaps.value = false
                     }
+
                     is NetworkResult.Loading -> {
                         loadClaps.value = true
                     }
+
                     is NetworkResult.Success -> {
                         claps = it.data?.data.orEmpty()
                         loadClaps.value = false
@@ -173,11 +176,11 @@ fun ProfileScreen(
         val animateRotation = remember { Animatable(0f) }
         val coroutineScope = rememberCoroutineScope()
 
-        LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded){
-            coroutineScope.launch{
-                if (scaffoldState.bottomSheetState.isExpanded){
+        LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded) {
+            coroutineScope.launch {
+                if (scaffoldState.bottomSheetState.isExpanded) {
                     animateRotation.animateTo(180f)
-                }else{
+                } else {
                     animateRotation.animateTo(0f)
                 }
             }
@@ -186,7 +189,7 @@ fun ProfileScreen(
         BottomSheetScaffold(
             sheetPeekHeight = sheetPeekHeight,
             topBar = {
-                ProfileAppbar(navHostController, topBarColor){
+                ProfileAppbar(navHostController, topBarColor) {
                     layoutCoordinatePos = it
                 }
             },
@@ -194,8 +197,8 @@ fun ProfileScreen(
 
                 LazyColumn(
                     modifier = Modifier
-                        .height(sheetHeight)
-                        .background(Color.White), horizontalAlignment = Alignment.CenterHorizontally
+                        .height(sheetHeight),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
                     item {
@@ -204,7 +207,8 @@ fun ProfileScreen(
                                 .padding(top = 8.dp)
                                 .rotate(animateRotation.value),
                             painter = painterResource(id = R.drawable.chevron_up),
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = MaterialTheme.colors.secondary
                         )
                     }
 
@@ -213,7 +217,7 @@ fun ProfileScreen(
                     }
 
                     item {
-                       UserAchievements(userDataViewModel, stepViewModel)
+                        UserAchievements(userDataViewModel, stepViewModel)
                     }
 
 
@@ -222,15 +226,19 @@ fun ProfileScreen(
                             loadClaps,
                             claps,
                             userDataViewModel
-                        ){
+                        ) {
                             navHostController.navigate(Screens.UserClapsScreen.name)
                         }
                     }
 
                     item {
-                        UserSocialData(socials,uid.orEmpty(), socialNetworkViewModel, navHostController)
+                        UserSocialData(
+                            socials,
+                            uid.orEmpty(),
+                            socialNetworkViewModel,
+                            navHostController
+                        )
                     }
-
 
 
                 }
@@ -238,6 +246,9 @@ fun ProfileScreen(
             scaffoldState = scaffoldState,
             sheetElevation = radius.dp / 2,
             sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp),
+            sheetBackgroundColor = MaterialTheme.colors.background,
+            contentColor = MaterialTheme.colors.primary,
+            backgroundColor = MaterialTheme.colors.onBackground,
         ) {
             Box(
                 Modifier
@@ -253,7 +264,7 @@ fun ProfileScreen(
                     modifier = Modifier
                         .wrapContentHeight()
                         .fillMaxWidth()
-                        .background(Color(ctx.resources.getColor(R.color.background, null))),
+                        .background(MaterialTheme.colors.onBackground),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
@@ -274,13 +285,13 @@ fun ProfileScreen(
                         Text(
                             text = userDataViewModel.getUsername()
                                 .collectAsState(initial = "").value,
-                            style = fontBlack24(PRIMARY900)
+                            style = fontBlack24(MaterialTheme.colors.onPrimary)
                         )
-                        if (isVerified){
+                        if (isVerified) {
                             Image(
                                 modifier = Modifier.padding(start = 8.dp),
                                 painter = painterResource(id = R.drawable.icons8_approval_2),
-                                contentDescription = null
+                                contentDescription = null,
                             )
                         }
                     }
@@ -290,7 +301,7 @@ fun ProfileScreen(
                         modifier = Modifier
                             .padding(top = 16.dp, bottom = 48.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(PRIMARY100)
+                            .background(MaterialTheme.colors.primaryVariant)
                     ) {
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
@@ -305,9 +316,8 @@ fun ProfileScreen(
                                 }
 
                                 else -> status
-                            }
-                            ,
-                            style = fontRegular12(SECONDARY900)
+                            },
+                            style = fontRegular12(MaterialTheme.colors.primary)
                         )
                     }
 
@@ -335,8 +345,8 @@ private fun UserDataClap(
     loadClaps: MutableState<Boolean>,
     claps: List<UserRes>,
     userDataViewModel: UserDataViewModel,
-    onClick:() -> Unit
-){
+    onClick: () -> Unit
+) {
 
     var userClaps by remember {
         mutableIntStateOf(-1)
@@ -344,15 +354,15 @@ private fun UserDataClap(
 
     userClaps = userDataViewModel.getClaps().collectAsState(initial = -1).value
 
-    timber("akjdlkawjdlkjawlkdjwalkd $userClaps")
 
-    if (loadClaps.value){
-        CircularProgressIndicator(modifier = Modifier
-            .progressSemantics()
-            .size(24.dp)
-            .padding(vertical = 8.dp)
-            , color = SECONDARY300, strokeWidth = 3.dp)
-    }else if (claps.isNotEmpty()){
+    if (loadClaps.value) {
+        CircularProgressIndicator(
+            modifier = Modifier
+                .progressSemantics()
+                .size(24.dp)
+                .padding(vertical = 8.dp), color = MaterialTheme.colors.secondary, strokeWidth = 3.dp
+        )
+    } else if (claps.isNotEmpty()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -361,18 +371,19 @@ private fun UserDataClap(
                 .clip(RoundedCornerShape(16.dp))
                 .border(
                     width = 1.dp,
-                    color = SECONDARY100,
+                    color = MaterialTheme.colors.onSurface,
                     shape = RoundedCornerShape(16.dp)
                 )
-                .background(Background),
+                .background(MaterialTheme.colors.onBackground),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            if (loadClaps.value){
-                CircularProgressIndicator(modifier = Modifier
-                    .progressSemantics()
-                    .size(24.dp)
-                    , color = SECONDARY500, strokeWidth = 3.dp)
+            if (loadClaps.value) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .progressSemantics()
+                        .size(24.dp), color = MaterialTheme.colors.secondary, strokeWidth = 3.dp
+                )
             }
 
             Text(
@@ -380,24 +391,26 @@ private fun UserDataClap(
                     .padding(start = 16.dp)
                     .padding(vertical = 16.dp),
                 text = stringResource(id = R.string.clpas_for_you_format, claps.size.toString()),
-                style = fontRegular14(SECONDARY500)
+                style = fontRegular14(MaterialTheme.colors.secondary)
             )
 
-            if (claps.size > userClaps && userClaps != -1){
-                Box(modifier = Modifier
-                    .padding(start = 8.dp)
-                    .clip(CircleShape)
-                    .size(6.dp)
-                    .background(ERROR300))
+            if (claps.size > userClaps && userClaps != -1) {
+                Box(
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clip(CircleShape)
+                        .size(6.dp)
+                        .background(MaterialTheme.colors.error)
+                )
             }
 
-            Divider(modifier = Modifier.weight(1f), color = Background)
+            Divider(modifier = Modifier.weight(1f), color = MaterialTheme.colors.onBackground)
 
             CustomButton(
                 modifier = Modifier.padding(end = 8.dp),
                 text = stringResource(id = R.string.view),
                 style = ButtonStyle.TextOnly
-            ){
+            ) {
                 userDataViewModel.setClaps(claps.size)
                 onClick.invoke()
             }
@@ -411,7 +424,7 @@ private fun UserSocialData(
     uid: String,
     socialNetworkViewModel: SocialNetworkViewModel,
     navHostController: NavHostController
-){
+) {
 
     val uriHandler = LocalUriHandler.current
     val owner = LocalLifecycleOwner.current
@@ -424,21 +437,21 @@ private fun UserSocialData(
             .clip(RoundedCornerShape(16.dp))
             .border(
                 width = 1.dp,
-                color = SECONDARY100,
+                color = MaterialTheme.colors.onSurface,
                 shape = RoundedCornerShape(16.dp)
             )
-            .background(Background)
+            .background(MaterialTheme.colors.onBackground)
     ) {
         Text(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp),
             text = stringResource(id = R.string.your_social_media),
-            style = fontMedium14(SECONDARY500)
+            style = fontMedium14(MaterialTheme.colors.secondary)
         )
         Text(
             modifier = Modifier.padding(top = 4.dp, start = 16.dp),
             text = stringResource(id = R.string.socila_desc),
             style = fontRegular12(
-                SECONDARY500
+                MaterialTheme.colors.secondary
             )
         )
 
@@ -459,16 +472,18 @@ private fun UserSocialData(
                         },
                         delete = {
 
-                            socialNetworkViewModel.deleteInServer(uid, it).observe(owner){
-                                when(it){
+                            socialNetworkViewModel.deleteInServer(uid, it).observe(owner) {
+                                when (it) {
                                     is NetworkResult.Error -> {
 
                                     }
+
                                     is NetworkResult.Loading -> {
 
                                     }
+
                                     is NetworkResult.Success -> {
-                                        if (it.data?.isSuccess.orFalse()){
+                                        if (it.data?.isSuccess.orFalse()) {
                                             socialNetworkViewModel.delete(social)
                                         }
                                     }
@@ -500,7 +515,7 @@ private fun UserSocialData(
 
 
 @Composable
-private fun UserAchievements(userDataViewModel: UserDataViewModel, stepViewModel: StepViewModel){
+private fun UserAchievements(userDataViewModel: UserDataViewModel, stepViewModel: StepViewModel) {
 
     val context = LocalContext.current
 
@@ -515,7 +530,9 @@ private fun UserAchievements(userDataViewModel: UserDataViewModel, stepViewModel
     userDataViewModel.getAchievement().collectAsState(initial = null).value.let {
         try {
             achievement = Gson().fromJson(it, Achievement::class.java)
-        }catch (e: Exception){e.printStackTrace()}
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     Column(
@@ -526,75 +543,95 @@ private fun UserAchievements(userDataViewModel: UserDataViewModel, stepViewModel
             .clip(RoundedCornerShape(16.dp))
             .border(
                 width = 1.dp,
-                color = SECONDARY100,
+                color = MaterialTheme.colors.onSurface,
                 shape = RoundedCornerShape(16.dp)
             )
-            .background(Background)
+            .background(MaterialTheme.colors.onBackground)
     ) {
         Text(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp),
             text = stringResource(id = R.string.your_achievment),
-            style = fontMedium14(SECONDARY500)
+            style = fontMedium14(MaterialTheme.colors.secondary)
         )
 
-        if (achievement.totalTop.orZero() == 0){
+        if (achievement.totalTop.orZero() == 0) {
             Text(
                 modifier = Modifier.padding(top = 8.dp, start = 16.dp),
                 text = stringResource(id = R.string.no_achievment),
                 style = fontRegular12(
-                    SECONDARY500
+                    MaterialTheme.colors.secondary
                 )
             )
-        }else{
+        } else {
 
-            AchievementItem(text = context.getString(R.string.total_top_achievement, achievement.totalTop.toString()))
+            AchievementItem(
+                text = context.getString(
+                    R.string.total_top_achievement,
+                    achievement.totalTop.toString()
+                )
+            )
 
-            if (achievement.n3Days.orZero() != 0){
-                AchievementItem(text = context.getString(R.string.n3days_achievement, achievement.n3Days.toString()))
+            if (achievement.n3Days.orZero() != 0) {
+                AchievementItem(
+                    text = context.getString(
+                        R.string.n3days_achievement,
+                        achievement.n3Days.toString()
+                    )
+                )
             }
 
-            if (achievement.n7Days.orZero() != 0){
-                AchievementItem(text = context.getString(R.string.n7days_achievement, achievement.n7Days.toString()))
+            if (achievement.n7Days.orZero() != 0) {
+                AchievementItem(
+                    text = context.getString(
+                        R.string.n7days_achievement,
+                        achievement.n7Days.toString()
+                    )
+                )
             }
 
-            if (achievement.n30Days.orZero() != 0){
-                AchievementItem(text = context.getString(R.string.n30days_achievement, achievement.n30Days.toString()))
+            if (achievement.n30Days.orZero() != 0) {
+                AchievementItem(
+                    text = context.getString(
+                        R.string.n30days_achievement,
+                        achievement.n30Days.toString()
+                    )
+                )
             }
 
             if (steps.orEmpty().any { (_, dateSteps) ->
-                    dateSteps.any { if(it.count > it.start.orZero()) (it.count - it.start.orZero()) > 10000 else false }
-                }){
+                    dateSteps.any { if (it.count > it.start.orZero()) (it.count - it.start.orZero()) > 10000 else false }
+                }) {
                 AchievementItem(text = context.getString(R.string.n10_steps_achievement))
             }
 
             if (steps.orEmpty().any { (_, dateSteps) ->
-                    dateSteps.any { if(it.count > it.start.orZero()) (it.count - it.start.orZero()) > 20000 else false }
-                }){
+                    dateSteps.any { if (it.count > it.start.orZero()) (it.count - it.start.orZero()) > 20000 else false }
+                }) {
                 AchievementItem(text = context.getString(R.string.n20_steps_achievement))
             }
 
             if (steps.orEmpty().any { (_, dateSteps) ->
-                    dateSteps.any { if(it.count > it.start.orZero()) (it.count - it.start.orZero()) > 30000 else false }
-                }){
+                    dateSteps.any { if (it.count > it.start.orZero()) (it.count - it.start.orZero()) > 30000 else false }
+                }) {
                 AchievementItem(text = context.getString(R.string.n30_steps_achievement))
             }
 
             if (steps.orEmpty().any { (_, dateSteps) ->
-                    dateSteps.any { if(it.count > it.start.orZero()) (it.count - it.start.orZero()) > 40000 else false }
-                }){
+                    dateSteps.any { if (it.count > it.start.orZero()) (it.count - it.start.orZero()) > 40000 else false }
+                }) {
                 AchievementItem(text = context.getString(R.string.n40_steps_achievement))
             }
 
             if (steps.orEmpty().any { (_, dateSteps) ->
-                    dateSteps.any { if(it.count > it.start.orZero()) (it.count - it.start.orZero()) > 50000 else false }
-                }){
+                    dateSteps.any { if (it.count > it.start.orZero()) (it.count - it.start.orZero()) > 50000 else false }
+                }) {
                 AchievementItem(text = context.getString(R.string.n50_steps_achievement))
             }
 
         }
 
 
-        Divider(modifier = Modifier.height(16.dp), color = Background)
+        Divider(modifier = Modifier.height(16.dp), color = MaterialTheme.colors.onBackground)
     }
 }
 
@@ -602,7 +639,7 @@ private fun UserAchievements(userDataViewModel: UserDataViewModel, stepViewModel
 private fun UserDataSteps(
     userDataViewModel: UserDataViewModel,
     stepViewModel: StepViewModel
-){
+) {
     val isOpenToView = userDataViewModel.isShowReport().collectAsState(initial = true).value
     val allDate = stepViewModel.getAllDate().observeAsState().value
     var dateSelected by remember { mutableStateOf("") }
@@ -615,9 +652,9 @@ private fun UserDataSteps(
         mutableIntStateOf(0)
     }
 
-    if (countSelected == 0){
+    if (countSelected == 0) {
         allDate?.filter { it.date == dateSelected }?.forEach {
-            if (it.count != 0){
+            if (it.count != 0) {
                 countSelected += it.count - it.start.orZero()
             }
         }
@@ -633,10 +670,9 @@ private fun UserDataSteps(
             .clip(RoundedCornerShape(16.dp))
             .border(
                 width = 2.dp,
-                color = PRIMARY500,
+                color = MaterialTheme.colors.primary,
                 shape = RoundedCornerShape(16.dp)
             )
-            .background(Background)
     )
     {
 
@@ -647,23 +683,28 @@ private fun UserDataSteps(
             Text(
                 text = stringResource(id = R.string.report_workout),
                 style = fontMedium14(
-                    SECONDARY500
+                    MaterialTheme.colors.secondary
                 )
             )
             if (!isOpenToView) {
                 Icon(
                     modifier = Modifier.padding(start = 4.dp),
                     painter = painterResource(id = R.drawable.lock_02),
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colors.secondary
                 )
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && allDate?.groupBy { it.date }?.size != 1){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && allDate?.groupBy { it.date }?.size != 1) {
                 IconButton(onClick = {
-                    showChart.value =! showChart.value
+                    showChart.value = !showChart.value
 
                 }) {
-                    Icon(painter = painterResource(id = if (showChart.value) R.drawable.calendar_03 else R.drawable.bar_chart_square_03), contentDescription = null)
+                    Icon(
+                        painter = painterResource(id = if (showChart.value) R.drawable.calendar_03 else R.drawable.bar_chart_square_03),
+                        contentDescription = null,
+                        tint = MaterialTheme.colors.secondary
+                    )
                 }
             }
 
@@ -672,21 +713,27 @@ private fun UserDataSteps(
         if (allDate.orEmpty().isNotEmpty()) {
 
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && allDate?.groupBy { it.date }?.size != 1){
-                if (showChart.value){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && allDate?.groupBy { it.date }?.size != 1) {
+                if (showChart.value) {
                     val groupedSteps = allDate?.groupBy { it.date }
                     val result = groupedSteps?.mapKeys { LocalDate.parse(it.key) }
-                        ?.mapValues { (_, steps) -> steps.filter { it.count.orZero() > it.start.orZero() && it.count.orZero() != 0 }.sumOf { it.count.orZero() - it.start.orZero() }.toFloat() }
+                        ?.mapValues { (_, steps) ->
+                            steps.filter { it.count.orZero() > it.start.orZero() && it.count.orZero() != 0 }
+                                .sumOf { it.count.orZero() - it.start.orZero() }.toFloat()
+                        }
 
-                    SingleColumnChartWithNegativeValues(modifier = Modifier.padding(bottom = 24.dp),result)
+                    SingleColumnChartWithNegativeValues(
+                        modifier = Modifier.padding(bottom = 24.dp),
+                        result
+                    )
                 }
 
-            }else{
+            } else {
                 showChart.value = false
             }
 
 
-            if (!showChart.value){
+            if (!showChart.value) {
 
                 LazyRow(
                     modifier = Modifier
@@ -694,7 +741,8 @@ private fun UserDataSteps(
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     itemsIndexed(
-                        allDate.orEmpty().distinctBy { it.date }.sortedByDescending { it.date }) { index, step ->
+                        allDate.orEmpty().distinctBy { it.date }
+                            .sortedByDescending { it.date }) { index, step ->
                         DateItem(
                             modifier = Modifier.padding(end = 8.dp),
                             date = step.date,
@@ -755,8 +803,8 @@ private fun UserDataSteps(
 private fun ProfileAppbar(
     navHostController: NavHostController,
     topBarColor: RGBColor,
-    layoutCoordinatePos:(Float) -> Unit
-){
+    layoutCoordinatePos: (Float) -> Unit
+) {
     TopAppBar(
         modifier = Modifier
             .onGloballyPositioned { layoutCoordinates ->

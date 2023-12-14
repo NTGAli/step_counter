@@ -3,6 +3,7 @@ package com.ntg.stepcounter.components
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,6 +22,7 @@ fun AchievementItem(
 ){
     Row(modifier= Modifier.padding(horizontal = 16.dp).padding(top = 8.dp),verticalAlignment = Alignment.CenterVertically) {
         Icon(painter = painterResource(id = R.drawable.crown), contentDescription = null, tint = TERTIARY500)
-        Text(modifier = Modifier.padding(start = 8.dp),text = text, style = fontRegular12(SECONDARY700))
+        Text(modifier = Modifier.padding(start = 8.dp),text = text, style = fontRegular12(
+            MaterialTheme.colors.secondary))
     }
 }

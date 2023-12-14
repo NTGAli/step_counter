@@ -13,6 +13,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -42,6 +43,7 @@ import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.lang.Thread.sleep
 import javax.inject.Inject
 
 
@@ -64,6 +66,7 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
     private var stepDetector: StepDetector = StepDetector()
     private var stepSynced = 0
     private var stepsWaitForSync = 0
+    private lateinit var wakeLock: PowerManager.WakeLock
 
 
     @Inject
@@ -84,6 +87,9 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
     override fun onCreate() {
         super.onCreate()
         timber("BackgroundService:::onCreate")
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::StepCounterService")
+
     }
 
 
@@ -93,6 +99,7 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         timber("BackgroundService:::start")
+        wakeLock.acquire()
         mServiceLifecycleDispatcher.onServicePreSuperOnStart()
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         val stepSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
@@ -278,6 +285,7 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
 
     private fun insertStep(count: Int) {
         timber("insertStepInService $count")
+
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             if (::updateId.isInitialized) {
@@ -318,6 +326,7 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
         super.onDestroy()
         timber("BackgroundService:::destroy")
         stopSelf()
+        wakeLock.release()
     }
 
 }

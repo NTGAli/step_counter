@@ -1,4 +1,4 @@
-package com.ntg.mywords.model.components
+package com.ntg.stepcounter.models.components
 
 import androidx.compose.ui.graphics.painter.Painter
 

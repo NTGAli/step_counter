@@ -36,7 +36,7 @@ import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
 
 @Composable
 internal fun rememberMarker(): Marker {
-    val labelBackgroundColor = Color.White
+    val labelBackgroundColor = MaterialTheme.colors.onBackground
     val labelBackground = remember(labelBackgroundColor) {
         ShapeComponent(labelBackgroundShape, labelBackgroundColor.toArgb()).setShadow(
             radius = LABEL_BACKGROUND_SHADOW_RADIUS,
@@ -49,11 +49,11 @@ internal fun rememberMarker(): Marker {
         lineCount = LABEL_LINE_COUNT,
         padding = labelPadding,
         typeface = ResourcesCompat.getFont(LocalContext.current, R.font.yekan_regular),
-        color = Color.White
+        color = MaterialTheme.colors.onBackground
     )
-    val indicatorInnerComponent = shapeComponent(Shapes.pillShape, Color.White)
-    val indicatorCenterComponent = shapeComponent(Shapes.pillShape, Color.White)
-    val indicatorOuterComponent = shapeComponent(Shapes.pillShape, Color.White)
+    val indicatorInnerComponent = shapeComponent(Shapes.pillShape, MaterialTheme.colors.onBackground)
+    val indicatorCenterComponent = shapeComponent(Shapes.pillShape, MaterialTheme.colors.onBackground)
+    val indicatorOuterComponent = shapeComponent(Shapes.pillShape, MaterialTheme.colors.onBackground)
     val indicator = overlayingComponent(
         outer = indicatorOuterComponent,
         inner = overlayingComponent(
@@ -64,7 +64,7 @@ internal fun rememberMarker(): Marker {
         innerPaddingAll = indicatorCenterAndOuterComponentPaddingValue,
     )
     val guideline = lineComponent(
-        MaterialTheme.colors.onSurface.copy(GUIDELINE_ALPHA),
+        MaterialTheme.colors.onPrimary.copy(GUIDELINE_ALPHA),
         guidelineThickness,
         guidelineShape,
     )

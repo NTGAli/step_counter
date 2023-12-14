@@ -2,6 +2,7 @@ package com.ntg.stepcounter.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,7 +21,7 @@ fun Title(
     actionClick:() -> Unit
 ){
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Text(modifier = Modifier.weight(1f),text = title, style = fontBold14(SECONDARY500))
+        Text(modifier = Modifier.weight(1f),text = title, style = fontBold14(MaterialTheme.colors.secondary))
 
         CustomButton(text = action, type = ButtonType.Secondary, size = ButtonSize.XS, style = ButtonStyle.TextOnly){
             actionClick.invoke()

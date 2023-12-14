@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -52,7 +53,7 @@ fun ReportWidget(
     Box(modifier = modifier
         .clip(RoundedCornerShape(16.dp))
         .wrapContentHeight()
-        .background(Color.White)){
+        .background(MaterialTheme.colors.background)){
 
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
 
@@ -60,13 +61,13 @@ fun ReportWidget(
                 verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
-                    .background(PRIMARY100)) {
-                    Icon(modifier = Modifier.padding(8.dp),painter = painterResource(id = R.drawable.icons8_trainers_1), contentDescription = null, tint = PRIMARY500)
+                    .background(MaterialTheme.colors.primaryVariant)) {
+                    Icon(modifier = Modifier.padding(8.dp),painter = painterResource(id = R.drawable.icons8_trainers_1), contentDescription = null, tint = MaterialTheme.colors.primary)
                 }
 
                 Column(modifier = Modifier.padding(start = 8.dp)) {
-                    Text(text = if (viewType == ReportWidgetType.Default) stringResource(id = R.string.your_record) else stringResource(id = R.string.steps), style = fontRegular12(SECONDARY500))
-                    Text(modifier = Modifier.padding(top = 2.dp), text = ctx.getString(R.string.step_format, formatNumber(firstText.toDouble())), style = fontBold12(SECONDARY900))
+                    Text(text = if (viewType == ReportWidgetType.Default) stringResource(id = R.string.your_record) else stringResource(id = R.string.steps), style = fontRegular12(MaterialTheme.colors.secondary))
+                    Text(modifier = Modifier.padding(top = 2.dp), text = ctx.getString(R.string.step_format, formatNumber(firstText.toDouble())), style = fontBold12(MaterialTheme.colors.onPrimary))
 
                 }
             }
@@ -82,15 +83,15 @@ fun ReportWidget(
                 verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
-                    .background(PRIMARY100)) {
-                    Icon(modifier = Modifier.padding(8.dp), painter = if (viewType == ReportWidgetType.Group) painterResource(id = R.drawable.users_profiles_minus) else painterResource(id = R.drawable.calendar_02), contentDescription = null, tint = PRIMARY500)
+                    .background(MaterialTheme.colors.primaryVariant)) {
+                    Icon(modifier = Modifier.padding(8.dp), painter = if (viewType == ReportWidgetType.Group) painterResource(id = R.drawable.users_profiles_minus) else painterResource(id = R.drawable.calendar_02), contentDescription = null, tint = MaterialTheme.colors.primary)
                 }
 
                 Column(modifier = Modifier.padding(start = 8.dp)) {
-                    Text(text = if (viewType == ReportWidgetType.Default) stringResource(id = R.string.day) else if (viewType == ReportWidgetType.Group) stringResource(id = R.string.number_of_members) else stringResource(id = R.string.days), style = fontRegular12(SECONDARY500))
+                    Text(text = if (viewType == ReportWidgetType.Default) stringResource(id = R.string.day) else if (viewType == ReportWidgetType.Group) stringResource(id = R.string.number_of_members) else stringResource(id = R.string.days), style = fontRegular12(MaterialTheme.colors.secondary))
                     Text(modifier = Modifier.padding(top = 2.dp),text = if (viewType == ReportWidgetType.Default) {if (secondText == 0) stringResource(
                         id = R.string.today
-                    ) else if (secondText != -1)  ctx.getString(R.string.days_ago, secondText.toString()) else ctx.getString(R.string.no_record)} else if (viewType == ReportWidgetType.Profile){ if (secondText != -1) ctx.getString(R.string.days_format, secondText.toString()) else "-"} else secondText.toString() , style = fontBold12(SECONDARY900))
+                    ) else if (secondText != -1)  ctx.getString(R.string.days_ago, secondText.toString()) else ctx.getString(R.string.no_record)} else if (viewType == ReportWidgetType.Profile){ if (secondText != -1) ctx.getString(R.string.days_format, secondText.toString()) else "-"} else secondText.toString() , style = fontBold12(MaterialTheme.colors.onPrimary))
 
                 }
             }

@@ -3,9 +3,12 @@ package com.ntg.stepcounter.util.extension
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.net.ConnectivityManager
 import android.os.Build
 import android.widget.Toast
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberUpdatedState
@@ -21,6 +24,7 @@ import com.ntg.stepcounter.models.Failure
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.Result
 import com.ntg.stepcounter.models.Success
+import com.ntg.stepcounter.ui.theme.isDark
 import kotlinx.coroutines.CoroutineDispatcher
 import retrofit2.HttpException
 import retrofit2.Response
@@ -54,7 +58,7 @@ fun timber(title: String, msg: String) {
     Timber.d("$title ----------> $msg")
 }
 
-fun Context.toast(mag: String){
+fun Context.toast(mag: String) {
     Toast.makeText(this, mag, Toast.LENGTH_SHORT).show()
 }
 
@@ -68,6 +72,7 @@ fun formatNumber(number: Double): String {
                 String.format("%.1f هزار", number / 1000)
             }
         }
+
         else -> {
             if (number % 1_000_000 == 0.0) {
                 "${number / 1_000_000} میلیون"
@@ -89,7 +94,7 @@ fun stepsToKilometers(steps: Int): String {
     val kilometers = steps * 0.000762
     return try {
         formatNumber("%.2f".format(kilometers).toDouble())
-    }catch (e: Exception){
+    } catch (e: Exception) {
         "0"
     }
 }
@@ -99,7 +104,7 @@ fun stepsToCalories(steps: Int): String {
     val calories = steps * 0.035
     return try {
         formatNumber("%.2f".format(calories).toDouble())
-    }catch (e: Exception){
+    } catch (e: Exception) {
         "0"
     }
 }
@@ -202,11 +207,22 @@ fun calculateRadius(first: Float, end: Float, third: Float): Float {
     return ((normalizedThird.toDouble() / range.toDouble()) * 32).toFloat()
 }
 
+@Composable
 fun getColorComponentsForNumber(number: Int): RGBColor {
     require(number in 0..32) { "Number must be between 0 and 32" }
 
-    val startColor = RGBColor(255, 255, 255) // #FFFFFF
-    val endColor = RGBColor(248, 248, 248)   // #FCFCFF
+
+    val startColor = if (isDark()) {
+        RGBColor(255, 255, 255) // #FFFFFF
+    } else {
+        RGBColor(25, 28, 30) // #FFFFFF
+    }
+
+    val endColor = if (isDark()) {
+        RGBColor(255, 255, 255) // #FFFFFF
+    } else {
+        RGBColor(36, 40, 43) // #FFFFFF
+    }
 
     val interpolatedRed = startColor.red + (endColor.red - startColor.red) * number / 32
     val interpolatedGreen = startColor.green + (endColor.green - startColor.green) * number / 32
