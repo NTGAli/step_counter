@@ -816,7 +816,7 @@ private fun ProfileAppbar(
             Text(
                 text = stringResource(id = R.string.profile),
                 style = fontMedium14(
-                    SECONDARY500
+                    MaterialTheme.colors.secondary
                 )
             )
 
@@ -827,7 +827,8 @@ private fun ProfileAppbar(
             }) {
                 Icon(
                     painter = painterResource(id = R.drawable.settings),
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colors.secondary
                 )
             }
         },
@@ -838,7 +839,8 @@ private fun ProfileAppbar(
             }) {
                 Icon(
                     imageVector = Icons.Rounded.ChevronRight,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colors.secondary
                 )
             }
         }

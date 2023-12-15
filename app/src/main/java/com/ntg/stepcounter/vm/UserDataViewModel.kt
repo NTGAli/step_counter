@@ -42,6 +42,7 @@ class UserDataViewModel @Inject constructor(
     fun getTimeSign() = userStore.getTimeSign
     fun getPhoneNumber() = userStore.getPhoneNumber
     fun getUserId() = userStore.getUserID
+    fun getTheme() = userStore.getTheme
     fun getGradeId() = userStore.getGradeId
     fun getUserStatus() = userStore.getStatus
     fun getFieldStudy() = userStore.fieldStudy
@@ -56,6 +57,10 @@ class UserDataViewModel @Inject constructor(
 
     fun setUsername(username: String) = viewModelScope.launch {
         userStore.saveUsername(username)
+    }
+
+    fun setTheme(theme: String) = viewModelScope.launch {
+        userStore.saveTheme(theme)
     }
 
     fun setTimeSign(timeSing: String) = viewModelScope.launch {

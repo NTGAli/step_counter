@@ -302,7 +302,10 @@ fun UserProfileScreen(
             sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp),
             floatingActionButton = {
                 ClapButton(userDataViewModel, uid, isClap,userId, totalClaps)
-            }
+            },
+            sheetBackgroundColor = MaterialTheme.colors.background,
+            contentColor = MaterialTheme.colors.primary,
+            backgroundColor = MaterialTheme.colors.onBackground,
         ) {
             Box(
                 Modifier
@@ -365,7 +368,7 @@ private fun TopBar(
             Text(
                 text = stringResource(id = R.string.profile),
                 style = fontMedium14(
-                    SECONDARY500
+                    MaterialTheme.colors.secondary
                 )
             )
         },
@@ -376,7 +379,8 @@ private fun TopBar(
             }) {
                 Icon(
                     imageVector = Icons.Rounded.ChevronRight,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colors.secondary
                 )
             }
         }
@@ -416,7 +420,7 @@ private fun ClapButton(
             },
             shape = RoundedCornerShape(8.dp),
             elevation = 4.dp,
-            backgroundColor = if (isClapped) PRIMARY100 else MaterialTheme.colors.surface
+            backgroundColor = if (isClapped) MaterialTheme.colors.primaryVariant else MaterialTheme.colors.onBackground
         ) {
 
             Row(
@@ -425,7 +429,7 @@ private fun ClapButton(
             ) {
                 Text(
                     text = countClaps.toString(),
-                    style = fontBold14(if (isClapped) PRIMARY500 else SECONDARY500)
+                    style = fontBold14(if (isClapped) MaterialTheme.colors.primary else MaterialTheme.colors.secondary)
                 )
                 Image(
                     modifier = Modifier
@@ -500,7 +504,7 @@ private fun Content(
     LazyColumn(
         modifier = Modifier
             .height(sheetHeight)
-            .background(Color.White), horizontalAlignment = Alignment.CenterHorizontally
+            .background(MaterialTheme.colors.background), horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         item {
@@ -509,7 +513,8 @@ private fun Content(
                     .padding(top = 8.dp)
                     .rotate(animateRotation.value),
                 painter = painterResource(id = R.drawable.chevron_up),
-                contentDescription = null
+                contentDescription = null,
+                tint = MaterialTheme.colors.secondary
             )
         }
 
@@ -522,10 +527,9 @@ private fun Content(
                     .clip(RoundedCornerShape(16.dp))
                     .border(
                         width = 2.dp,
-                        color = PRIMARY500,
+                        color = MaterialTheme.colors.primary,
                         shape = RoundedCornerShape(16.dp)
                     )
-                    .background(Background)
             )
             {
 
@@ -536,7 +540,7 @@ private fun Content(
                     Text(
                         text = stringResource(id = R.string.report_workout),
                         style = fontMedium14(
-                            SECONDARY500
+                            MaterialTheme.colors.secondary
                         )
                     )
 
@@ -547,7 +551,8 @@ private fun Content(
                         }) {
                             Icon(
                                 painter = painterResource(id = if (showChart.value) R.drawable.calendar_03 else R.drawable.bar_chart_square_03),
-                                contentDescription = null
+                                contentDescription = null,
+                                tint = MaterialTheme.colors.secondary
                             )
                         }
                     }
@@ -564,13 +569,14 @@ private fun Content(
                         Icon(
                             modifier = Modifier.size(24.dp),
                             painter = painterResource(id = R.drawable.lock_02),
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = MaterialTheme.colors.secondary
                         )
                         Text(
                             modifier = Modifier.padding(top = 16.dp, bottom = 24.dp),
                             text = stringResource(id = R.string.lock_to_view),
                             style = fontRegular12(
-                                SECONDARY500
+                                MaterialTheme.colors.secondary
                             )
                         )
 
@@ -628,7 +634,7 @@ private fun Content(
                                     id = R.string.days_ago,
                                     daysUntilToday(dateSelected)
                                 )
-                            }, style = fontMedium12(SECONDARY500)
+                            }, style = fontMedium12(MaterialTheme.colors.secondary)
                         )
 
                         Text(
@@ -641,7 +647,7 @@ private fun Content(
                                 id = R.string.step_format,
                                 steps
                                     .first { it.date == dateSelected }.steps.orZero()
-                            ), style = fontMedium12(SECONDARY500)
+                            ), style = fontMedium12(MaterialTheme.colors.secondary)
                         )
                     }
                 } else if (loadData) {
@@ -675,15 +681,15 @@ private fun Content(
                     .clip(RoundedCornerShape(16.dp))
                     .border(
                         width = 1.dp,
-                        color = SECONDARY100,
+                        color = MaterialTheme.colors.onSurface,
                         shape = RoundedCornerShape(16.dp)
                     )
-                    .background(Background)
+                    .background(MaterialTheme.colors.onBackground)
             ) {
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp),
                     text = stringResource(id = R.string.achievments),
-                    style = fontMedium14(SECONDARY500)
+                    style = fontMedium14(MaterialTheme.colors.secondary)
                 )
 
 
@@ -754,7 +760,7 @@ private fun Content(
                         ),
                         text = stringResource(id = R.string.no_achievment),
                         style = fontRegular12(
-                            SECONDARY500
+                            MaterialTheme.colors.secondary
                         )
                     )
 
@@ -762,7 +768,7 @@ private fun Content(
 
 
 
-                Divider(modifier = Modifier.height(16.dp), color = Background)
+                Divider(modifier = Modifier.height(16.dp), color = MaterialTheme.colors.onBackground)
             }
         }
 
@@ -775,15 +781,15 @@ private fun Content(
                     .clip(RoundedCornerShape(16.dp))
                     .border(
                         width = 1.dp,
-                        color = SECONDARY100,
+                        color = MaterialTheme.colors.onSurface,
                         shape = RoundedCornerShape(16.dp)
                     )
-                    .background(Background)
+                    .background(MaterialTheme.colors.onBackground)
             ) {
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp),
                     text = stringResource(id = R.string.socilas_network),
-                    style = fontMedium14(SECONDARY500)
+                    style = fontMedium14(MaterialTheme.colors.secondary)
                 )
 
                 if (socials.isEmpty()) {
@@ -793,7 +799,7 @@ private fun Content(
                             .fillMaxWidth(),
                         text = stringResource(id = R.string.empty_social),
                         style = fontRegular12(
-                            SECONDARY500
+                            MaterialTheme.colors.secondary
                         ),
                         textAlign = TextAlign.Center
                     )
@@ -865,13 +871,11 @@ private fun UserProfileData(
     userSate: String?,
     userBio: String
 ) {
-    val ctx = LocalContext.current
-
     Column(
         modifier = Modifier
             .wrapContentHeight()
             .fillMaxWidth()
-            .background(Color(ctx.resources.getColor(R.color.background, null))),
+            .background(MaterialTheme.colors.onBackground),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -891,7 +895,7 @@ private fun UserProfileData(
         ) {
             Text(
                 text = userName,
-                style = fontBlack24(PRIMARY900)
+                style = fontBlack24(MaterialTheme.colors.onPrimary)
             )
             if (isVerified) {
                 Image(
@@ -908,12 +912,12 @@ private fun UserProfileData(
                 modifier = Modifier
                     .padding(top = 16.dp, bottom = 48.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(PRIMARY100)
+                    .background(MaterialTheme.colors.primaryVariant)
             ) {
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     text = userBio,
-                    style = fontRegular12(SECONDARY900)
+                    style = fontRegular12(MaterialTheme.colors.primary)
                 )
             }
         }

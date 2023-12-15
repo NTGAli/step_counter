@@ -62,7 +62,7 @@ fun Record(
                     }
 
                     2 -> {
-                        Icon(painter = painterResource(id = R.drawable.third), contentDescription = null, tint = ERROR900 )
+                        Icon(painter = painterResource(id = R.drawable.third), contentDescription = null, tint = MaterialTheme.colors.onError )
                     }
 
                     else -> {

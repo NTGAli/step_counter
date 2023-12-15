@@ -130,5 +130,8 @@
     <string name="physical_activity_permission_description">برای شمارش قدم های شما نیاز به این مجوز می باشد.</string>
     <string name="battery_permission_description">برای محاسبه دقیق تر قدم ها،زمانی که برنامه به طورکامل بسته باشد نیاز به این مجوز می باشد.(برای غیرفعال کردن ثبت قدم ها زمانی که برنامه به طور کامل بسته شده می توانید از قسمت تنظیمات اقدام کنید.)</string>
     <string name="notification_permission_description">برای نمایش میزان فعالیت شما در نوار اعلان ها و محاسبه ی قدم های در پس زمینه نیاز به این مجوز می باشد.</string>
+    <string name="theme">تم</string>
+    <string name="light_mode">حالت روشن</string>
+    <string name="dark_mode">حالت تاریک</string>
 
 </resources>

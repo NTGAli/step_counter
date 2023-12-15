@@ -20,6 +20,7 @@ import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -236,6 +237,9 @@ fun FieldOfStudyDetailsScreen(
             scaffoldState = scaffoldState,
             sheetElevation = radius.dp / 2,
             sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp),
+            sheetBackgroundColor = MaterialTheme.colors.background,
+            contentColor = MaterialTheme.colors.primary,
+            backgroundColor = MaterialTheme.colors.onBackground,
         ) {
             Box(
                 Modifier
@@ -289,12 +293,11 @@ private fun BaseFosData(
     fosName: String,
     userBio: String
 ){
-    val ctx = LocalContext.current
     Column(
         modifier = Modifier
             .wrapContentHeight()
             .fillMaxWidth()
-            .background(Color(ctx.resources.getColor(R.color.background, null))),
+            .background(MaterialTheme.colors.onBackground),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -314,7 +317,7 @@ private fun BaseFosData(
         ) {
             Text(
                 text = fosName,
-                style = fontBlack24(PRIMARY900)
+                style = fontBlack24(MaterialTheme.colors.onPrimary)
             )
         }
 
@@ -323,12 +326,12 @@ private fun BaseFosData(
             modifier = Modifier
                 .padding(top = 16.dp, bottom = 48.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(PRIMARY100)
+                .background(MaterialTheme.colors.primaryVariant)
         ) {
             Text(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 text = userBio,
-                style = fontRegular12(SECONDARY900)
+                style = fontRegular12(MaterialTheme.colors.primary)
             )
         }
 
@@ -352,7 +355,7 @@ private fun AppBarFos(
             Text(
                 text = stringResource(id = R.string.field),
                 style = fontMedium14(
-                    SECONDARY500
+                    MaterialTheme.colors.secondary
                 )
             )
         },
@@ -363,7 +366,8 @@ private fun AppBarFos(
             }) {
                 Icon(
                     imageVector = Icons.Rounded.ChevronRight,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colors.secondary
                 )
             }
         }
@@ -380,7 +384,7 @@ private fun Content(
     LazyColumn(
         modifier = Modifier
             .height(sheetHeight)
-            .background(Color.White)
+            .background(MaterialTheme.colors.background)
             .padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -390,7 +394,8 @@ private fun Content(
                     .padding(top = 8.dp)
                     .rotate(animateRotation.value),
                 painter = painterResource(id = R.drawable.chevron_up),
-                contentDescription = null
+                contentDescription = null,
+                tint = MaterialTheme.colors.secondary
             )
         }
 
@@ -400,7 +405,7 @@ private fun Content(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
                 text = stringResource(id = R.string.members),
                 style = fontBold14(
-                    SECONDARY500
+                    MaterialTheme.colors.secondary
                 )
             )
         }

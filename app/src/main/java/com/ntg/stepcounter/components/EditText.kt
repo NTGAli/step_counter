@@ -16,12 +16,15 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.TextFieldColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -88,13 +91,13 @@ fun EditText(
             },
             label = {
                 if (!label.isNullOrEmpty()) {
-                    Text(text = label, style = if (enabled) fontRegular12(SECONDARY500) else fontRegular12(
-                        SECONDARY300))
+                    Text(text = label, style = if (enabled) fontRegular12(MaterialTheme.colors.secondary) else fontRegular12(
+                        MaterialTheme.colors.onSurface))
                 }
             },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             readOnly = readOnly,
-            textStyle = if (enabled)fontMedium14(SECONDARY900) else fontMedium14(SECONDARY300),
+            textStyle = if (enabled)fontMedium14(MaterialTheme.colors.surface) else fontMedium14(MaterialTheme.colors.secondary),
             enabled = enabled,
             shape = RoundedCornerShape(8.dp),
             trailingIcon = {
@@ -132,12 +135,16 @@ fun EditText(
             ,
             isError = setError.value,
             singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            colors = androidx.compose.material.TextFieldDefaults.outlinedTextFieldColors(
+                unfocusedBorderColor = MaterialTheme.colors.onSurface
+
+            )
 
         )
 
         if (errorMessage != null){
-            Text(modifier = Modifier.padding(top = 4.dp),text = errorMessage, style = fontRegular12(ERROR500))
+            Text(modifier = Modifier.padding(top = 4.dp),text = errorMessage, style = fontRegular12(MaterialTheme.colors.error))
         }
     }
 }

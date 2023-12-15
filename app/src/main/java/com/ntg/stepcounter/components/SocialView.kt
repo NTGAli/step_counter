@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,14 +34,14 @@ fun SocialView(
                     onClick.invoke(url)
                 }
                 .padding(8.dp)
-            , text = title, style = fontRegular12(SECONDARY500)
+            , text = title, style = fontRegular12(MaterialTheme.colors.secondary)
         )
 
         Divider(
             Modifier
                 .width(1.dp)
                 .height(16.dp)
-                .background(color = SECONDARY500, shape = RoundedCornerShape(8.dp))
+                .background(color = MaterialTheme.colors.onSurface, shape = RoundedCornerShape(8.dp))
         )
     }
 

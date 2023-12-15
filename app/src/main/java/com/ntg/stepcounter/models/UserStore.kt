@@ -29,10 +29,15 @@ class UserStore(private val context: Context) {
         private val TIME_SIGN = stringPreferencesKey("time_sign")
         private val ACHIEVEMENT = stringPreferencesKey("achievement")
         private val CLAPS = intPreferencesKey("claps")
+        private val THEME = stringPreferencesKey("theme")
     }
 
     val getUserToken: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[USER_TOKEN] ?: ""
+    }
+
+    val getTheme: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[THEME] ?: "light"
     }
 
     val getTimeSign: Flow<String> = context.dataStore.data.map { preferences ->
@@ -109,6 +114,12 @@ class UserStore(private val context: Context) {
     suspend fun saveUsername(username: String) {
         context.dataStore.edit { preferences ->
             preferences[USER_NAME] = username
+        }
+    }
+
+    suspend fun saveTheme(theme: String) {
+        context.dataStore.edit { preferences ->
+            preferences[THEME] = theme
         }
     }
 

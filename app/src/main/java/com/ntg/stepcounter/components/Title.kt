@@ -18,13 +18,16 @@ fun Title(
     modifier: Modifier = Modifier,
     title: String,
     action: String,
+    showBtn: Boolean = true,
     actionClick:() -> Unit
 ){
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(modifier = Modifier.weight(1f),text = title, style = fontBold14(MaterialTheme.colors.secondary))
 
-        CustomButton(text = action, type = ButtonType.Secondary, size = ButtonSize.XS, style = ButtonStyle.TextOnly){
-            actionClick.invoke()
+        if (showBtn){
+            CustomButton(text = action, type = ButtonType.Secondary, size = ButtonSize.XS, style = ButtonStyle.TextOnly){
+                actionClick.invoke()
+            }
         }
     }
 }

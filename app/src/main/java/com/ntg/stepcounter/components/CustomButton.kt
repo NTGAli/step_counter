@@ -100,20 +100,20 @@ fun CustomButton(
         ButtonType.Secondary -> {
             when (style) {
                 ButtonStyle.Contained -> {
-                    background = SECONDARY500
-                    borderColor = SECONDARY500
-                    textColor = Color.White
-                    loadingColor = Color.White
+                    background = MaterialTheme.colors.secondary
+                    borderColor = MaterialTheme.colors.secondary
+                    textColor = MaterialTheme.colors.onBackground
+                    loadingColor = MaterialTheme.colors.onBackground
                 }
                 ButtonStyle.Outline -> {
                     background = Color.Transparent
-                    borderColor = SECONDARY500
+                    borderColor = MaterialTheme.colors.secondary
                     textColor = Color.White
                 }
                 ButtonStyle.TextOnly -> {
                     background = Color.Transparent
                     borderColor = Color.Transparent
-                    textColor = SECONDARY500
+                    textColor = MaterialTheme.colors.secondary
                 }
             }
         }

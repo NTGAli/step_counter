@@ -212,16 +212,16 @@ fun getColorComponentsForNumber(number: Int): RGBColor {
     require(number in 0..32) { "Number must be between 0 and 32" }
 
 
-    val startColor = if (isDark()) {
-        RGBColor(255, 255, 255) // #FFFFFF
+    val startColor = if (!isDark()) {
+        RGBColor(255, 255, 255)
     } else {
-        RGBColor(25, 28, 30) // #FFFFFF
+        RGBColor(25, 28, 30)
     }
 
-    val endColor = if (isDark()) {
-        RGBColor(255, 255, 255) // #FFFFFF
+    val endColor = if (!isDark()) {
+        RGBColor(248, 248, 248)
     } else {
-        RGBColor(36, 40, 43) // #FFFFFF
+        RGBColor(36, 40, 43)
     }
 
     val interpolatedRed = startColor.red + (endColor.red - startColor.red) * number / 32

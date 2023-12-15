@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,12 +31,12 @@ fun ErrorMessage(
     onClick: () -> Unit
 ) {
 
-    Column(modifier = modifier.fillMaxWidth().background(Background), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = modifier.fillMaxWidth().background(MaterialTheme.colors.background), horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(
             painter = if (status == ErrorStatus.Failed) painterResource(id = R.drawable.alert_triangle) else painterResource(
                 id = R.drawable.wifi_off
             ),
-            tint = if (status == ErrorStatus.Failed) TERTIARY500 else ERROR500,
+            tint = if (status == ErrorStatus.Failed) TERTIARY500 else MaterialTheme.colors.error,
             contentDescription = null
         )
 
@@ -44,7 +45,7 @@ fun ErrorMessage(
             text = if (status == ErrorStatus.Failed) stringResource(id = R.string.fiald_to_fetch_data) else stringResource(
                 id = R.string.no_internet
             ),
-            style = fontMedium14(SECONDARY500)
+            style = fontMedium14(MaterialTheme.colors.secondary)
         )
 
         CustomButton(

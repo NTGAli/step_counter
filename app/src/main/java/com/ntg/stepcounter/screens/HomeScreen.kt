@@ -485,6 +485,7 @@ private fun Content(
                             .padding(bottom = 8.dp)
                             .padding(horizontal = 16.dp),
                         title = stringResource(id = R.string.top_today),
+                        showBtn = summaries?.today?.size.orZero() == 3,
                         action = stringResource(
                             id = R.string.see_all
                         )
@@ -517,6 +518,7 @@ private fun Content(
                             .padding(top = 24.dp, bottom = 8.dp)
                             .padding(horizontal = 16.dp),
                         title = stringResource(id = R.string.top_rank_base_fos),
+                        showBtn = summaries?.fos?.size.orZero() == 3,
                         action = stringResource(
                             id = R.string.see_all
                         )
@@ -549,12 +551,14 @@ private fun Content(
                             .padding(top = 24.dp, bottom = 8.dp)
                             .padding(horizontal = 16.dp),
                         title = stringResource(id = R.string.top_rank_base_user),
+                        showBtn = summaries?.all?.size.orZero() == 3,
                         action = stringResource(
                             id = R.string.see_all
                         )
                     ) {
                         navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopUsers")
                     }
+                    timber("jwhjdkahdjkwhdkjhawjhd ${summaries?.all?.size.orZero()}")
                 }
 
                 if (summaries?.all.orEmpty().isNotEmpty()) {

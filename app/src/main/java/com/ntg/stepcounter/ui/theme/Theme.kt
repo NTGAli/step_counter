@@ -1,7 +1,6 @@
 package com.ntg.stepcounter.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
@@ -13,12 +12,13 @@ import androidx.compose.material.lightColors
 //import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.ntg.stepcounter.models.UserStore
 
 private val DarkColorScheme = darkColors(
     primary = PrimaryDark,
@@ -31,7 +31,8 @@ private val DarkColorScheme = darkColors(
     onBackground = OnBackgroundDark,
     onSurface = OnSurfaceDark,
     error = ERROR500,
-    onError = PRIMARY100,
+    onError = ERROR200,
+    secondaryVariant = SECONDARY500
 )
 
 private val LightColorScheme = lightColors(
@@ -39,13 +40,13 @@ private val LightColorScheme = lightColors(
     primaryVariant = PRIMARY100,
     secondary = SECONDARY500,
     background = Background,
-    surface = Color(0xFFFFFBFE),
+    surface = SECONDARY700,
     onPrimary = OnPrimary,
     onSecondary = Color.White,
     onBackground = OnBackground,
     onSurface = OnSurface,
     error = ERROR500,
-    onError = PRIMARY100,
+    onError = ERROR900,
     secondaryVariant = SECONDARY100
 )
 
@@ -60,20 +61,31 @@ fun StepCounterTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = DarkColorScheme
+
+    val theme = UserStore(LocalContext.current)
+    val userTheme =
+        theme.getTheme.collectAsState(initial = "light")
+
+    val colorScheme = if (userTheme.value == "light"){
+        LightColorScheme
+    }else{
+        DarkColorScheme
+    }
+
     val view = LocalView.current
-    _isDark = true
+    _isDark = userTheme.value == "dark"
+
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.background.toArgb()
             window.navigationBarColor = colorScheme.background.toArgb()
 
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !_isDark
 
             WindowCompat
                 .getInsetsController(window, view)
-                .isAppearanceLightNavigationBars = false
+                .isAppearanceLightNavigationBars = !_isDark
 
         }
     }

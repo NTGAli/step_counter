@@ -26,6 +26,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.Alignment
 import com.ntg.stepcounter.BuildConfig
 import com.ntg.stepcounter.MainActivity.Companion.sensorType
@@ -80,12 +81,17 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
         mutableStateOf("")
     }
 
+    val theme = remember {
+        mutableStateOf("")
+    }
+
     val ctx = LocalContext.current
     val owner = LocalLifecycleOwner.current
 
     showToOther.value = userDataViewModel.isShowReport().collectAsState(initial = true).value
     autoDetect.value = userDataViewModel.isAutoDetect().collectAsState(initial = true).value
     userStatus.value = userDataViewModel.getUserStatus().collectAsState(initial = "").value
+    theme.value = userDataViewModel.getTheme().collectAsState(initial = "light").value
     val uid = userDataViewModel.getUserId().collectAsState(initial = "").value
 
     val userPhone = userDataViewModel.getPhoneNumber().collectAsState(initial = "").value
@@ -96,7 +102,8 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
             Text(modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.account), style = fontBold14(SECONDARY500))
+                .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.account), style = fontBold14(
+                MaterialTheme.colors.primary))
 
             ItemOption(text = stringResource(id = R.string.change_account), onClick = {
                 if (userStatus.value == "1"){
@@ -110,10 +117,22 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
                 navHostController.navigate(Screens.EditPhoneNumberScreen.name)
             })
 
+
             Text(modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.privacy), style = fontBold14(SECONDARY500))
+                .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.theme), style = fontBold14(MaterialTheme.colors.primary))
+
+
+            ItemOption(text = if (theme.value == "light") stringResource(id = R.string.light_mode) else stringResource(id = R.string.dark_mode), onClick = {
+                if (theme.value == "light") userDataViewModel.setTheme("dark") else userDataViewModel.setTheme("light")
+            })
+
+
+            Text(modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.privacy), style = fontBold14(MaterialTheme.colors.primary))
 
             ItemOption(text = stringResource(id = R.string.show_report_to_others), switchChecked = showToOther, enableSwitch = !loadingLock, subText = stringResource(
                 R.string.show_other_desc
@@ -149,7 +168,7 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
             Text(modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.advance), style = fontBold14(SECONDARY500))
+                .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.advance), style = fontBold14(MaterialTheme.colors.primary))
 
             ItemOption(text = stringResource(id = R.string.step_auto_detect), switchChecked = autoDetect, enableSwitch = true, subText = stringResource(
                 R.string.auto_detect_desc
@@ -161,7 +180,7 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
             Text(modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.other), style = fontBold14(SECONDARY500))
+                .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.other), style = fontBold14(MaterialTheme.colors.primary))
 
             ItemOption(text = stringResource(id = R.string.terms_and_conditions), onClick = {
                 navHostController.navigate(Screens.TermAndConditionsScreen.name)
@@ -181,14 +200,9 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
                 },
                 onClick = {}
             ), text = stringResource(id = R.string.version,BuildConfig.VERSION_NAME), style = fontRegular12(
-                SECONDARY500))
+                MaterialTheme.colors.primary))
         }
 
     }
-
-}
-
-@Composable
-fun TermAndConditions(){
 
 }

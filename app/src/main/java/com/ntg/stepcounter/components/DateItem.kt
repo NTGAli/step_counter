@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -51,7 +52,7 @@ fun DateItem(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(if (isSelected) PRIMARY100 else SECONDARY100)
+            .background(if (isSelected) MaterialTheme.colors.primaryVariant else MaterialTheme.colors.secondaryVariant)
             .clickable {
                 onClick.invoke(date)
             }, horizontalAlignment = Alignment.CenterHorizontally
@@ -61,16 +62,12 @@ fun DateItem(
                 .padding(top = 14.dp)
                 .padding(horizontal = 12.dp),
             text = finalDate.split("/")[0],
-            style = fontMedium14(if (isSelected) PRIMARY500 else SECONDARY500)
+            style = fontMedium14(if (isSelected) MaterialTheme.colors.primary else MaterialTheme.colors.secondary)
         )
         Text(
             modifier = Modifier.padding(top = 2.dp, bottom = 14.dp),
             text = finalDate.split("/")[1],
-            style = fontMedium14(if (isSelected) PRIMARY500 else SECONDARY500)
+            style = fontMedium14(if (isSelected) MaterialTheme.colors.primary else MaterialTheme.colors.secondary)
         )
     }
-}
-
-private fun convertToPersianDate(){
-
 }

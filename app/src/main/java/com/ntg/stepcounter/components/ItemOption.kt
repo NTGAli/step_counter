@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -87,14 +88,14 @@ fun ItemOption(
 
                     Text(
                         text = text,
-                        style = fontRegular14(SECONDARY600)
+                        style = fontRegular14(MaterialTheme.colors.surface)
                     )
 
                     if (subText != null) {
                         Text(
                             modifier = Modifier.padding(top = 2.dp),
                             text = subText,
-                            style = fontRegular12(SECONDARY500)
+                            style = fontRegular12(MaterialTheme.colors.secondary)
                         )
                     }
                 }
@@ -112,7 +113,7 @@ fun ItemOption(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = if (painter != null) 32.dp else 16.dp),
-                    color = SECONDARY100
+                    color = MaterialTheme.colors.onSurface
                 )
             }
 
