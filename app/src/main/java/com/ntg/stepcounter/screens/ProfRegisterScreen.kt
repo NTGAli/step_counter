@@ -164,7 +164,7 @@ private fun Content(
             loginViewModel.fieldOfStudy = fieldStudy
         }
 
-        if (fullName.value.isNotEmpty() && loginViewModel.fieldOfStudy != null && fieldStudy.id != -1) {
+        if (fullName.value.isNotEmpty() && loginViewModel.fieldOfStudy != null) {
             applied = true
         }
 
@@ -335,22 +335,22 @@ private fun Content(
                     }
                 }
 
-                if (!isVerified && edit.orFalse() || !edit.orFalse()) {
-                    CustomButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 4.dp),
-                        text = stringResource(id = R.string.im_student),
-                        size = ButtonSize.XL,
-                        style = ButtonStyle.TextOnly
-                    ) {
-                        if (navHostController.previousBackStackEntry?.destination?.route == Screens.SettingsScreen.name) {
-                            navHostController.navigate(Screens.RegisterScreen.name + "?phone=$phoneNumber&edit=${true}")
-                        } else {
-                            navHostController.popBackStack()
-                        }
-                    }
-                }
+//                if (!isVerified && edit.orFalse() || !edit.orFalse()) {
+//                    CustomButton(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(top = 4.dp),
+//                        text = stringResource(id = R.string.im_student),
+//                        size = ButtonSize.XL,
+//                        style = ButtonStyle.TextOnly
+//                    ) {
+//                        if (navHostController.previousBackStackEntry?.destination?.route == Screens.SettingsScreen.name) {
+//                            navHostController.navigate(Screens.RegisterScreen.name + "?phone=$phoneNumber&edit=${true}")
+//                        } else {
+//                            navHostController.popBackStack()
+//                        }
+//                    }
+//                }
             }
 
         }

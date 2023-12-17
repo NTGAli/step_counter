@@ -1,5 +1,6 @@
 package com.ntg.stepcounter.util.extension
 
+import android.app.ActivityManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -7,6 +8,7 @@ import android.graphics.Color
 import android.net.ConnectivityManager
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -19,6 +21,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import com.ntg.stepcounter.R
+import com.ntg.stepcounter.StepCounterService
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.models.Failure
 import com.ntg.stepcounter.models.RGBColor
@@ -221,7 +224,7 @@ fun getColorComponentsForNumber(number: Int): RGBColor {
     val endColor = if (!isDark()) {
         RGBColor(248, 248, 248)
     } else {
-        RGBColor(36, 40, 43)
+        RGBColor(37, 41, 44)
     }
 
     val interpolatedRed = startColor.red + (endColor.red - startColor.red) * number / 32
@@ -231,6 +234,16 @@ fun getColorComponentsForNumber(number: Int): RGBColor {
     return RGBColor(interpolatedRed, interpolatedGreen, interpolatedBlue)
 }
 
+fun Context.foregroundServiceRunning(): Boolean {
+    val activityManager = this.getSystemService(ComponentActivity.ACTIVITY_SERVICE) as ActivityManager
+    activityManager.getRunningServices(Int.MAX_VALUE).forEach {
+        timber("SERVICES_RUNNING :::: ${it.service.className} -- ${StepCounterService::class.java.name}")
+        if (StepCounterService::class.java.name == it.service.className) {
+            return true
+        }
+    }
+    return false
+}
 
 //fun randStr(length: Int = 5) : String {
 //    val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')

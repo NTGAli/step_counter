@@ -127,7 +127,7 @@ private fun Content(
 
                             if (it.data?.isSuccess.orFalse()) {
                                 if (it.data?.message.orEmpty() == "-1") {
-                                    navHostController.navigate(Screens.RegisterScreen.name + "?phone=${phoneNumber.value}")
+                                    navHostController.navigate(Screens.RoleScreen.name + "?phone=${phoneNumber.value}")
                                 } else {
                                     navHostController.navigate(Screens.SignInScreen.name + "?phone=${phoneNumber.value}&state=${it.data?.message.orEmpty()}")
                                 }

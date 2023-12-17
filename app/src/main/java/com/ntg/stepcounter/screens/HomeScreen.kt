@@ -1,5 +1,10 @@
 package com.ntg.stepcounter.screens
 
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Context.NOTIFICATION_SERVICE
+import android.content.Intent
+import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.background
@@ -34,25 +39,24 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavHostController
 import com.ntg.stepcounter.R
+import com.ntg.stepcounter.StepCounterService
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.EmptyWidget
 import com.ntg.stepcounter.components.ErrorMessage
@@ -67,21 +71,15 @@ import com.ntg.stepcounter.models.components.ReportWidgetType
 import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.ERROR300
-import com.ntg.stepcounter.ui.theme.PRIMARY100
-import com.ntg.stepcounter.ui.theme.PRIMARY500
-import com.ntg.stepcounter.ui.theme.PRIMARY900
-import com.ntg.stepcounter.ui.theme.SECONDARY500
-import com.ntg.stepcounter.ui.theme.fontBlack24
 import com.ntg.stepcounter.ui.theme.fontBold12
 import com.ntg.stepcounter.ui.theme.fontBold36
 import com.ntg.stepcounter.ui.theme.fontMedium14
-import com.ntg.stepcounter.ui.theme.fontMedium24
-import com.ntg.stepcounter.ui.theme.fontMedium36
 import com.ntg.stepcounter.ui.theme.fontRegular12
+import com.ntg.stepcounter.util.Constants.NOTIFICATION_ID
 import com.ntg.stepcounter.util.extension.calculateRadius
 import com.ntg.stepcounter.util.extension.checkInternet
 import com.ntg.stepcounter.util.extension.daysUntilToday
-import com.ntg.stepcounter.util.extension.divideNumber
+import com.ntg.stepcounter.util.extension.foregroundServiceRunning
 import com.ntg.stepcounter.util.extension.getColorComponentsForNumber
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.stepsToCalories
@@ -90,11 +88,7 @@ import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.util.extension.toast
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.lang.Thread.sleep
 
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -104,13 +98,12 @@ fun HomeScreen(
     stepViewModel: StepViewModel,
     userDataViewModel: UserDataViewModel
 ) {
-
+    startService(LocalContext.current)
     var topBarHeight by remember { mutableFloatStateOf(0f) }
     var radius by remember { mutableFloatStateOf(32f) }
 //    var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
     val backgroundColor = MaterialTheme.colors.onBackground
     var topBarColor by remember { mutableStateOf(RGBColor(backgroundColor.red.toInt(), backgroundColor.green.toInt(), backgroundColor.blue.toInt())) }
-    timber("lhjsdsjdjkahdkjhdkjhwa${backgroundColor.red.toInt()} -- ${backgroundColor.green.toInt()} -- ${backgroundColor.blue.toInt()}")
     var contentHeight by remember { mutableFloatStateOf(0f) }
     val topOffset = with(LocalDensity.current) { topBarHeight.toDp() }
 
@@ -227,7 +220,7 @@ private fun TopBar(
                 val height = layoutCoordinates.size.height
                 layoutCoordinate.invoke(height.toFloat())
             },
-        backgroundColor = Color(topBarColor.red, topBarColor.blue, topBarColor.green),
+        backgroundColor = Color(topBarColor.red, topBarColor.green, topBarColor.blue),
         title = {
             Text(
                 text = stringResource(id = R.string.app_name_farsi),
@@ -285,7 +278,6 @@ private fun ReportItem(
     contentHeight: (Float) -> Unit,
 ) {
     val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
-    val ctx = LocalContext.current
     val userStepsToday = stepViewModel.getToday().observeAsState().value
 
     var stepsOfToday by remember {
@@ -336,9 +328,6 @@ private fun ReportItem(
             TextAnimated(stepsOfToday) { digit ->
                 Text(
                     modifier = Modifier
-//                        .clickable {
-//                        ccc++
-//                    }
                         .padding(top = 24.dp, bottom = 8.dp),
                     text = digit.digitChar.toString(),
                     style = fontBold36(MaterialTheme.colors.onPrimary)
@@ -359,6 +348,20 @@ private fun ReportItem(
             )
         }
     }
+}
+
+private fun startService(context: Context){
+        timber("isInBackgroundStarted ")
+        val serviceIntent = Intent(context, StepCounterService::class.java)
+        if (!context.foregroundServiceRunning()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+                timber("isInBackgroundStarted ::: ForegroundService")
+            } else {
+                context.startService(serviceIntent)
+                timber("isInBackgroundStarted ::: Service")
+            }
+        }
 }
 
 
@@ -392,10 +395,9 @@ private fun Content(
     if (internetConnection && !loadData) {
         userDataViewModel.getUserId().collectAsState(initial = "").value.let { userId ->
 
-
             if (userId.isNotEmpty()) {
 
-                LaunchedEffect(key1 = Unit, block = {
+                LaunchedEffect(key1 = loadData, block = {
 
                     stepViewModel.summariesData(userId, summaries == null || tryAgain)
                         .observe(owner) {
@@ -403,7 +405,7 @@ private fun Content(
                                 is NetworkResult.Error -> {
                                     timber("SUMMARISE ::: ERR :: ${it.message}")
                                     error = true
-                                    loadData = true
+                                    loadData = false
                                 }
 
                                 is NetworkResult.Loading -> {
@@ -517,7 +519,7 @@ private fun Content(
                         modifier = Modifier
                             .padding(top = 24.dp, bottom = 8.dp)
                             .padding(horizontal = 16.dp),
-                        title = stringResource(id = R.string.top_rank_base_fos),
+                        title = stringResource(id = R.string.top_rank_base_title),
                         showBtn = summaries?.fos?.size.orZero() == 3,
                         action = stringResource(
                             id = R.string.see_all
@@ -558,7 +560,6 @@ private fun Content(
                     ) {
                         navHostController.navigate(Screens.SeeMoreScreen.name + "?type=TopUsers")
                     }
-                    timber("jwhjdkahdjkwhdkjhawjhd ${summaries?.all?.size.orZero()}")
                 }
 
                 if (summaries?.all.orEmpty().isNotEmpty()) {

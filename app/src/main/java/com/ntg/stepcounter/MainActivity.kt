@@ -55,6 +55,7 @@ import com.ntg.stepcounter.ui.theme.StepCounterTheme
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.util.StepDetector
 import com.ntg.stepcounter.util.extension.dateOfToday
+import com.ntg.stepcounter.util.extension.foregroundServiceRunning
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.timber
@@ -145,23 +146,6 @@ class MainActivity : ComponentActivity() {
             mutableStateOf("")
         }
 
-
-
-        if (uid.orEmpty().isNotEmpty()){
-            timber("isInBackgroundStarted ::: UID ::: $uid")
-            val serviceIntent = Intent(this, StepCounterService::class.java)
-            if (!foregroundServiceRunning()){
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(serviceIntent)
-                }else{
-                    startService(serviceIntent)
-                }
-            }
-        }
-
-
-
-
         if (uid != null) {
             if (uid.isNotEmpty() && !syncCalled) {
                 syncCalled = true
@@ -218,18 +202,6 @@ class MainActivity : ComponentActivity() {
 
 
     }
-
-    private fun foregroundServiceRunning(): Boolean {
-        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
-        activityManager.getRunningServices(Int.MAX_VALUE).forEach {
-            timber("SERVICES_RUNNING :::: ${it.service.className} -- ${StepCounterService::class.java.name}")
-            if (StepCounterService::class.java.name == it.service.className) {
-                return true
-            }
-        }
-        return false
-    }
-
 }
 
 @OptIn(ExperimentalPermissionsApi::class)

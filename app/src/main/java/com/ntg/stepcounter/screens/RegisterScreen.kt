@@ -417,18 +417,18 @@ fun RegisterScreen(
                         }
                     }
 
-                    if (!isVerified && edit.orFalse() || !edit.orFalse()) {
-                        CustomButton(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 4.dp),
-                            text = stringResource(id = R.string.im_prof),
-                            size = ButtonSize.XL,
-                            style = ButtonStyle.TextOnly
-                        ) {
-                            navHostController.navigate(Screens.ProfRegisterScreen.name + "?phone=$phoneNumber&edit=$edit")
-                        }
-                    }
+//                    if (!isVerified && edit.orFalse() || !edit.orFalse()) {
+//                        CustomButton(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(top = 4.dp),
+//                            text = stringResource(id = R.string.im_prof),
+//                            size = ButtonSize.XL,
+//                            style = ButtonStyle.TextOnly
+//                        ) {
+//                            navHostController.navigate(Screens.ProfRegisterScreen.name + "?phone=$phoneNumber&edit=$edit")
+//                        }
+//                    }
                 }
 
             }

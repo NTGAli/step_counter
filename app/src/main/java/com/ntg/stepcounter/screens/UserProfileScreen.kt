@@ -232,6 +232,10 @@ fun UserProfileScreen(
                             ctx.getString(R.string.prof_of, it.data?.data?.fosName.orEmpty())
                         }
 
+                        "3" -> {
+                            ctx.getString(R.string.employee)
+                        }
+
                         else -> ""
                     }
                     loading = false
@@ -363,7 +367,7 @@ private fun TopBar(
                 val height = layoutCoordinates.size.height
                 appbarHeight.invoke(height.toFloat())
             },
-        backgroundColor = Color(topBarColor.red, topBarColor.blue, topBarColor.green),
+        backgroundColor = Color(topBarColor.red, topBarColor.green, topBarColor.blue),
         title = {
             Text(
                 text = stringResource(id = R.string.profile),

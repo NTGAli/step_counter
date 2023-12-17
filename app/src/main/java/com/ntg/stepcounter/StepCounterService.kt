@@ -14,6 +14,7 @@ import android.hardware.SensorManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -25,6 +26,7 @@ import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.UserStore
 import com.ntg.stepcounter.models.res.StepSynced
+import com.ntg.stepcounter.ui.theme.PRIMARY500
 import com.ntg.stepcounter.util.Constants
 import com.ntg.stepcounter.util.Constants.NOTIFICATION_CHANNEL_ID
 import com.ntg.stepcounter.util.Constants.NOTIFICATION_ID
@@ -50,8 +52,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepListener {
 
-    private lateinit var notificationManager: NotificationManager
-    private lateinit var notification: Notification
     private var mSteps: Int = 0
     private lateinit var notificationBuilder: NotificationCompat.Builder
     private val mServiceLifecycleDispatcher = ServiceLifecycleDispatcher(this)
@@ -68,6 +68,8 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
     private var stepsWaitForSync = 0
     private lateinit var wakeLock: PowerManager.WakeLock
 
+    private lateinit var notificationManager: NotificationManager
+    private lateinit var notification: Notification
 
     @Inject
     lateinit var appDB: AppDB
@@ -92,6 +94,7 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
 
     }
 
+    var status = ""
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -121,6 +124,8 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
             startForeground(NOTIFICATION_ID, notification)
         } catch (e: Exception) {
             e.printStackTrace()
+            timber("BackgroundService :: ${e.message}")
+            stopSelf()
         }
 
 
@@ -140,11 +145,12 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
                 }
             }
             try {
-                notificationBuilder.setContentText(stepsCount.toString())
+                notificationBuilder.setContentText(stepsCount.toString() + "---- $status")
                 notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+
         }
 
         val scope = CoroutineScope(Dispatchers.IO)
@@ -152,6 +158,16 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
         runBlocking(Dispatchers.IO) {
             userId = userStore.getUserID.first()
         }
+
+
+//        var i = 1
+//        scope.launch {
+//            while (i != 10000){
+//                sleep(700)
+//                insertStep(i)
+//                i++
+//            }
+//        }
 
 
         appDB.stepDao().getUnSyncedStepsOfDate().observe(this@StepCounterService) { unSyncedList ->
@@ -189,11 +205,14 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
 
     private fun syncStep(scope: CoroutineScope, totalSteps: Int, date: String) {
         stepsWaitForSync = totalSteps
+        status = totalSteps.toString()
         scope.launch {
 
             timber("TOTAL_STEPS_NEED_TO_SYNC ::: START")
+            status = "start"
             if (this@StepCounterService.checkInternet()) {
                 timber("TOTAL_STEPS_NEED_TO_SYNC ::: INTERNET-OK")
+                status = "OK"
 
                 val call = apiService.syncStepsInBack(date, totalSteps, userId)
                 call.enqueue(object : Callback<ResponseBody<StepSynced?>> {
@@ -202,6 +221,7 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
                         response: Response<ResponseBody<StepSynced?>>
                     ) {
                         if (response.isSuccessful) {
+                            status = "Successful"
                             timber("TOTAL_STEPS_NEED_TO_SYNC ::: STEP-SYNCED")
                             val data = response.body()
                             stepSynced = totalSteps
@@ -239,7 +259,8 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
 
 
         notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.icons8_trainers_1)
+            .setSmallIcon(R.drawable.icons8_sneakers_1)
+            .setColor(PRIMARY500.toArgb())
             .setContentTitle(getString(R.string.step_counter))
             .setContentText(getString(R.string.counting))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -315,17 +336,18 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
 
     }
 
-
-
     override fun step(timeNs: Long) {
         mSteps++
         insertStep(mSteps)
     }
 
+
+
     override fun onDestroy() {
         super.onDestroy()
         timber("BackgroundService:::destroy")
         stopSelf()
+        sensorManager = null
         wakeLock.release()
     }
 

@@ -315,6 +315,10 @@ fun ProfileScreen(
                                     ctx.getString(R.string.prof)
                                 }
 
+                                "3" ->{
+                                    stringResource(id = R.string.employee)
+                                }
+
                                 else -> status
                             },
                             style = fontRegular12(MaterialTheme.colors.primary)
@@ -766,7 +770,7 @@ private fun UserDataSteps(
                             id = R.string.days_ago,
                             daysUntilToday(dateSelected)
                         )
-                    }, style = fontMedium12(SECONDARY500)
+                    }, style = fontMedium12(MaterialTheme.colors.secondary)
                 )
 
                 Text(
@@ -778,7 +782,7 @@ private fun UserDataSteps(
                     text = stringResource(
                         id = R.string.step_format,
                         divideNumber(countSelected)
-                    ), style = fontMedium12(SECONDARY500)
+                    ), style = fontMedium12(MaterialTheme.colors.secondary)
                 )
 
             }
@@ -791,7 +795,7 @@ private fun UserDataSteps(
                 ),
                 text = stringResource(id = R.string.no_record_yest),
                 style = fontMedium12(
-                    SECONDARY500
+                    MaterialTheme.colors.secondary
                 )
             )
         }
@@ -805,13 +809,14 @@ private fun ProfileAppbar(
     topBarColor: RGBColor,
     layoutCoordinatePos: (Float) -> Unit
 ) {
+
     TopAppBar(
         modifier = Modifier
             .onGloballyPositioned { layoutCoordinates ->
                 val a = layoutCoordinates.size.height
                 layoutCoordinatePos.invoke(a.toFloat())
             },
-        backgroundColor = Color(topBarColor.red, topBarColor.blue, topBarColor.green),
+        backgroundColor = Color(topBarColor.red, topBarColor.green, topBarColor.blue),
         title = {
             Text(
                 text = stringResource(id = R.string.profile),

@@ -76,7 +76,7 @@
     <string name="your_rank_format">"رتبه ی شما: %s"</string>
     <string name="top_today">بیشترین های امروز</string>
     <string name="see_all">مشاهده همه</string>
-    <string name="top_rank_base_fos">بیشترین رکورد بر اساس رشته</string>
+    <string name="top_rank_base_title">بیشترین رکورد بر اساس عنوان</string>
     <string name="top_rank_base_user">بیشترین رکورد بر اساس افراد</string>
     <string name="student_format">دانشجوی %s رشته ی %s</string>
     <string name="doctor">دکتری</string>
@@ -133,5 +133,10 @@
     <string name="theme">تم</string>
     <string name="light_mode">حالت روشن</string>
     <string name="dark_mode">حالت تاریک</string>
+    <string name="im">من ...</string>
+    <string name="im_employee">کارمند هستم</string>
+    <string name="employee_id">کد کارمندی</string>
+    <string name="employee_id_empty">کد کارمندی نمی تواند خالی باشد</string>
+    <string name="employee">کارمند</string>
 
 </resources>

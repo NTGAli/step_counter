@@ -17,6 +17,7 @@ import com.ntg.stepcounter.components.PrivacyPolicyScreen
 import com.ntg.stepcounter.components.TermAndConditionsScreen
 import com.ntg.stepcounter.screens.AccountScreen
 import com.ntg.stepcounter.screens.EditPhoneNumberScreen
+import com.ntg.stepcounter.screens.EmployeeScreen
 import com.ntg.stepcounter.screens.FieldOfStudyDetailsScreen
 import com.ntg.stepcounter.screens.FieldStudiesScreen
 import com.ntg.stepcounter.screens.HomeScreen
@@ -26,6 +27,7 @@ import com.ntg.stepcounter.screens.PhoneNumberScreen
 import com.ntg.stepcounter.screens.ProfRegisterScreen
 import com.ntg.stepcounter.screens.ProfileScreen
 import com.ntg.stepcounter.screens.RegisterScreen
+import com.ntg.stepcounter.screens.RoleScreen
 import com.ntg.stepcounter.screens.SeeMoreScreen
 import com.ntg.stepcounter.screens.SettingsScreen
 import com.ntg.stepcounter.screens.SignInScreen
@@ -157,6 +159,48 @@ fun AppNavHost(
                 it.arguments?.getString("phone"),
                 it.arguments?.getBoolean("edit")
             )
+        }
+
+
+        composable(
+            Screens.EmployeeScreen.name + "?phone={phone}&edit={edit}",
+            arguments = listOf(
+                navArgument("phone")
+                {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("edit")
+                {
+                    type = NavType.BoolType
+                    defaultValue = false
+                })
+
+        ) {
+            EmployeeScreen(
+                navController,
+                loginViewModel,
+                userDataViewModel,
+                it.arguments?.getString("phone"),
+                it.arguments?.getBoolean("edit").orFalse()
+            )
+        }
+
+
+        composable(
+            Screens.RoleScreen.name + "?phone={phone}",
+            arguments = listOf(
+                navArgument("phone")
+                {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
+        ) {
+            RoleScreen(
+                navController,
+                it.arguments?.getString("phone").orEmpty(),
+                )
         }
 
 

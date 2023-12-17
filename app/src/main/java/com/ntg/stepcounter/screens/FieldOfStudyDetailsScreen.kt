@@ -350,7 +350,7 @@ private fun AppBarFos(
                 val height = layoutCoordinates.size.height
                 appbarHeight.invoke(height.toFloat())
             },
-        backgroundColor = Color(topBarColor.red, topBarColor.blue, topBarColor.green),
+        backgroundColor = Color(topBarColor.red, topBarColor.green, topBarColor.blue),
         title = {
             Text(
                 text = stringResource(id = R.string.field),

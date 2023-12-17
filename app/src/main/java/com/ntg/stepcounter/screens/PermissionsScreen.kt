@@ -38,6 +38,7 @@ import com.ntg.stepcounter.ui.theme.SECONDARY800
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.util.extension.OnLifecycleEvent
 import com.ntg.stepcounter.util.extension.timber
+import com.ntg.stepcounter.vm.UserDataViewModel
 
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -184,8 +185,9 @@ private fun Content(navHostController: NavHostController) {
     OnLifecycleEvent(onEvent = { _, event ->
         if (event == Lifecycle.Event.ON_RESUME){
             batteryState = pm.isIgnoringBatteryOptimizations(packageName)
-            if (physicalPermission && notificationStatusPermission && batteryState)
+            if (physicalPermission && notificationStatusPermission && batteryState){
                 navHostController.navigate(Screens.HomeScreen.name)
+            }
         }
     })
 
