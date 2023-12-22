@@ -6,6 +6,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -39,15 +40,9 @@ fun SampleItem(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .clickable(
-                onClick = {
-                    onClick?.invoke(title, id, radioSelect.value)
-                },
-                indication = rememberRipple(
-                    color = SECONDARY300
-                ),
-                interactionSource = remember { MutableInteractionSource() }
-            )
+            .clickable {
+                onClick?.invoke(title, id, radioSelect.value)
+            }
     ) {
         Row {
             if (enableRadioButton) {
@@ -64,21 +59,26 @@ fun SampleItem(
                     .padding(horizontal = 4.dp)
                     .weight(1f),
                 text = title,
-                style = fontMedium16(SECONDARY500)
+                style = fontMedium16(MaterialTheme.colors.secondary)
             )
 
             if (isBookmarked) {
                 Icon(
                     Icons.Rounded.Bookmark,
                     contentDescription = "bookmarked",
-                    modifier = Modifier.align(Alignment.CenterVertically).padding(end = 8.dp).size(16.dp),
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .padding(end = 8.dp)
+                        .size(16.dp),
                     tint = SECONDARY500
                 )
             }
 
             if (painter != null) {
                 Image(
-                    modifier = Modifier.align(Alignment.CenterVertically).padding(end = 8.dp),
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .padding(end = 8.dp),
                     painter = painter,
                     contentDescription = "imageSampleItem"
                 )

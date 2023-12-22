@@ -16,12 +16,14 @@ import androidx.navigation.navArgument
 import com.ntg.stepcounter.components.PrivacyPolicyScreen
 import com.ntg.stepcounter.components.TermAndConditionsScreen
 import com.ntg.stepcounter.screens.AccountScreen
+import com.ntg.stepcounter.screens.DeadVersionScreen
 import com.ntg.stepcounter.screens.EditPhoneNumberScreen
 import com.ntg.stepcounter.screens.EmployeeScreen
 import com.ntg.stepcounter.screens.FieldOfStudyDetailsScreen
 import com.ntg.stepcounter.screens.FieldStudiesScreen
 import com.ntg.stepcounter.screens.HomeScreen
 import com.ntg.stepcounter.screens.LoginScreen
+import com.ntg.stepcounter.screens.MessagesBoxScreen
 import com.ntg.stepcounter.screens.PermissionsScreen
 import com.ntg.stepcounter.screens.PhoneNumberScreen
 import com.ntg.stepcounter.screens.ProfRegisterScreen
@@ -33,10 +35,12 @@ import com.ntg.stepcounter.screens.SettingsScreen
 import com.ntg.stepcounter.screens.SignInScreen
 import com.ntg.stepcounter.screens.SocialListScreen
 import com.ntg.stepcounter.screens.SocialScreen
+import com.ntg.stepcounter.screens.UpdateScreen
 import com.ntg.stepcounter.screens.UserClapsScreen
 import com.ntg.stepcounter.screens.UserProfileScreen
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.vm.LoginViewModel
+import com.ntg.stepcounter.vm.MessageViewModel
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
@@ -50,6 +54,7 @@ fun AppNavHost(
     userDataViewModel: UserDataViewModel,
     socialNetworkViewModel: SocialNetworkViewModel,
     loginViewModel: LoginViewModel,
+    messageViewModel: MessageViewModel,
     onDestinationChangedListener: (NavController, NavDestination, Bundle?) -> Unit
 ) {
 
@@ -231,6 +236,15 @@ fun AppNavHost(
             FieldStudiesScreen(navController, loginViewModel)
         }
 
+        composable(Screens.MessagesBoxScreen.name+ "?uid={uid}",
+            arguments = listOf(navArgument("uid")
+            {
+                type = NavType.StringType
+                defaultValue = ""
+            })) {
+            MessagesBoxScreen(navController, messageViewModel,it.arguments?.getString("uid").orEmpty())
+        }
+
 
         composable(
             Screens.UserProfileScreen.name + "?uid={uid}",
@@ -301,6 +315,14 @@ fun AppNavHost(
 
         composable(Screens.PrivacyPolicyScreen.name) {
             PrivacyPolicyScreen()
+        }
+
+        composable(Screens.UpdateScreen.name) {
+            UpdateScreen(navController,userDataViewModel)
+        }
+
+        composable(Screens.DeadVersionScreen.name) {
+            DeadVersionScreen(navController)
         }
 
 

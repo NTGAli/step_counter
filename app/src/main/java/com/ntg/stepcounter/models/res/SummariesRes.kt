@@ -6,4 +6,7 @@ data class SummariesRes(
     val today: List<SummaryRes>? = null,
     val fos: List<SummaryRes>? = null,
     val all: List<SummaryRes>? = null,
+    val messagesId: List<String>? = null,
+    val versionCode: Int? = null,
+    val deadVersionCode: Int,
 )

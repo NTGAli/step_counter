@@ -25,6 +25,7 @@ import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetScaffoldState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
@@ -43,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -55,6 +57,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavHostController
+import com.google.gson.Gson
+import com.ntg.stepcounter.BuildConfig
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.StepCounterService
 import com.ntg.stepcounter.api.NetworkResult
@@ -68,19 +72,24 @@ import com.ntg.stepcounter.components.Title
 import com.ntg.stepcounter.models.ErrorStatus
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.components.ReportWidgetType
+import com.ntg.stepcounter.models.res.Achievement
 import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.ERROR300
 import com.ntg.stepcounter.ui.theme.fontBold12
 import com.ntg.stepcounter.ui.theme.fontBold36
+import com.ntg.stepcounter.ui.theme.fontMedium10
+import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.util.Constants.NOTIFICATION_ID
 import com.ntg.stepcounter.util.extension.calculateRadius
 import com.ntg.stepcounter.util.extension.checkInternet
 import com.ntg.stepcounter.util.extension.daysUntilToday
+import com.ntg.stepcounter.util.extension.diffNum
 import com.ntg.stepcounter.util.extension.foregroundServiceRunning
 import com.ntg.stepcounter.util.extension.getColorComponentsForNumber
+import com.ntg.stepcounter.util.extension.nor
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.stepsToCalories
 import com.ntg.stepcounter.util.extension.stepsToKilometers
@@ -111,6 +120,10 @@ fun HomeScreen(
         mutableStateOf(true)
     }
 
+    var newUpdate by remember {
+        mutableStateOf(false)
+    }
+
     var username by remember {
         mutableStateOf(".")
     }
@@ -124,7 +137,12 @@ fun HomeScreen(
         mutableIntStateOf(-1)
     }
 
+    var messagesID by remember {
+        mutableStateOf(emptyList<String>())
+    }
+
     claps = userDataViewModel.getClaps().collectAsState(initial = -1).value
+
     val ctx = LocalContext.current
 
     username = userDataViewModel.getUsername().collectAsState(initial = ".").value
@@ -163,7 +181,7 @@ fun HomeScreen(
             modifier = Modifier.background(MaterialTheme.colors.onBackground),
             sheetPeekHeight = sheetPeekHeight,
             topBar = {
-                TopBar(navHostController, topBarColor, username, claps, newClaps) {
+                TopBar(navHostController,userDataViewModel, topBarColor, username, claps, newClaps, messagesID, newUpdate) {
                     topBarHeight = it
                 }
             },
@@ -173,10 +191,17 @@ fun HomeScreen(
                     userDataViewModel,
                     stepViewModel,
                     sheetHeight,
-                    animateRotation
-                ) {
-                    newClaps = it
-                }
+                    animateRotation,
+                    newClaps = {
+                        newClaps = it
+                    },
+                    messagesIds = {
+                        messagesID = it.orEmpty()
+                    },
+                    update = {
+                        newUpdate = it
+                    }
+                )
             },
             scaffoldState = scaffoldState,
             sheetElevation = radius.dp / 2,
@@ -208,12 +233,18 @@ fun HomeScreen(
 @Composable
 private fun TopBar(
     navHostController: NavHostController,
+    userDataViewModel: UserDataViewModel,
     topBarColor: RGBColor,
     username: String,
     claps: Int,
     newClaps: Int,
+    messageId: List<String>,
+    newUpdate: Boolean,
     layoutCoordinate: (Float) -> Unit
 ) {
+
+    val uid = userDataViewModel.getUserId().collectAsState(initial = "").value
+
     TopAppBar(
         modifier = Modifier
             .onGloballyPositioned { layoutCoordinates ->
@@ -232,7 +263,44 @@ private fun TopBar(
         },
         actions = {
 
-            Box(modifier = Modifier.padding(end = 8.dp)) {
+            if (newUpdate){
+                IconButton(onClick = {
+                    navHostController.navigate(Screens.UpdateScreen.name)
+                }) {
+                    Icon(painter = painterResource(id = R.drawable.arrow_down_square_contained), contentDescription = null, tint = MaterialTheme.colors.secondary)
+                }
+            }
+
+            IconButton(onClick = {
+                navHostController.navigate(Screens.MessagesBoxScreen.name+"?uid=$uid")
+            }) {
+                Box {
+                    Icon(painter = painterResource(id = R.drawable.bell_02), contentDescription = null, tint = MaterialTheme.colors.secondary)
+                    if (messageId.isNotEmpty()){
+                            Text(
+                                modifier =  Modifier
+                                    .padding(start = 6.dp)
+                                    .drawBehind {
+                                        drawCircle(
+                                            color = ERROR300,
+                                            radius = 24f
+                                        )
+                                    }
+                                    .align(
+                                        Alignment.TopStart
+                                    ),
+                                text = messageId.size.toString(),
+                                style = fontMedium12(
+                                    Color.White
+                                )
+                            )
+                    }
+
+                }
+
+            }
+
+            Box(modifier = Modifier.padding(end = 8.dp, start = 16.dp)) {
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
@@ -266,6 +334,8 @@ private fun TopBar(
                     )
                 }
             }
+
+
         },
         elevation = 0.dp
     )
@@ -295,7 +365,6 @@ private fun ReportItem(
 
     Box(
         Modifier
-//            .background(Color.LightGray)
             .onGloballyPositioned { layoutCoordinates ->
                 val boxHeight = layoutCoordinates.size.height
                 contentHeight.invoke(boxHeight.toFloat())
@@ -372,7 +441,10 @@ private fun Content(
     stepViewModel: StepViewModel,
     sheetHeight: Dp,
     animateRotation: Animatable<Float, AnimationVector1D>,
-    newClaps: (Int) -> Unit
+    newClaps: (Int) -> Unit,
+    messagesIds: (List<String>?) -> Unit,
+    update: (Boolean) -> Unit = {},
+
 ) {
     val ctx = LocalContext.current
     var internetConnection = ctx.checkInternet()
@@ -416,6 +488,20 @@ private fun Content(
                                 is NetworkResult.Success -> {
                                     summaries = it.data?.data
                                     newClaps.invoke(it.data?.data?.claps ?: -1)
+                                    if (it.data?.data?.messagesId.orEmpty().isNotEmpty()){
+                                        messagesIds.invoke(it.data?.data?.messagesId)
+                                    }
+
+
+                                    if (it.data?.data?.deadVersionCode != null){
+                                        userDataViewModel.setDeadCode(it.data.data.deadVersionCode.orZero())
+                                    }
+
+
+                                    if (it.data?.data?.versionCode != null){
+                                        update.invoke(it.data.data.versionCode > BuildConfig.VERSION_CODE)
+                                    }
+
                                     loadData = false
                                 }
                             }

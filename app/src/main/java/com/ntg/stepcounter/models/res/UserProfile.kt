@@ -18,6 +18,7 @@ data class UserProfile(
     val socials: List<SocialRes>? = null,
     val stepsList: List<StepRes>? = null,
     val achievement: Achievement? = null,
+    val messages: String? = null,
 
 
 )

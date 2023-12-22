@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.ConnectivityManager
+import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -245,6 +246,24 @@ fun Context.foregroundServiceRunning(): Boolean {
     return false
 }
 
+fun List<String>.diffNum(list: List<String>): Int {
+    val maxSize = maxOf(this.size, list.size)
+    var differences = 0
+
+    for (i in 0 until maxSize) {
+        val element1 = this.getOrNull(i) ?: "" // Use empty string if index is out of bounds
+        val element2 = list.getOrNull(i) ?: "" // Use empty string if index is out of bounds
+
+        if (element1 != element2) {
+            differences++
+        }
+    }
+
+    return differences
+}
+
+fun List<String>.nor(list: List<String>) = (list - this).size
+
 //fun randStr(length: Int = 5) : String {
 //    val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
 //    return (1..length)
@@ -254,6 +273,11 @@ fun Context.foregroundServiceRunning(): Boolean {
 
 fun Context.checkInternet(): Boolean {
     return (this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).activeNetworkInfo != null
+}
+
+fun Context.openInBrowser(url: String){
+    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    this.startActivity(browserIntent)
 }
 
 suspend fun <T> safeApiCall(

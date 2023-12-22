@@ -45,7 +45,6 @@ import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.lang.Thread.sleep
 import javax.inject.Inject
 
 
@@ -83,6 +82,7 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
     private var sensorManager: SensorManager? = null
     private var userId = ""
 
+
     override val lifecycle: Lifecycle
         get() = mServiceLifecycleDispatcher.lifecycle
 
@@ -113,7 +113,7 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
             sensorManager!!.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
             Constants.STEP_COUNTER
         } else if (accSensor != null) {
-            sensorManager!!.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI)
+            sensorManager!!.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_GAME)
             Constants.ACCELEROMETER
         } else {
             "NOT SUPPORT"

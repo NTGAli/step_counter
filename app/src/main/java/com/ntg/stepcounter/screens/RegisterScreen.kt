@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Text
@@ -52,8 +53,11 @@ import com.ntg.stepcounter.nav.Screens
 import com.ntg.stepcounter.ui.theme.PRIMARY100
 import com.ntg.stepcounter.ui.theme.PRIMARY900
 import com.ntg.stepcounter.ui.theme.SECONDARY200
+import com.ntg.stepcounter.ui.theme.SECONDARY700
+import com.ntg.stepcounter.ui.theme.SECONDARY900
 import com.ntg.stepcounter.ui.theme.TERTIARY100
 import com.ntg.stepcounter.ui.theme.TERTIARY900
+import com.ntg.stepcounter.ui.theme.backgroundScrim
 import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.util.extension.notEmptyOrNull
 import com.ntg.stepcounter.util.extension.notNull
@@ -173,7 +177,7 @@ fun RegisterScreen(
 
     }
 
-    ModalBottomSheetLayout(sheetState = sheetState, sheetContent = {
+    ModalBottomSheetLayout(sheetState = sheetState, sheetBackgroundColor = MaterialTheme.colors.onBackground, scrimColor = backgroundScrim, sheetContent = {
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
@@ -181,10 +185,10 @@ fun RegisterScreen(
                     .padding(vertical = 24.dp)
                     .width(32.dp)
                     .height(4.dp)
-                    .background(shape = RoundedCornerShape(16.dp), color = SECONDARY200)
+                    .background(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colors.secondary)
             )
 
-            LazyColumn {
+            LazyColumn(modifier = Modifier.background(MaterialTheme.colors.onBackground)) {
                 items(gradeItems) {
                     SampleItem(
                         modifier = Modifier.padding(horizontal = 24.dp),

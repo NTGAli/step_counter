@@ -6,10 +6,12 @@ import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.res.AccountStateRes
 import com.ntg.stepcounter.models.res.Achievement
 import com.ntg.stepcounter.models.res.FosDetailsRes
+import com.ntg.stepcounter.models.res.MessageRes
 import com.ntg.stepcounter.models.res.StepRes
 import com.ntg.stepcounter.models.res.StepSynced
 import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.models.res.SummaryRes
+import com.ntg.stepcounter.models.res.UpdateRes
 import com.ntg.stepcounter.models.res.UserProfile
 import com.ntg.stepcounter.models.res.UserRes
 import retrofit2.Call
@@ -172,6 +174,13 @@ interface ApiService {
         @Field("isLock") isLock: Boolean
     ): Response<ResponseBody<Boolean?>>
 
+    @FormUrlEncoded
+    @POST("fcmUpdate.php")
+    suspend fun syncFCM(
+        @Field("uid") uid: String,
+        @Field("fcm") fcm: String
+    ): Response<ResponseBody<String?>>
+
 
     @FormUrlEncoded
     @POST("deleteSocial.php")
@@ -179,6 +188,24 @@ interface ApiService {
         @Field("uid") uid: String,
         @Field("id") id: Int
     ): Response<ResponseBody<Int?>>
+
+    @FormUrlEncoded
+    @POST("Messages.php")
+    suspend fun messages(
+        @Field("uid") uid: String,
+    ): Response<ResponseBody<List<MessageRes>?>>
+
+    @FormUrlEncoded
+    @POST("ReadMessage.php")
+    suspend fun readMessages(
+        @Field("ids") ids: String,
+        @Field("uid") uid: String
+    ): Response<ResponseBody<String?>>
+
+
+    @POST("updateInfo.php")
+    suspend fun updateInfo(
+    ): Response<ResponseBody<UpdateRes?>>
 
 
 }

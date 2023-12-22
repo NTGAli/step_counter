@@ -22,5 +22,8 @@ enum class Screens {
     TermAndConditionsScreen,
     PrivacyPolicyScreen,
     EmployeeScreen,
-    RoleScreen
+    RoleScreen,
+    MessagesBoxScreen,
+    UpdateScreen,
+    DeadVersionScreen,
 }

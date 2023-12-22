@@ -153,6 +153,7 @@ private fun Content(
                                 userDataViewModel.setUsername(it.data?.data?.fullName.orEmpty())
                                 userDataViewModel.setGradeId(it.data?.data?.gradeId.orZero())
                                 userDataViewModel.setFosId(it.data?.data?.fosId.orZero())
+                                userDataViewModel.satMessagesId(it.data?.data?.messages.orEmpty())
 
                             } else {
                                 context.toast(context.getString(R.string.wrong_info))

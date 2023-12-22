@@ -122,7 +122,8 @@
     <string name="phone_updated">شماره تلفن شما آپدیت  شد.</string>
     <string name="field">رشته</string>
     <string name="sensor_not_support">متاسفانه این برنامه برای گوشی شما پشتیبانی نمی شود.</string>
-    <string name="version">ورژن %s</string>
+    <string name="version_format">ورژن %s</string>
+    <string name="version">ورژن</string>
     <string name="step_counter">قدم شمار</string>
     <string name="counting">در حال شمارش ..</string>
     <string name="block_user">حساب کاربری شما مسدود شده است!</string>
@@ -138,5 +139,12 @@
     <string name="employee_id">کد کارمندی</string>
     <string name="employee_id_empty">کد کارمندی نمی تواند خالی باشد</string>
     <string name="employee">کارمند</string>
+    <string name="messages_box">صندوق پیام</string>
+    <string name="exit">خروج از حساب کاربری</string>
+    <string name="update">بروزرسانی</string>
+    <string name="size">حجم</string>
+    <string name="mb_format">%s مگابایت</string>
+    <string name="dead_version_description">برنامه ی شما نیاز به بروزرسانی دارد.</string>
+    <string name="download">دانلود</string>
 
 </resources>

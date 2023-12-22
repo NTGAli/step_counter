@@ -22,6 +22,7 @@ val PrimaryDark = Color(0xFFA5C8FF)
 val PrimaryContainer = Color(0xFF004786)
 val SecondaryDark = Color(0xFFB6C9D8)
 val SecondaryContainer = Color(0xFF0A1D2E)
+val backgroundScrim = Color(0x770A1D2E)
 
 
 val PRIMARY100 = Color(0xFFDAE8FC)

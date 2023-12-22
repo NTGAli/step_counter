@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.ntg.stepcounter.ui.theme.fontMedium14
 
 @Composable
-fun RoleItem(modifier: Modifier,id: Int, title: String, onClick:(Int) -> Unit){
+fun RoleItem(modifier: Modifier,id: Int = 0, title: String, onClick:(Int) -> Unit){
     Box(modifier = modifier
         .fillMaxWidth()
         .clip(RoundedCornerShape(16.dp))

@@ -1,47 +1,43 @@
 package com.ntg.stepcounter.screens
 
-import android.view.ViewGroup
+import android.app.ActivityManager
+import android.content.Context.ACTIVITY_SERVICE
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import android.webkit.WebView
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
-import com.ntg.stepcounter.R
-import android.webkit.WebViewClient
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.MaterialTheme
-import androidx.compose.ui.Alignment
 import com.ntg.stepcounter.BuildConfig
 import com.ntg.stepcounter.MainActivity.Companion.sensorType
+import com.ntg.stepcounter.R
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.Appbar
 import com.ntg.stepcounter.components.ItemOption
 import com.ntg.stepcounter.nav.Screens
-import com.ntg.stepcounter.ui.theme.SECONDARY500
 import com.ntg.stepcounter.ui.theme.fontBold14
 import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.sendMail
-import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.util.extension.toast
 import com.ntg.stepcounter.vm.UserDataViewModel
+
 
 @Composable
 fun SettingsScreen(
@@ -196,12 +192,19 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
                 ctx.sendMail(ctx.getString(R.string.support_email),ctx.getString(R.string.report_problem))
             })
 
-            Text(modifier = Modifier.padding(top = 24.dp).combinedClickable(
-                onLongClick = {
-                    ctx.toast(sensorType)
-                },
-                onClick = {}
-            ), text = stringResource(id = R.string.version,BuildConfig.VERSION_NAME), style = fontRegular12(
+            ItemOption(text = stringResource(id = R.string.exit), onClick = {
+                (ctx.getSystemService(ACTIVITY_SERVICE) as ActivityManager)
+                    .clearApplicationUserData()
+            })
+
+            Text(modifier = Modifier
+                .padding(top = 24.dp)
+                .combinedClickable(
+                    onLongClick = {
+                        ctx.toast(sensorType)
+                    },
+                    onClick = {}
+                ), text = stringResource(id = R.string.version_format,BuildConfig.VERSION_NAME), style = fontRegular12(
                 MaterialTheme.colors.primary))
         }
 

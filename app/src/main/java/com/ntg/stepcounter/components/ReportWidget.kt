@@ -2,17 +2,10 @@ package com.ntg.stepcounter.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -32,10 +24,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ntg.stepcounter.R
 import com.ntg.stepcounter.models.components.ReportWidgetType
-import com.ntg.stepcounter.ui.theme.PRIMARY100
-import com.ntg.stepcounter.ui.theme.PRIMARY500
-import com.ntg.stepcounter.ui.theme.SECONDARY500
-import com.ntg.stepcounter.ui.theme.SECONDARY900
 import com.ntg.stepcounter.ui.theme.fontBold12
 import com.ntg.stepcounter.ui.theme.fontRegular12
 import com.ntg.stepcounter.util.extension.formatNumber
@@ -45,6 +33,7 @@ fun ReportWidget(
     modifier: Modifier = Modifier,
     viewType: ReportWidgetType,
     firstText: Int,
+    firstTextString: String = "",
     secondText: Int
 ){
 
@@ -66,8 +55,8 @@ fun ReportWidget(
                 }
 
                 Column(modifier = Modifier.padding(start = 8.dp)) {
-                    Text(text = if (viewType == ReportWidgetType.Default) stringResource(id = R.string.your_record) else stringResource(id = R.string.steps), style = fontRegular12(MaterialTheme.colors.secondary))
-                    Text(modifier = Modifier.padding(top = 2.dp), text = ctx.getString(R.string.step_format, formatNumber(firstText.toDouble())), style = fontBold12(MaterialTheme.colors.onPrimary))
+                    Text(text = if (viewType == ReportWidgetType.Default) stringResource(id = R.string.your_record) else if (viewType == ReportWidgetType.Update) stringResource(id = R.string.version) else stringResource(id = R.string.steps), style = fontRegular12(MaterialTheme.colors.secondary))
+                    Text(modifier = Modifier.padding(top = 2.dp), text =if (viewType == ReportWidgetType.Update) firstTextString else  ctx.getString(R.string.step_format, formatNumber(firstText.toDouble())), style = fontBold12(MaterialTheme.colors.onPrimary))
 
                 }
             }
@@ -84,14 +73,18 @@ fun ReportWidget(
                 Box(modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colors.primaryVariant)) {
-                    Icon(modifier = Modifier.padding(8.dp), painter = if (viewType == ReportWidgetType.Group) painterResource(id = R.drawable.users_profiles_minus) else painterResource(id = R.drawable.calendar_02), contentDescription = null, tint = MaterialTheme.colors.primary)
+                    Icon(modifier = Modifier.padding(8.dp), painter = if (viewType == ReportWidgetType.Group) painterResource(id = R.drawable.users_profiles_minus) else if (viewType == ReportWidgetType.Profile || viewType == ReportWidgetType.Default) painterResource(id = R.drawable.calendar_02) else painterResource(id = R.drawable.arrow_down_square_contained), contentDescription = null, tint = MaterialTheme.colors.primary)
                 }
 
                 Column(modifier = Modifier.padding(start = 8.dp)) {
-                    Text(text = if (viewType == ReportWidgetType.Default) stringResource(id = R.string.day) else if (viewType == ReportWidgetType.Group) stringResource(id = R.string.number_of_members) else stringResource(id = R.string.days), style = fontRegular12(MaterialTheme.colors.secondary))
+                    Text(text = if (viewType == ReportWidgetType.Default) stringResource(id = R.string.day) else if (viewType == ReportWidgetType.Update) stringResource(
+                        id = R.string.size
+                    ) else if (viewType == ReportWidgetType.Group) stringResource(id = R.string.number_of_members) else stringResource(id = R.string.days), style = fontRegular12(MaterialTheme.colors.secondary))
                     Text(modifier = Modifier.padding(top = 2.dp),text = if (viewType == ReportWidgetType.Default) {if (secondText == 0) stringResource(
                         id = R.string.today
-                    ) else if (secondText != -1)  ctx.getString(R.string.days_ago, secondText.toString()) else ctx.getString(R.string.no_record)} else if (viewType == ReportWidgetType.Profile){ if (secondText != -1) ctx.getString(R.string.days_format, secondText.toString()) else "-"} else secondText.toString() , style = fontBold12(MaterialTheme.colors.onPrimary))
+                    ) else if (secondText != -1)  ctx.getString(R.string.days_ago, secondText.toString()) else ctx.getString(R.string.no_record)} else if (viewType == ReportWidgetType.Profile){ if (secondText != -1) ctx.getString(R.string.days_format, secondText.toString()) else "-"} else if (viewType == ReportWidgetType.Update) stringResource(
+                        id = R.string.mb_format, secondText.toString()
+                    ) else secondText.toString() , style = fontBold12(MaterialTheme.colors.onPrimary))
 
                 }
             }
@@ -107,5 +100,5 @@ fun ReportWidget(
 @Preview
 @Composable
 private fun ReportWidgetPreview(){
-    ReportWidget(viewType = ReportWidgetType.Default, firstText = 1200, secondText = 120)
+    ReportWidget(viewType = ReportWidgetType.Update, firstText = 1200, secondText = 120)
 }

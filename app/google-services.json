@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "304950345258",
+    "project_id": "step-counter-13f3c",
+    "storage_bucket": "step-counter-13f3c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:304950345258:android:bec043c5336c2f32df8d53",
+        "android_client_info": {
+          "package_name": "com.ntg.stepcounter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATLC2EcxLRGjmk2uqE82_FLOeBV8i9jKs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

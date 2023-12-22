@@ -20,6 +20,31 @@ val mFont = FontFamily(
     Font(R.font.yekan_extra_black, FontWeight.SemiBold),
 )
 
+
+// Thin
+fun FontThin10(color: Color = SECONDARY100) = TextStyle(
+    fontFamily = mFont,
+    fontWeight = FontWeight.Thin,
+    fontSize = 10.sp,
+    color = color
+)
+
+fun fontThin12(color: Color = SECONDARY100) = TextStyle(
+    fontFamily = mFont,
+    fontWeight = FontWeight.Thin,
+    fontSize = 12.sp,
+    color = color
+)
+
+
+
+fun fontThin14(color: Color = SECONDARY100) = TextStyle(
+    fontFamily = mFont,
+    fontWeight = FontWeight.Thin,
+    fontSize = 14.sp,
+    color = color
+)
+
 // Regular
 fun FontRegular10(color: Color = SECONDARY100) = TextStyle(
     fontFamily = mFont,

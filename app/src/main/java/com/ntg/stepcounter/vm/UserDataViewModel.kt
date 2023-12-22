@@ -3,6 +3,7 @@ package com.ntg.stepcounter.vm
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.ntg.stepcounter.api.ApiService
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.models.ResponseBody
@@ -11,9 +12,11 @@ import com.ntg.stepcounter.models.res.AccountStateRes
 import com.ntg.stepcounter.models.res.Achievement
 import com.ntg.stepcounter.models.res.FosDetailsRes
 import com.ntg.stepcounter.models.res.StepRes
+import com.ntg.stepcounter.models.res.UpdateRes
 import com.ntg.stepcounter.models.res.UserProfile
 import com.ntg.stepcounter.models.res.UserRes
 import com.ntg.stepcounter.util.extension.safeApiCall
+import com.ntg.stepcounter.util.extension.timber
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,6 +29,7 @@ class UserDataViewModel @Inject constructor(
 ): ViewModel() {
 
     private var userProfile: MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> = MutableLiveData()
+    private var updateInfo: MutableLiveData<NetworkResult<ResponseBody<UpdateRes?>>> = MutableLiveData()
     private var fodDetails: MutableLiveData<NetworkResult<ResponseBody<FosDetailsRes?>>> = MutableLiveData()
     private var signInData: MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> = MutableLiveData()
     private var usersFos: MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> = MutableLiveData()
@@ -33,11 +37,13 @@ class UserDataViewModel @Inject constructor(
     private var clapsData: MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> = MutableLiveData()
     private var userDataAchievement: MutableLiveData<NetworkResult<ResponseBody<Achievement?>>> = MutableLiveData()
     private var lockResult: MutableLiveData<NetworkResult<ResponseBody<Boolean?>>> = MutableLiveData()
+    private var fcmResult: MutableLiveData<NetworkResult<ResponseBody<String?>>> = MutableLiveData()
     private var accountStateDate: MutableLiveData<NetworkResult<ResponseBody<AccountStateRes?>>> = MutableLiveData()
     private var clapResult: MutableLiveData<NetworkResult<ResponseBody<Any?>>> = MutableLiveData()
 
 
     fun getUsername() = userStore.getUserName
+    fun getFCM() = userStore.getFCMToken
     fun getAchievement() = userStore.getAchievement
     fun getTimeSign() = userStore.getTimeSign
     fun getPhoneNumber() = userStore.getPhoneNumber
@@ -46,17 +52,27 @@ class UserDataViewModel @Inject constructor(
     fun getGradeId() = userStore.getGradeId
     fun getUserStatus() = userStore.getStatus
     fun getFieldStudy() = userStore.fieldStudy
+    fun getMessagesId() = userStore.messagesId
     fun getFosId() = userStore.getFosId
     fun getClaps() = userStore.getClaps
     fun isVerified() = userStore.isVerified
     fun isBlocked() = userStore.isBlocked
     fun isShowReport() = userStore.showReport
     fun isAutoDetect() = userStore.isAutoDetect
+    fun deadCode() = userStore.getDeadCode
 
     fun clearUserData() = viewModelScope.launch { userStore.clearUserData() }
 
     fun setUsername(username: String) = viewModelScope.launch {
         userStore.saveUsername(username)
+    }
+
+    fun setFCM(fcm: String) = viewModelScope.launch {
+        userStore.saveFCMToken(fcm)
+    }
+
+    fun satMessagesId(ids: String) = viewModelScope.launch {
+        userStore.saveMessageIds(ids)
     }
 
     fun setTheme(theme: String) = viewModelScope.launch {
@@ -69,6 +85,10 @@ class UserDataViewModel @Inject constructor(
 
     fun setUserStatus(status: String) = viewModelScope.launch {
         userStore.saveSTATUS(status)
+    }
+
+    fun setDeadCode(deadCode: Int) = viewModelScope.launch {
+        userStore.saveDeadCode(deadCode)
     }
 
     fun setFieldStudy(fieldStudy: String) = viewModelScope.launch {
@@ -122,6 +142,16 @@ class UserDataViewModel @Inject constructor(
                 } as MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>>
             }
         return userProfile
+    }
+
+
+    fun updateInfo(): MutableLiveData<NetworkResult<ResponseBody<UpdateRes?>>> {
+        viewModelScope.launch {
+            updateInfo = safeApiCall(Dispatchers.IO){
+                apiService.updateInfo()
+            } as MutableLiveData<NetworkResult<ResponseBody<UpdateRes?>>>
+        }
+        return updateInfo
     }
 
 
@@ -214,6 +244,16 @@ class UserDataViewModel @Inject constructor(
                 } as MutableLiveData<NetworkResult<ResponseBody<Boolean?>>>
             }
         return lockResult
+    }
+
+
+    fun syncFCM(uid: String, fcm: String): MutableLiveData<NetworkResult<ResponseBody<String?>>> {
+        viewModelScope.launch {
+            fcmResult = safeApiCall(Dispatchers.IO){
+                apiService.syncFCM(uid = uid, fcm = fcm)
+            } as MutableLiveData<NetworkResult<ResponseBody<String?>>>
+        }
+        return fcmResult
     }
 
 

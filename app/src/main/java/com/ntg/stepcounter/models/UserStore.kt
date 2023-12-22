@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.ntg.stepcounter.util.extension.timber
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -15,6 +16,7 @@ class UserStore(private val context: Context) {
     companion object {
         private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("settings")
         private val USER_TOKEN = stringPreferencesKey("userToken")
+        private val FCM_TOKEN = stringPreferencesKey("fcmToken")
         private val USER_NAME = stringPreferencesKey("username")
         private val USER_ID = stringPreferencesKey("userId")
         private val PHONE_NUMBER = stringPreferencesKey("phoneNumber")
@@ -30,10 +32,20 @@ class UserStore(private val context: Context) {
         private val ACHIEVEMENT = stringPreferencesKey("achievement")
         private val CLAPS = intPreferencesKey("claps")
         private val THEME = stringPreferencesKey("theme")
+        private val MESSAGES_ID = stringPreferencesKey("messagesId")
+        private val DEAD_CODE = intPreferencesKey("dead_code")
     }
 
     val getUserToken: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[USER_TOKEN] ?: ""
+    }
+
+    val getFCMToken: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[FCM_TOKEN] ?: ""
+    }
+
+    val getDeadCode: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[DEAD_CODE] ?: -1
     }
 
     val getTheme: Flow<String> = context.dataStore.data.map { preferences ->
@@ -88,6 +100,10 @@ class UserStore(private val context: Context) {
         preferences[FIELD_STUDY] ?: ""
     }
 
+    val messagesId: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[MESSAGES_ID] ?: ""
+    }
+
     val showReport: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[SHOW_REPORT] ?: true
     }
@@ -102,6 +118,15 @@ class UserStore(private val context: Context) {
     suspend fun saveToken(token: String) {
         context.dataStore.edit { preferences ->
             preferences[USER_TOKEN] = token
+        }
+    }
+
+
+    suspend fun saveFCMToken(token: String) {
+        context.dataStore.edit { preferences ->
+            timber("Current_FCM ::: ${preferences[FCM_TOKEN]} -- Correct_FCM :::: $token ")
+            if (preferences[FCM_TOKEN]?.split("***")?.first() != token.split("***").first())
+                preferences[FCM_TOKEN] = token
         }
     }
 
@@ -129,6 +154,12 @@ class UserStore(private val context: Context) {
         }
     }
 
+    suspend fun saveDeadCode(deadCode: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[DEAD_CODE] = deadCode
+        }
+    }
+
 
     suspend fun savePhoneNumber(phoneNumber: String) {
         context.dataStore.edit { preferences ->
@@ -145,6 +176,12 @@ class UserStore(private val context: Context) {
     suspend fun saveFiledStudy(fieldStudy: String) {
         context.dataStore.edit { preferences ->
             preferences[FIELD_STUDY] = fieldStudy
+        }
+    }
+
+    suspend fun saveMessageIds(messageIds: String) {
+        context.dataStore.edit { preferences ->
+            preferences[MESSAGES_ID] = messageIds
         }
     }
 

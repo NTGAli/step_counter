@@ -2,9 +2,7 @@ package com.ntg.stepcounter
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.ActivityManager
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
@@ -19,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +36,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.asLiveData
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -48,22 +49,23 @@ import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.CustomButton
 import com.ntg.stepcounter.nav.AppNavHost
 import com.ntg.stepcounter.nav.Screens
+import com.ntg.stepcounter.screens.DeadVersionScreen
 import com.ntg.stepcounter.ui.theme.Background
 import com.ntg.stepcounter.ui.theme.ERROR500
 import com.ntg.stepcounter.ui.theme.SECONDARY700
 import com.ntg.stepcounter.ui.theme.StepCounterTheme
 import com.ntg.stepcounter.ui.theme.fontMedium14
-import com.ntg.stepcounter.util.StepDetector
 import com.ntg.stepcounter.util.extension.dateOfToday
-import com.ntg.stepcounter.util.extension.foregroundServiceRunning
 import com.ntg.stepcounter.util.extension.orFalse
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.timber
 import com.ntg.stepcounter.vm.LoginViewModel
+import com.ntg.stepcounter.vm.MessageViewModel
 import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 
 
 @AndroidEntryPoint
@@ -73,20 +75,19 @@ class MainActivity : ComponentActivity() {
     private val userDataViewModel: UserDataViewModel by viewModels()
     private val socialNetworkViewModel: SocialNetworkViewModel by viewModels()
     private val loginViewModel: LoginViewModel by viewModels()
+    private val messageViewModel: MessageViewModel by viewModels()
     private var updateId = -1
-    private lateinit var stepDetector: StepDetector
 
-    companion object{
+    companion object {
         lateinit var sensorType: String
     }
 
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
-        stepDetector = StepDetector()
         super.onCreate(savedInstanceState)
-        setContent {
 
+        setContent {
             stepViewModel.getToday().observeAsState().value?.lastOrNull().let {
                 updateId = if (it != null && it.start.orZero() != 0) it.id else -1
             }
@@ -103,15 +104,19 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            val navController: NavHostController = rememberNavController()
+
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 StepCounterTheme {
                     if (startDes.isNotEmpty()) {
                         Scaffold {
                             AppNavHost(
+                                navController = navController,
                                 stepViewModel = stepViewModel,
                                 userDataViewModel = userDataViewModel,
                                 socialNetworkViewModel = socialNetworkViewModel,
                                 loginViewModel = loginViewModel,
+                                messageViewModel = messageViewModel,
                                 startDestination = startDes,
                                 onDestinationChangedListener = { _, des, bundle ->
                                     timber("onDestinationChangedListener ::: ${des.route} :: ${bundle.toString()}")
@@ -124,7 +129,6 @@ class MainActivity : ComponentActivity() {
 
             userDataViewModel.getUserId().collectAsState(initial = null).let {
                 SetupDataUser(it.value)
-
             }
 
             val isBlocked = userDataViewModel.isBlocked().collectAsState(initial = false).value
@@ -132,7 +136,58 @@ class MainActivity : ComponentActivity() {
             if (isBlocked) {
                 UserBlocked(blockReasons = getString(R.string.block_user))
             }
+
+            DeadVersionCheck{
+                startDes = Screens.DeadVersionScreen.name
+            }
+
         }
+
+    }
+
+    @Composable
+    private fun DeadVersionCheck(onDead:(Boolean) -> Unit) {
+        userDataViewModel.deadCode().collectAsState(initial = -1).let {deadVersion->
+            timber("wandnawkdnajkwndkjawdnjkawnd ${deadVersion.value} --- ${BuildConfig.VERSION_CODE}")
+
+            if (deadVersion.value != -1 && deadVersion.value > BuildConfig.VERSION_CODE){
+                onDead.invoke(true)
+//                DeadVersionScreen(navController)
+            }
+        }
+    }
+
+    private fun syncFcm(uid: String) {
+        timber("FCM_UPDATE_START")
+        userDataViewModel.getFCM().asLiveData().observe(this) {
+            try {
+                if (it.isNotEmpty() && it.split("***")[1] == "NotSynced") {
+                    userDataViewModel.syncFCM(uid, it.split("***").first()).observe(this) {
+                            when (it) {
+                                is NetworkResult.Error -> {
+                                    timber("FCM_UPDATE_ERROR")
+                                    userDataViewModel.setFCM("")
+                                }
+
+                                is NetworkResult.Loading -> {
+                                    timber("FCM_UPDATE_LOADING")
+                                }
+
+                                is NetworkResult.Success -> {
+                                    timber("FCM_UPDATE_Success")
+                                    if (it.data?.data.orEmpty().isNotEmpty()) {
+                                        userDataViewModel.setFCM("${it.data?.data.orEmpty()}***Synced")
+                                    }
+                                }
+                            }
+
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
     }
 
     @Composable
@@ -146,8 +201,14 @@ class MainActivity : ComponentActivity() {
             mutableStateOf("")
         }
 
-        if (uid != null) {
-            if (uid.isNotEmpty() && !syncCalled) {
+        if (uid.orEmpty().isNotEmpty()) {
+
+            LaunchedEffect(key1 = uid, block = {
+                syncFcm(uid!!)
+            })
+
+
+            if (uid!!.isNotEmpty() && !syncCalled) {
                 syncCalled = true
                 SyncSteps(stepViewModel, LocalLifecycleOwner.current, uid)
             }
@@ -155,7 +216,7 @@ class MainActivity : ComponentActivity() {
             timeSign =
                 userDataViewModel.getTimeSign().collectAsState(initial = "").value
 
-            if(timeSign.isNotEmpty()){
+            if (timeSign.isNotEmpty()) {
                 userDataViewModel.accountState(uid)
                     .observe(LocalLifecycleOwner.current) {
                         when (it) {
@@ -180,17 +241,19 @@ class MainActivity : ComponentActivity() {
 
 
 
-            if (uid.isNotEmpty()){
-                userDataViewModel.userAchievement(uid).observe(LocalLifecycleOwner.current){
-                    when(it){
+            if (uid.isNotEmpty()) {
+                userDataViewModel.userAchievement(uid).observe(LocalLifecycleOwner.current) {
+                    when (it) {
                         is NetworkResult.Error -> {
 
                         }
+
                         is NetworkResult.Loading -> {
 
                         }
+
                         is NetworkResult.Success -> {
-                            if (it.data?.data != null){
+                            if (it.data?.data != null) {
                                 userDataViewModel.setAchievement(Gson().toJson(it.data.data))
                             }
                         }
@@ -240,21 +303,21 @@ private fun SyncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: 
 
         groupedSteps.forEach { (date, steps) ->
 
-            if (date.orEmpty().isNotEmpty()){
+            if (date.orEmpty().isNotEmpty()) {
                 totalSteps = 0
                 totalSynced = 0
-                steps.forEach {dataStep ->
+                steps.forEach { dataStep ->
 
-                    if (dataStep?.count.orZero() > dataStep?.start.orZero()){
+                    if (dataStep?.count.orZero() > dataStep?.start.orZero()) {
                         totalSteps += dataStep?.count.orZero() - dataStep?.start.orZero()
                         totalSynced = dataStep?.synced.orZero()
                     }
 
                 }
 
-                if ((date != dateOfToday() && totalSteps > totalSynced) || totalSteps - totalSynced > 1){
+                if ((date != dateOfToday() && totalSteps > totalSynced) || totalSteps - totalSynced > 1) {
                     dateSync = date.orEmpty()
-                    if (totalSteps != stepNeedSync) needToSync= true
+                    if (totalSteps != stepNeedSync) needToSync = true
                     timber("FOREGROUND_SYNC ::: $needToSync")
                 }
             }
@@ -268,22 +331,29 @@ private fun SyncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: 
     LaunchedEffect(key1 = needToSync, block = {
         timber("FOREGROUND_SYNC ::: Launched")
 
-        if (dateSync.isNotEmpty()){
+        if (dateSync.isNotEmpty()) {
             timber("FOREGROUND_SYNC ::: START ")
 
-            stepViewModel.syncStep(dateSync, totalSteps, uid).observe(owner){
-                when(it){
+            stepViewModel.syncStep(dateSync, totalSteps, uid).observe(owner) {
+                when (it) {
                     is NetworkResult.Error -> {
                         timber("FOREGROUND_SYNC ::: ERR")
                     }
+
                     is NetworkResult.Loading -> {
                         timber("FOREGROUND_SYNC ::: LOADING")
                     }
+
                     is NetworkResult.Success -> {
                         timber("FOREGROUND_SYNC ::: Success")
                         stepNeedSync = totalSteps
-                        if (it.data?.data?.date.orEmpty().isNotEmpty() && it.data?.data?.count.orZero() != 0){
-                            stepViewModel.updateSync(it.data?.data?.date.orEmpty(), it.data?.data?.count.orZero())
+                        if (it.data?.data?.date.orEmpty()
+                                .isNotEmpty() && it.data?.data?.count.orZero() != 0
+                        ) {
+                            stepViewModel.updateSync(
+                                it.data?.data?.date.orEmpty(),
+                                it.data?.data?.count.orZero()
+                            )
                             stepViewModel.clearSummaries()
                             needToSync = false
                         }
