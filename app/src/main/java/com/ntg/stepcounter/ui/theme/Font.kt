@@ -153,6 +153,14 @@ fun fontBold36(color: Color = SECONDARY100) = TextStyle(
 )
 
 //Black
+fun fontBlack14(color: Color = SECONDARY100) = TextStyle(
+    fontFamily = mFont,
+    fontWeight = FontWeight.Black,
+    fontSize = 14.sp,
+    color = color
+)
+
+
 fun fontBlack24(color: Color = SECONDARY100) = TextStyle(
     fontFamily = mFont,
     fontWeight = FontWeight.Black,

@@ -37,9 +37,11 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.asLiveData
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -49,7 +51,7 @@ import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.components.CustomButton
 import com.ntg.stepcounter.nav.AppNavHost
 import com.ntg.stepcounter.nav.Screens
-import com.ntg.stepcounter.screens.DeadVersionScreen
+import com.ntg.stepcounter.services.StepWorker
 import com.ntg.stepcounter.ui.theme.Background
 import com.ntg.stepcounter.ui.theme.ERROR500
 import com.ntg.stepcounter.ui.theme.SECONDARY700
@@ -65,7 +67,7 @@ import com.ntg.stepcounter.vm.SocialNetworkViewModel
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
+import java.util.concurrent.TimeUnit
 
 
 @AndroidEntryPoint
@@ -148,7 +150,6 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun DeadVersionCheck(onDead:(Boolean) -> Unit) {
         userDataViewModel.deadCode().collectAsState(initial = -1).let {deadVersion->
-            timber("wandnawkdnajkwndkjawdnjkawnd ${deadVersion.value} --- ${BuildConfig.VERSION_CODE}")
 
             if (deadVersion.value != -1 && deadVersion.value > BuildConfig.VERSION_CODE){
                 onDead.invoke(true)

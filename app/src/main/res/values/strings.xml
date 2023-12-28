@@ -146,5 +146,19 @@
     <string name="mb_format">%s مگابایت</string>
     <string name="dead_version_description">برنامه ی شما نیاز به بروزرسانی دارد.</string>
     <string name="download">دانلود</string>
+    <string name="participents">شرکت کنندگان</string>
+    <string name="winners">برندگان</string>
+    <string name="time_left">زمان باقی مانده</string>
+    <string name="challenge_monthly">چالش ماهیانه</string>
+    <string name="participents_format">%s شرکت کننده</string>
+    <string name="your_rank">رتبه ی شما</string>
+    <string name="time">زمان</string>
+    <string name="un_known">نامشخص</string>
+    <string name="sponsor">اسپانسر</string>
+    <string name="at">در</string>
+    <string name="km_format">%s کیلومتر</string>
+    <string name="sec_format">%s ثانیه</string>
+    <string name="min_format">%s دقیقه</string>
+    <string name="hour_format">%s ساعت</string>
 
 </resources>

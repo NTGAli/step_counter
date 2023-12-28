@@ -726,6 +726,7 @@ private fun UserDataSteps(
                                 .sumOf { it.count.orZero() - it.start.orZero() }.toFloat()
                         }
 
+
                     SingleColumnChartWithNegativeValues(
                         modifier = Modifier.padding(bottom = 24.dp),
                         result

@@ -4,14 +4,11 @@ import android.app.ActivityManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberUpdatedState
@@ -22,7 +19,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import com.ntg.stepcounter.R
-import com.ntg.stepcounter.StepCounterService
+import com.ntg.stepcounter.services.StepCounterService
 import com.ntg.stepcounter.api.NetworkResult
 import com.ntg.stepcounter.models.Failure
 import com.ntg.stepcounter.models.RGBColor
@@ -36,10 +33,8 @@ import timber.log.Timber
 import java.io.IOException
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.time.temporal.TemporalField
 import java.util.Date
 import java.util.Locale
 
@@ -103,6 +98,11 @@ fun stepsToKilometers(steps: Int): String {
     }
 }
 
+fun stepsToTime(steps: Int): Long {
+    // Conversion factor: On average, 1 step is approximately 0.000762 kilometers (or 76.2 cm).
+    return (steps * 0.8).toLong()
+}
+
 fun stepsToCalories(steps: Int): String {
     // Conversion factor: On average, walking burns about 0.035 calories per step.
     val calories = steps * 0.035
@@ -111,6 +111,12 @@ fun stepsToCalories(steps: Int): String {
     } catch (e: Exception) {
         "0"
     }
+}
+
+fun Long.toReadableTime(ctx: Context): String {
+    return if (this <= 60) ctx.getString(R.string.sec_format, this.toString())
+    else if (this <= 3600) ctx.getString(R.string.min_format, (this / 60).toString())
+    else ctx.getString(R.string.hour_format, (this / 3600).toString())
 }
 
 fun daysUntilToday(targetDateStr: String): Long {

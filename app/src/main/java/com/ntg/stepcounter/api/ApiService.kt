@@ -5,6 +5,7 @@ import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.res.AccountStateRes
 import com.ntg.stepcounter.models.res.Achievement
+import com.ntg.stepcounter.models.res.DataChallenge
 import com.ntg.stepcounter.models.res.FosDetailsRes
 import com.ntg.stepcounter.models.res.MessageRes
 import com.ntg.stepcounter.models.res.StepRes
@@ -14,6 +15,7 @@ import com.ntg.stepcounter.models.res.SummaryRes
 import com.ntg.stepcounter.models.res.UpdateRes
 import com.ntg.stepcounter.models.res.UserProfile
 import com.ntg.stepcounter.models.res.UserRes
+import com.ntg.stepcounter.models.res.UserWinnerData
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Field
@@ -207,5 +209,15 @@ interface ApiService {
     suspend fun updateInfo(
     ): Response<ResponseBody<UpdateRes?>>
 
+
+    @FormUrlEncoded
+    @POST("dataChallenge.php")
+    suspend fun dataChallenge(
+        @Field("uid") uid: String
+    ): Response<ResponseBody<DataChallenge?>>
+
+    @POST("winner.php")
+    suspend fun winners(
+    ): Response<ResponseBody<List<UserWinnerData>?>>
 
 }

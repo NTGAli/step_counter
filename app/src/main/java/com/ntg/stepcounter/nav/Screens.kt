@@ -26,4 +26,8 @@ enum class Screens {
     MessagesBoxScreen,
     UpdateScreen,
     DeadVersionScreen,
+    DataChallengesScreen,
+    ParticipatesScreen,
+    WinnersScreen,
+
 }

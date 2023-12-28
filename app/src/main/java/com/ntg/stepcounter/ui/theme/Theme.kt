@@ -30,12 +30,12 @@ private val DarkColorScheme = darkColors(
     background = BackgroundDark,
     surface = Color(0xFFFFFBFE),
     onPrimary = Color.White,
-    onSecondary = Color.White,
+    onSecondary = SECONDARY200,
     onBackground = OnBackgroundDark,
     onSurface = OnSurfaceDark,
     error = ERROR500,
     onError = ERROR200,
-    secondaryVariant = SECONDARY500
+    secondaryVariant = SECONDARY500,
 )
 
 private val LightColorScheme = lightColors(
@@ -45,7 +45,7 @@ private val LightColorScheme = lightColors(
     background = Background,
     surface = SECONDARY700,
     onPrimary = OnPrimary,
-    onSecondary = Color.White,
+    onSecondary = SECONDARY900,
     onBackground = OnBackground,
     onSurface = OnSurface,
     error = ERROR500,

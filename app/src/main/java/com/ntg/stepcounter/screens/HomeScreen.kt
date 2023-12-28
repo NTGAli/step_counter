@@ -1,8 +1,6 @@
 package com.ntg.stepcounter.screens
 
-import android.app.NotificationManager
 import android.content.Context
-import android.content.Context.NOTIFICATION_SERVICE
 import android.content.Intent
 import android.os.Build
 import androidx.compose.animation.core.Animatable
@@ -12,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetScaffoldState
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -30,6 +30,8 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,6 +42,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,21 +50,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavHostController
-import com.google.gson.Gson
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.ntg.stepcounter.BuildConfig
 import com.ntg.stepcounter.R
-import com.ntg.stepcounter.StepCounterService
+import com.ntg.stepcounter.services.StepCounterService
 import com.ntg.stepcounter.api.NetworkResult
+import com.ntg.stepcounter.components.AdsItem
 import com.ntg.stepcounter.components.EmptyWidget
 import com.ntg.stepcounter.components.ErrorMessage
 import com.ntg.stepcounter.components.Loading
@@ -72,35 +80,32 @@ import com.ntg.stepcounter.components.Title
 import com.ntg.stepcounter.models.ErrorStatus
 import com.ntg.stepcounter.models.RGBColor
 import com.ntg.stepcounter.models.components.ReportWidgetType
-import com.ntg.stepcounter.models.res.Achievement
+import com.ntg.stepcounter.models.res.ADSRes
 import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.nav.Screens
+import com.ntg.stepcounter.services.StepWorker
 import com.ntg.stepcounter.ui.theme.ERROR300
 import com.ntg.stepcounter.ui.theme.fontBold12
 import com.ntg.stepcounter.ui.theme.fontBold36
-import com.ntg.stepcounter.ui.theme.fontMedium10
 import com.ntg.stepcounter.ui.theme.fontMedium12
 import com.ntg.stepcounter.ui.theme.fontMedium14
 import com.ntg.stepcounter.ui.theme.fontRegular12
-import com.ntg.stepcounter.util.Constants.NOTIFICATION_ID
 import com.ntg.stepcounter.util.extension.calculateRadius
 import com.ntg.stepcounter.util.extension.checkInternet
 import com.ntg.stepcounter.util.extension.daysUntilToday
-import com.ntg.stepcounter.util.extension.diffNum
 import com.ntg.stepcounter.util.extension.foregroundServiceRunning
 import com.ntg.stepcounter.util.extension.getColorComponentsForNumber
-import com.ntg.stepcounter.util.extension.nor
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.stepsToCalories
 import com.ntg.stepcounter.util.extension.stepsToKilometers
 import com.ntg.stepcounter.util.extension.timber
-import com.ntg.stepcounter.util.extension.toast
 import com.ntg.stepcounter.vm.StepViewModel
 import com.ntg.stepcounter.vm.UserDataViewModel
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navHostController: NavHostController,
@@ -110,11 +115,19 @@ fun HomeScreen(
     startService(LocalContext.current)
     var topBarHeight by remember { mutableFloatStateOf(0f) }
     var radius by remember { mutableFloatStateOf(32f) }
-//    var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
     val backgroundColor = MaterialTheme.colors.onBackground
-    var topBarColor by remember { mutableStateOf(RGBColor(backgroundColor.red.toInt(), backgroundColor.green.toInt(), backgroundColor.blue.toInt())) }
+    var topBarColor by remember {
+        mutableStateOf(
+            RGBColor(
+                backgroundColor.red.toInt(),
+                backgroundColor.green.toInt(),
+                backgroundColor.blue.toInt()
+            )
+        )
+    }
     var contentHeight by remember { mutableFloatStateOf(0f) }
     val topOffset = with(LocalDensity.current) { topBarHeight.toDp() }
+
 
     var internetConnection by remember {
         mutableStateOf(true)
@@ -175,13 +188,21 @@ fun HomeScreen(
         topBarColor = getColorComponentsForNumber(radius.toInt())
 
 
-
-
         BottomSheetScaffold(
-            modifier = Modifier.background(MaterialTheme.colors.onBackground),
+            modifier = Modifier
+                .background(MaterialTheme.colors.onBackground),
             sheetPeekHeight = sheetPeekHeight,
             topBar = {
-                TopBar(navHostController,userDataViewModel, topBarColor, username, claps, newClaps, messagesID, newUpdate) {
+                TopBar(
+                    navHostController,
+                    userDataViewModel,
+                    topBarColor,
+                    username,
+                    claps,
+                    newClaps,
+                    messagesID,
+                    newUpdate
+                ) {
                     topBarHeight = it
                 }
             },
@@ -245,6 +266,7 @@ private fun TopBar(
 
     val uid = userDataViewModel.getUserId().collectAsState(initial = "").value
 
+
     TopAppBar(
         modifier = Modifier
             .onGloballyPositioned { layoutCoordinates ->
@@ -263,37 +285,45 @@ private fun TopBar(
         },
         actions = {
 
-            if (newUpdate){
+            if (newUpdate) {
                 IconButton(onClick = {
                     navHostController.navigate(Screens.UpdateScreen.name)
                 }) {
-                    Icon(painter = painterResource(id = R.drawable.arrow_down_square_contained), contentDescription = null, tint = MaterialTheme.colors.secondary)
+                    Icon(
+                        painter = painterResource(id = R.drawable.arrow_down_square_contained),
+                        contentDescription = null,
+                        tint = MaterialTheme.colors.secondary
+                    )
                 }
             }
 
             IconButton(onClick = {
-                navHostController.navigate(Screens.MessagesBoxScreen.name+"?uid=$uid")
+                navHostController.navigate(Screens.MessagesBoxScreen.name + "?uid=$uid")
             }) {
                 Box {
-                    Icon(painter = painterResource(id = R.drawable.bell_02), contentDescription = null, tint = MaterialTheme.colors.secondary)
-                    if (messageId.isNotEmpty()){
-                            Text(
-                                modifier =  Modifier
-                                    .padding(start = 6.dp)
-                                    .drawBehind {
-                                        drawCircle(
-                                            color = ERROR300,
-                                            radius = 24f
-                                        )
-                                    }
-                                    .align(
-                                        Alignment.TopStart
-                                    ),
-                                text = messageId.size.toString(),
-                                style = fontMedium12(
-                                    Color.White
-                                )
+                    Icon(
+                        painter = painterResource(id = R.drawable.bell_02),
+                        contentDescription = null,
+                        tint = MaterialTheme.colors.secondary
+                    )
+                    if (messageId.isNotEmpty()) {
+                        Text(
+                            modifier = Modifier
+                                .padding(start = 6.dp)
+                                .drawBehind {
+                                    drawCircle(
+                                        color = ERROR300,
+                                        radius = 24f
+                                    )
+                                }
+                                .align(
+                                    Alignment.TopStart
+                                ),
+                            text = messageId.size.toString(),
+                            style = fontMedium12(
+                                Color.White
                             )
+                        )
                     }
 
                 }
@@ -347,21 +377,34 @@ private fun ReportItem(
     stepViewModel: StepViewModel,
     contentHeight: (Float) -> Unit,
 ) {
+    LaunchedEffect(key1 = true, block = {
+
+    })
     val topRecord = stepViewModel.topRecord()?.observeAsState()?.value
-    val userStepsToday = stepViewModel.getToday().observeAsState().value
+    val userStepsToday = stepViewModel.getToday().observeAsState(initial = listOf()).value
 
     var stepsOfToday by remember {
         mutableIntStateOf(0)
     }
-
+    var synced by remember {
+        mutableIntStateOf(0)
+    }
 
     stepsOfToday = 0
+    synced = 0
 
     userStepsToday?.forEach {
         if (it.count != 0 && it.count.orZero() >= it.start.orZero()) {
             stepsOfToday += it.count.orZero() - it.start.orZero()
+            synced = it.synced.orZero()
         }
     }
+
+    timber("CLEAREEEEEEEEEEEEEEEEEEEEEEED")
+    if (stepsOfToday + 55 > synced) {
+        stepViewModel.clearSummaries()
+    }
+
 
     Box(
         Modifier
@@ -390,10 +433,6 @@ private fun ReportItem(
             )
 
 
-//            var ccc by remember {
-//                mutableIntStateOf(8542)
-//            }
-//            stepsOfToday
             TextAnimated(stepsOfToday) { digit ->
                 Text(
                     modifier = Modifier
@@ -419,18 +458,42 @@ private fun ReportItem(
     }
 }
 
-private fun startService(context: Context){
-        timber("isInBackgroundStarted ")
-        val serviceIntent = Intent(context, StepCounterService::class.java)
-        if (!context.foregroundServiceRunning()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(serviceIntent)
-                timber("isInBackgroundStarted ::: ForegroundService")
-            } else {
-                context.startService(serviceIntent)
-                timber("isInBackgroundStarted ::: Service")
-            }
+private fun startService(context: Context) {
+    timber("isInBackgroundStarted ")
+    val serviceIntent = Intent(context, StepCounterService::class.java)
+    if (!context.foregroundServiceRunning()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(serviceIntent)
+            timber("isInBackgroundStarted ::: ForegroundService")
+        } else {
+            context.startService(serviceIntent)
+            timber("isInBackgroundStarted ::: Service")
         }
+        startServiceViaWorker(context)
+    }
+}
+
+fun startServiceViaWorker(context: Context) {
+    timber("startServiceViaWorker called")
+    val UNIQUE_WORK_NAME = "StartMyServiceViaWorker"
+    val workManager = WorkManager.getInstance(context)
+
+    // As per Documentation: The minimum repeat interval that can be defined is 15 minutes
+    // (same as the JobScheduler API), but in practice 15 doesn't work. Using 16 here
+    val request: PeriodicWorkRequest = PeriodicWorkRequest.Builder(
+        StepWorker::class.java,
+        16,
+        TimeUnit.MINUTES
+    )
+        .build()
+
+    // to schedule a unique work, no matter how many times app is opened i.e. startServiceViaWorker gets called
+    // do check for AutoStart permission
+    workManager.enqueueUniquePeriodicWork(
+        UNIQUE_WORK_NAME,
+        ExistingPeriodicWorkPolicy.KEEP,
+        request
+    )
 }
 
 
@@ -445,11 +508,11 @@ private fun Content(
     messagesIds: (List<String>?) -> Unit,
     update: (Boolean) -> Unit = {},
 
-) {
+    ) {
     val ctx = LocalContext.current
     var internetConnection = ctx.checkInternet()
     val owner = LocalLifecycleOwner.current
-
+    val uid = userDataViewModel.getUserId().collectAsState(initial = "").value
 
     var loadData by remember {
         mutableStateOf(false)
@@ -461,9 +524,11 @@ private fun Content(
     var tryAgain by remember {
         mutableStateOf(false)
     }
-    var summaries by remember {
+    var summaries by rememberSaveable {
         mutableStateOf<SummariesRes?>(null)
     }
+
+
     if (internetConnection && !loadData) {
         userDataViewModel.getUserId().collectAsState(initial = "").value.let { userId ->
 
@@ -487,22 +552,22 @@ private fun Content(
 
                                 is NetworkResult.Success -> {
                                     summaries = it.data?.data
+
                                     newClaps.invoke(it.data?.data?.claps ?: -1)
-                                    if (it.data?.data?.messagesId.orEmpty().isNotEmpty()){
+                                    if (it.data?.data?.messagesId.orEmpty().isNotEmpty()) {
                                         messagesIds.invoke(it.data?.data?.messagesId)
                                     }
 
 
-                                    if (it.data?.data?.deadVersionCode != null){
+                                    if (it.data?.data?.deadVersionCode != null) {
                                         userDataViewModel.setDeadCode(it.data.data.deadVersionCode.orZero())
                                     }
 
 
-                                    if (it.data?.data?.versionCode != null){
+                                    if (it.data?.data?.versionCode != null) {
                                         update.invoke(it.data.data.versionCode > BuildConfig.VERSION_CODE)
                                     }
 
-                                    loadData = false
                                 }
                             }
                         }
@@ -514,7 +579,8 @@ private fun Content(
     }
 
 
-    if (loadData) {
+
+    if (summaries == null) {
         Loading(isFull = false)
     } else if (!internetConnection) {
         ErrorMessage(
@@ -567,10 +633,46 @@ private fun Content(
                     )
                 }
 
+
                 item {
                     Title(
                         modifier = Modifier
                             .padding(bottom = 8.dp)
+                            .padding(horizontal = 16.dp),
+                        title = stringResource(id = R.string.challenge_monthly),
+                        showBtn = true,
+                        subText = summaries?.deadLineChallenge,
+                        action = stringResource(
+                            id = R.string.see_all
+                        )
+                    ) {
+                        navHostController.navigate(Screens.DataChallengesScreen.name + "?uid=$uid")
+                    }
+                }
+
+                if (summaries?.topMonth.orEmpty().isNotEmpty()) {
+                    itemsIndexed(summaries?.topMonth.orEmpty()) { index, it ->
+                        Record(
+                            modifier = Modifier.padding(top = 8.dp),
+                            uid = it.uid,
+                            record = index,
+                            title = it.title.orEmpty(),
+                            steps = it.steps,
+                            primaryBorder = true
+                        ) {
+                            navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
+                        }
+                    }
+                } else {
+                    item {
+                        EmptyWidget(title = ctx.getString(R.string.no_record_today))
+                    }
+                }
+
+                item {
+                    Title(
+                        modifier = Modifier
+                            .padding(bottom = 8.dp, top = 24.dp)
                             .padding(horizontal = 16.dp),
                         title = stringResource(id = R.string.top_today),
                         showBtn = summaries?.today?.size.orZero() == 3,
@@ -634,6 +736,13 @@ private fun Content(
                 }
 
                 item {
+                    AdsItem(
+                        modifier = Modifier
+                            .padding(top = 16.dp),
+                        ads = summaries?.ads?.first { it.position == "Home-4" })
+                }
+
+                item {
                     Title(
                         modifier = Modifier
                             .padding(top = 24.dp, bottom = 8.dp)
@@ -664,6 +773,22 @@ private fun Content(
                     item {
                         EmptyWidget(title = ctx.getString(R.string.no_fos_record))
                     }
+                }
+                try {
+                item {
+
+                        AdsItem(
+                            modifier = Modifier
+                                .padding(top = 16.dp),
+                            ads = summaries?.ads?.first { it.position == "Home-0.44" } ?: ADSRes())
+
+                }
+
+                } catch (e: Exception) {
+                e.printStackTrace()
+            }
+                item {
+                    Spacer(modifier = Modifier.padding(24.dp))
                 }
             })
     }

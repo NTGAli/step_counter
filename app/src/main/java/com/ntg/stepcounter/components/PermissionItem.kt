@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
@@ -65,16 +66,16 @@ fun PermissionItem(
 
     Column(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(painter = icon, contentDescription = null, tint = PRIMARY500)
+            Icon(painter = icon, contentDescription = null, tint = MaterialTheme.colors.primary)
 
             Text(modifier = Modifier
                 .padding(start = 16.dp)
                 .padding(vertical = 24.dp)
-                .weight(1f), text = text, style = fontMedium12(SECONDARY500))
+                .weight(1f), text = text, style = fontMedium12(MaterialTheme.colors.secondary))
 
 
             if (isGranted){
-                Icon(imageVector = Icons.Rounded.Check, contentDescription = null, tint = PRIMARY500)
+                Icon(imageVector = Icons.Rounded.Check, contentDescription = null, tint = MaterialTheme.colors.primary)
             }else{
                 CustomButton(text = btnText, style = ButtonStyle.Outline, size = ButtonSize.XS, type = ButtonType.Primary){
                     openDialog = true
@@ -86,7 +87,7 @@ fun PermissionItem(
         Divider(modifier = Modifier
             .padding(start = 40.dp)
             .height(1.dp)
-            .background(SECONDARY100))
+            .background(MaterialTheme.colors.onSurface))
     }
 
 }

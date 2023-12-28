@@ -11,9 +11,11 @@ import com.ntg.stepcounter.db.AppDB
 import com.ntg.stepcounter.models.ResponseBody
 import com.ntg.stepcounter.models.Step
 import com.ntg.stepcounter.models.TopRecord
+import com.ntg.stepcounter.models.res.DataChallenge
 import com.ntg.stepcounter.models.res.StepSynced
 import com.ntg.stepcounter.models.res.SummariesRes
 import com.ntg.stepcounter.models.res.SummaryRes
+import com.ntg.stepcounter.models.res.UserWinnerData
 import com.ntg.stepcounter.util.extension.dateOfToday
 import com.ntg.stepcounter.util.extension.orZero
 import com.ntg.stepcounter.util.extension.safeApiCall
@@ -41,6 +43,10 @@ class StepViewModel @Inject constructor(
     private var syncResult: MutableLiveData<NetworkResult<ResponseBody<StepSynced?>>> =
         MutableLiveData()
     private var summaries: MutableLiveData<NetworkResult<ResponseBody<SummariesRes?>>> =
+        MutableLiveData()
+    private var dataChallenge: MutableLiveData<NetworkResult<ResponseBody<DataChallenge?>>> =
+        MutableLiveData()
+    private var winners: MutableLiveData<NetworkResult<ResponseBody<List<UserWinnerData>?>>> =
         MutableLiveData()
     private var usersBase: MutableLiveData<NetworkResult<ResponseBody<List<SummaryRes>?>>> =
         MutableLiveData()
@@ -118,6 +124,7 @@ class StepViewModel @Inject constructor(
         uid: String,
         fetch: Boolean
     ): MutableLiveData<NetworkResult<ResponseBody<SummariesRes?>>> {
+        timber("jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj")
         if (fetch || summaries.value == null) {
             viewModelScope.launch {
                 summaries = safeApiCall(Dispatchers.IO) {
@@ -136,6 +143,27 @@ class StepViewModel @Inject constructor(
             } as MutableLiveData<NetworkResult<ResponseBody<List<SummaryRes>?>>>
         }
         return usersBase
+    }
+
+    fun dataChallenge(
+        uid: String,
+    ): MutableLiveData<NetworkResult<ResponseBody<DataChallenge?>>> {
+            viewModelScope.launch {
+                dataChallenge = safeApiCall(Dispatchers.IO) {
+                    apiService.dataChallenge(uid)
+                } as MutableLiveData<NetworkResult<ResponseBody<DataChallenge?>>>
+            }
+        return dataChallenge
+    }
+
+
+    fun winners(): MutableLiveData<NetworkResult<ResponseBody<List<UserWinnerData>?>>> {
+        viewModelScope.launch {
+            winners = safeApiCall(Dispatchers.IO) {
+                apiService.winners()
+            } as MutableLiveData<NetworkResult<ResponseBody<List<UserWinnerData>?>>>
+        }
+        return winners
     }
 
 }

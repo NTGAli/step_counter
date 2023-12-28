@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +14,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,12 +29,14 @@ import androidx.compose.ui.unit.dp
 import com.ntg.stepcounter.models.components.AppbarItem
 import com.ntg.stepcounter.models.components.PopupItem
 import com.ntg.stepcounter.ui.theme.*
+import com.ntg.stepcounter.util.extension.orZero
 
+//@ExperimentalMaterial3Api
 @Composable
 fun Appbar(
     modifier: Modifier = Modifier,
+    title: String,
 //    scrollBehavior: TopAppBarScrollBehavior? = null,
-    title: String = "Appbar",
     titleColor: Color = MaterialTheme.colors.secondary,
     color: Color = Color.White,
     enableNavigation: Boolean = true,
@@ -99,7 +104,7 @@ fun Appbar(
             )
 
 //            if (scrollBehavior?.state?.contentOffset.orZero() < -25f) {
-//                Divider(Modifier.height(1.dp), color = MaterialTheme.colorScheme.surfaceVariant)
+//                Divider(Modifier.height(1.dp), color = MaterialTheme.colors.onSurface)
 //            }
 
         }

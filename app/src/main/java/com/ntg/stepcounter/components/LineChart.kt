@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,7 +28,9 @@ import com.patrykandpatrick.vico.compose.chart.column.columnChart
 import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
+import com.patrykandpatrick.vico.core.axis.formatter.DecimalFormatAxisValueFormatter
 import com.patrykandpatrick.vico.core.component.shape.LineComponent
+import com.patrykandpatrick.vico.core.entry.ChartEntryModel
 import com.patrykandpatrick.vico.core.entry.FloatEntry
 import com.patrykandpatrick.vico.core.entry.entryModelOf
 import com.patrykandpatrick.vico.core.marker.Marker
@@ -48,18 +51,36 @@ fun SingleColumnChartWithNegativeValues(
     data: Map<LocalDate, Float>?,
     onMark: (String) -> Unit = {}
 ) {
+
+
+
     val z = ZoneId.of("Asia/Tehran")
     val zdt = ZonedDateTime.now(z)
     val today = zdt.toLocalDate()
 
-    val xValuesToDates = data?.keys?.associateBy { it.toEpochDay().toFloat() }
-    val chartEntryModel = xValuesToDates?.keys?.zip(data.values)
-        ?.map { (x, y) -> FloatEntry(today.toEpochDay().toFloat() - x, y) }
-        ?: return
+    var xValuesToDates by remember {
+        mutableStateOf(mapOf<Float, LocalDate>())
+    }
+
+    var chartEntryModel by remember {
+        mutableStateOf(listOf<FloatEntry>())
+    }
+
+    var columnColor by remember {
+        mutableStateOf(listOf<LineComponent>())
+    }
 
 
 
-    val columnColor = listOf(
+
+    xValuesToDates = data?.keys?.associateBy { it.toEpochDay().toFloat() } ?: mapOf()
+
+    chartEntryModel = xValuesToDates.keys.zip(data!!.values)
+        .map { (x, y) -> FloatEntry(today.toEpochDay().toFloat() - x, y) }
+
+
+
+    columnColor = listOf(
         lineComponent(
             color = MaterialTheme.colors.primary,
             thickness = 8.dp,
@@ -68,28 +89,54 @@ fun SingleColumnChartWithNegativeValues(
     )
 
 
-    val chartEntryModels = entryModelOf(chartEntryModel)
+    val chartEntryModels by remember {
+        mutableStateOf(entryModelOf(chartEntryModel))
+    }
 
-    val horizontalAxisValueFormatter =
-        AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
 
-            val mValue = today.toEpochDay().toFloat() - value
+    var mValue by remember {
+        mutableStateOf(0f)
+    }
 
-            val date2 = try {
-                Date.from(xValuesToDates[mValue]?.atStartOfDay(ZoneId.systemDefault())?.toInstant())
-            } catch (e: Exception) {
-                Date.from(
-                    LocalDate.ofEpochDay(mValue.toLong())?.atStartOfDay(ZoneId.systemDefault())
-                        ?.toInstant()
-                )
+    var date2 by remember {
+        mutableStateOf(Date())
+    }
+
+    var pDate by remember {
+        mutableStateOf(PersianDate())
+    }
+
+
+    var pDateFormat by remember {
+        mutableStateOf(PersianDateFormat())
+    }
+
+//    var datkke2 = remember {
+//        mutableStateOf(AxisValueFormatter<AxisPosition.Horizontal.Bottom>())
+//    }
+
+    var horizontalAxisValueFormatter: AxisValueFormatter<AxisPosition.Horizontal.Bottom>? = null
+
+        horizontalAxisValueFormatter =
+            AxisValueFormatter { value, _ ->
+
+                mValue = today.toEpochDay().toFloat() - value
+
+                date2 = try {
+                    Date.from(xValuesToDates[mValue]?.atStartOfDay(ZoneId.systemDefault())?.toInstant())
+                } catch (e: Exception) {
+                    Date.from(
+                        LocalDate.ofEpochDay(mValue.toLong())?.atStartOfDay(ZoneId.systemDefault())
+                            ?.toInstant()
+                    )
+
+                }
+
+                pDate = PersianDate(date2)
+                pDateFormat = PersianDateFormat("j F")
+                pDateFormat.format(pDate)
 
             }
-
-            val pDate = PersianDate(date2)
-            val pDateFormat = PersianDateFormat("j F")
-            pDateFormat.format(pDate)
-
-        }
 
     var persistentMarkers by remember { mutableStateOf(emptyMap<Float, Marker>()) }
 
@@ -114,9 +161,6 @@ fun SingleColumnChartWithNegativeValues(
     }
 
 
-
-
-
     Chart(
         modifier = modifier.aspectRatio(1.77f),
         chart = columnChart(
@@ -127,7 +171,7 @@ fun SingleColumnChartWithNegativeValues(
         marker = rememberMarker(),
         markerVisibilityChangeListener = markerVisibilityChangeListener,
         bottomAxis = rememberBottomAxis(
-            valueFormatter = horizontalAxisValueFormatter,
+            valueFormatter = horizontalAxisValueFormatter ?: DecimalFormatAxisValueFormatter(),
             label = com.patrykandpatrick.vico.compose.component.textComponent(
                 background = null,
                 lineCount = 1,

@@ -1,8 +1,6 @@
 package com.ntg.stepcounter.nav
 
 import android.os.Bundle
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -35,6 +33,7 @@ import com.ntg.stepcounter.screens.SettingsScreen
 import com.ntg.stepcounter.screens.SignInScreen
 import com.ntg.stepcounter.screens.SocialListScreen
 import com.ntg.stepcounter.screens.SocialScreen
+import com.ntg.stepcounter.screens.DataChallengesScreen
 import com.ntg.stepcounter.screens.UpdateScreen
 import com.ntg.stepcounter.screens.UserClapsScreen
 import com.ntg.stepcounter.screens.UserProfileScreen
@@ -323,6 +322,22 @@ fun AppNavHost(
 
         composable(Screens.DeadVersionScreen.name) {
             DeadVersionScreen(navController)
+        }
+
+        composable(
+            Screens.DataChallengesScreen.name + "?uid={uid}",
+            arguments = listOf(
+                navArgument("uid")
+                {
+                    type = NavType.StringType
+                    defaultValue = ""
+                })
+        ) {
+            DataChallengesScreen(
+                navController,
+                stepViewModel,
+                it.arguments?.getString("uid").orEmpty(),
+            )
         }
 
 

@@ -8,26 +8,35 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.asLiveData
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.ntg.stepcounter.MainActivity
 import com.ntg.stepcounter.R
-import com.ntg.stepcounter.models.UserStore
+import com.ntg.stepcounter.screens.startServiceViaWorker
+import com.ntg.stepcounter.services.StepCounterService
+import com.ntg.stepcounter.util.extension.foregroundServiceRunning
 import com.ntg.stepcounter.util.extension.timber
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         timber("MyFirebaseMessagingService ::: FROM : ${remoteMessage.from}")
-        if (remoteMessage.notification?.title.orEmpty().isNotEmpty()) {
+
+        val data = remoteMessage.data
+        val myCustomKey = data["stepService"]
+
+        if (myCustomKey == "start"){
+            startStepService()
+        }else if (remoteMessage.notification?.title.orEmpty().isNotEmpty()) {
             sendNotification(
                 remoteMessage.notification?.title.orEmpty(),
                 remoteMessage.notification?.body.orEmpty(),
                 remoteMessage.data["action"].orEmpty()
             )
         }
+
+
+
     }
 
     override fun onNewToken(token: String) {
@@ -36,14 +45,21 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun sendRegistrationToServer(token: String?) {
-//        val userData = UserStore(this)
-//        userData.getUserID.asLiveData().observeForever {
-//            timber("UUUUUUUUUUUUUUUU ::::::::::::: $it")
-//        }
+        timber("sendRegistrationTokenToServer $token")
+    }
 
-
-        // TODO: Implement this method to send token to your app server.
-        Log.d(TAG, "sendRegistrationTokenToServer($token)")
+    private fun startStepService(){
+        if (!foregroundServiceRunning()) {
+            val serviceIntent = Intent(this, StepCounterService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent)
+                timber("isInBackgroundStarted ::: ForegroundService")
+            } else {
+                startService(serviceIntent)
+                timber("isInBackgroundStarted ::: Service")
+            }
+            startServiceViaWorker(this)
+        }
     }
 
     private fun sendNotification(title: String, messageBody: String, action: String) {

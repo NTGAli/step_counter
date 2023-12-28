@@ -11,6 +11,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -124,7 +125,7 @@ private fun Content(navHostController: NavHostController) {
             modifier = Modifier.padding(top = 16.dp),
             text = stringResource(id = R.string.permissions_desc),
             style = fontMedium14(
-                SECONDARY800
+                MaterialTheme.colors.secondary
             )
         )
 

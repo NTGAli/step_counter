@@ -36,47 +36,76 @@ fun Record(
     record: Int,
     title: String,
     steps: Int?,
-    onClick:(String?) -> Unit
-){
+    primaryBorder: Boolean = false,
+    onClick: (String?) -> Unit
+) {
 
     Box(modifier = modifier
         .fillMaxWidth()
         .clip(RoundedCornerShape(16.dp))
-        .border(width = 1.dp, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colors.onSurface)
+        .border(
+            width = 1.dp,
+            shape = RoundedCornerShape(16.dp),
+            color = if (primaryBorder) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface
+        )
+        .background(MaterialTheme.colors.background)
         .clickable {
             onClick.invoke(uid)
-        }){
+        }) {
 
-        Row(modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+        ) {
 
             Box(modifier = Modifier.padding(end = 8.dp)) {
-                when(record){
+                when (record) {
                     0 -> {
-                        Icon(painter = painterResource(id = R.drawable.crown), contentDescription = null, tint = TERTIARY500 )
+                        Icon(
+                            painter = painterResource(id = R.drawable.crown),
+                            contentDescription = null,
+                            tint = TERTIARY500
+                        )
                     }
 
                     1 -> {
-                        Icon(painter = painterResource(id = R.drawable.second), contentDescription = null, tint = MaterialTheme.colors.secondary )
+                        Icon(
+                            painter = painterResource(id = R.drawable.second),
+                            contentDescription = null,
+                            tint = MaterialTheme.colors.secondary
+                        )
                     }
 
                     2 -> {
-                        Icon(painter = painterResource(id = R.drawable.third), contentDescription = null, tint = MaterialTheme.colors.onError )
+                        Icon(
+                            painter = painterResource(id = R.drawable.third),
+                            contentDescription = null,
+                            tint = MaterialTheme.colors.onError
+                        )
                     }
 
                     else -> {
-                        Text(text = (record+1).toString(), style = fontMedium14(MaterialTheme.colors.secondary))
+                        Text(
+                            text = (record + 1).toString(),
+                            style = fontMedium14(MaterialTheme.colors.primary)
+                        )
                     }
                 }
             }
 
-            Text(modifier = Modifier.weight(1f), text = title, style = fontMedium14(MaterialTheme.colors.secondary))
+            Text(
+                modifier = Modifier.weight(1f),
+                text = title,
+                style = fontMedium14(MaterialTheme.colors.secondary)
+            )
 
-            Text(text = stringResource(
-                id = R.string.step_format,
-                divideNumber(steps.orZero())
-            ), style = fontMedium12(MaterialTheme.colors.secondary))
+            Text(
+                text = stringResource(
+                    id = R.string.step_format,
+                    divideNumber(steps.orZero())
+                ), style = fontMedium12(MaterialTheme.colors.secondary)
+            )
 
         }
     }
