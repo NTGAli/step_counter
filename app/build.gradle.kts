@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.ntg.stepcounter"
+    namespace = "com.ntg.stepi"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.ntg.stepcounter"
+        applicationId = "com.ntg.stepi"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -22,7 +22,10 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
         buildConfigField("String", "API_TOKEN", project.extra["API_TOKEN"].toString())
+
+        resourceConfigurations +=listOf("fa", "ar")
     }
 
 
@@ -73,6 +76,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
     implementation("androidx.compose.material3:material3:1.1.2")
     implementation("com.google.firebase:firebase-messaging-ktx:23.4.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -197,6 +201,8 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.5.0")
 
+    implementation("androidx.paging:paging-runtime:3.2.1")
+    implementation("androidx.paging:paging-compose:3.2.1")
 }
 
 kapt {

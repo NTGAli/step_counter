@@ -1,12 +1,12 @@
 <resources>
-    <string name="app_name">step counter</string>
+    <string name="app_name">Stepi</string>
     <string name="steps">قدم ها</string>
     <string name="your_record">رکورد شما</string>
     <string name="day">روز</string>
     <string name="number_of_members">تعداد اعضا</string>
     <string name="days">روز ها</string>
     <string name="days_format">%s روز</string>
-    <string name="km_cal">%s کیلومتر | %s کالری</string>
+    <string name="km_cal">%s | %s کالری</string>
     <string name="app_name_farsi">قدم های من</string>
     <string name="days_ago">%s روز پیش</string>
     <string name="step_format">%s قدم</string>
@@ -160,5 +160,21 @@
     <string name="sec_format">%s ثانیه</string>
     <string name="min_format">%s دقیقه</string>
     <string name="hour_format">%s ساعت</string>
+    <string name="language">زبان</string>
+    <string name="persian">فارسی</string>
+    <string name="arabic">العربية</string>
+    <string name="english">English</string>
+    <string name="privacy_first_part">" درصورت ادامه با"</string>
+    <string name="agree_privacy">" موافقت می کنید."</string>
+    <string name="and_format">" و "</string>
+    <string name="total_steps">قدم ها</string>
+    <string name="meter_format">%s متر</string>
+    <string name="fos_not_in_list">رشته ی شما در این لیست نیست؟</string>
+    <string name="insert">اضافه کردن</string>
+    <string name="fos_inserted">رشته ی شما به لیست اضافه شد.</string>
+    <string name="job">شغل</string>
+    <string name="password">رمز</string>
+    <string name="password_id_empty">رمز عبور نمی تواند خالی باشد.</string>
+    <string name="job_empty">شغل نمی تواند خالی باشد</string>
 
 </resources>

@@ -1,0 +1,172 @@
+package com.ntg.stepi.screens
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import com.ntg.mywords.model.components.ButtonSize
+import com.ntg.stepi.R
+import com.ntg.stepi.api.NetworkResult
+import com.ntg.stepi.components.Appbar
+import com.ntg.stepi.components.CustomButton
+import com.ntg.stepi.components.EditText
+import com.ntg.stepi.models.Social
+import com.ntg.stepi.models.Step
+import com.ntg.stepi.util.extension.dateOfToday
+import com.ntg.stepi.util.extension.orFalse
+import com.ntg.stepi.util.extension.orZero
+import com.ntg.stepi.util.extension.toast
+import com.ntg.stepi.vm.LoginViewModel
+import com.ntg.stepi.vm.SocialNetworkViewModel
+import com.ntg.stepi.vm.StepViewModel
+import com.ntg.stepi.vm.UserDataViewModel
+
+
+@Composable
+fun SignInScreen(
+    navHostController: NavHostController,
+    loginViewModel: LoginViewModel,
+    userDataViewModel: UserDataViewModel,
+    socialNetworkViewModel: SocialNetworkViewModel,
+    stepViewModel: StepViewModel,
+    phoneNumber: String?,
+    state: String?
+) {
+    Scaffold(
+        topBar = {
+            Appbar(
+                title = stringResource(R.string.sign_in),
+                navigationOnClick = { navHostController.popBackStack() }
+            )
+        },
+        content = { innerPadding ->
+            Content(
+                paddingValues = innerPadding,
+                navHostController = navHostController,
+                loginViewModel,
+                userDataViewModel,
+                socialNetworkViewModel,
+                stepViewModel,
+                state,
+                phoneNumber
+            )
+        }
+    )
+}
+
+@Composable
+private fun Content(
+    paddingValues: PaddingValues,
+    navHostController: NavHostController,
+    loginViewModel: LoginViewModel,
+    userDataViewModel: UserDataViewModel,
+    socialNetworkViewModel: SocialNetworkViewModel,
+    stepViewModel: StepViewModel,
+    state: String?,
+    phoneNumber: String?
+) {
+
+    val uid = remember {
+        mutableStateOf("")
+    }
+
+    val owner = LocalLifecycleOwner.current
+    val context = LocalContext.current
+
+    Column(modifier = Modifier.padding(horizontal = 32.dp)) {
+
+        EditText(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp),
+            label = stringResource(id = if (state.orEmpty() == "1") R.string.student_id else R.string.prof_id),
+            text = uid,
+            keyboardType = KeyboardType.Number
+        )
+
+        CustomButton(
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .fillMaxWidth(),
+            text = stringResource(id = R.string.sign_in),
+            size = ButtonSize.XL
+        ) {
+
+            if (uid.value.isNotEmpty()) {
+                userDataViewModel.signIn(
+                    uid.value,
+                    phoneNumber.orEmpty(),
+                    System.currentTimeMillis().toString()
+                ).observe(owner) {
+
+                    when (it) {
+                        is NetworkResult.Error -> {
+
+                        }
+
+                        is NetworkResult.Loading -> {
+
+                        }
+
+                        is NetworkResult.Success -> {
+
+                            if (it.data?.isSuccess.orFalse()) {
+                                userDataViewModel.setTimeSign(it.data?.data?.timeSign.orEmpty())
+                                stepViewModel.insertAll(
+                                    it.data?.data?.stepsList.orEmpty().map {
+                                        Step(
+                                            id = 0,
+                                            date = it.date,
+                                            start = if (it.date != dateOfToday()) 0 else 1,
+                                            count = if (it.date != dateOfToday()) it.steps.orZero() else {
+                                                it.steps.orZero() + 1
+                                            },
+                                            synced = it.steps
+                                        )
+                                    })
+                                socialNetworkViewModel.insertAll(
+                                    it.data?.data?.socials.orEmpty().map {
+                                        Social(
+                                            id = it.id,
+                                            name = it.title.orEmpty(),
+                                            pageId = it.url.orEmpty()
+                                        )
+                                    })
+                                userDataViewModel.setUserStatus(state.orEmpty())
+                                userDataViewModel.setFieldStudy(it.data?.data?.fosName.orEmpty())
+                                userDataViewModel.setUserId(uid.value)
+                                userDataViewModel.setClaps(it.data?.data?.claps.orZero())
+                                userDataViewModel.setPhone(phoneNumber.orEmpty())
+                                userDataViewModel.setUsername(it.data?.data?.fullName.orEmpty())
+                                userDataViewModel.setGradeId(it.data?.data?.gradeId.orZero())
+                                userDataViewModel.setFosId(it.data?.data?.fosId.orZero())
+                                userDataViewModel.satMessagesId(it.data?.data?.messages.orEmpty())
+
+                            } else {
+                                context.toast(context.getString(R.string.wrong_info))
+                            }
+
+                        }
+                    }
+
+                }
+            } else {
+                context.toast(context.getString(if (state == "1") R.string.student_id_empty else R.string.prof_id_empty))
+            }
+
+        }
+    }
+
+
+}

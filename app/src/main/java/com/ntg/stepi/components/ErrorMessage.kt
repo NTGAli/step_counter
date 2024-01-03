@@ -1,0 +1,57 @@
+package com.ntg.stepi.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.ntg.mywords.model.components.ButtonSize
+import com.ntg.mywords.model.components.ButtonStyle
+import com.ntg.stepi.R
+import com.ntg.stepi.models.ErrorStatus
+import com.ntg.stepi.ui.theme.TERTIARY500
+import com.ntg.stepi.ui.theme.fontMedium14
+
+@Composable
+fun ErrorMessage(
+    modifier: Modifier = Modifier,
+    status: ErrorStatus,
+    onClick: () -> Unit
+) {
+
+    Column(modifier = modifier.fillMaxWidth().background(MaterialTheme.colors.background), horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(
+            painter = if (status == ErrorStatus.Failed) painterResource(id = R.drawable.alert_triangle) else painterResource(
+                id = R.drawable.wifi_off
+            ),
+            tint = if (status == ErrorStatus.Failed) TERTIARY500 else MaterialTheme.colors.error,
+            contentDescription = null
+        )
+
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = if (status == ErrorStatus.Failed) stringResource(id = R.string.fiald_to_fetch_data) else stringResource(
+                id = R.string.no_internet
+            ),
+            style = fontMedium14(MaterialTheme.colors.secondary)
+        )
+
+        CustomButton(
+            modifier = Modifier.padding(top = 4.dp),
+            text = stringResource(id = R.string.try_again),
+            style = ButtonStyle.TextOnly,
+            size = ButtonSize.MD
+        ) {
+            onClick.invoke()
+        }
+    }
+
+}

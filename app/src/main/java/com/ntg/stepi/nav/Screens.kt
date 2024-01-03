@@ -1,0 +1,35 @@
+package com.ntg.stepi.nav
+
+enum class Screens {
+    HomeScreen,
+    ProfileScreen,
+    SocialScreen,
+    SocialListScreen,
+    SettingsScreen,
+    AccountScreen,
+    PhoneNumberScreen,
+    LoginScreen,
+    RegisterScreen,
+    SignInScreen,
+    ProfRegisterScreen,
+    FieldStudiesScreen,
+    UserProfileScreen,
+    FieldOfStudyDetailsScreen,
+    UserClapsScreen,
+    PermissionScreen,
+    EditPhoneNumberScreen,
+    SeeMoreScreen,
+    TermAndConditionsScreen,
+    PrivacyPolicyScreen,
+    EmployeeScreen,
+    RoleScreen,
+    MessagesBoxScreen,
+    UpdateScreen,
+    DeadVersionScreen,
+    DataChallengesScreen,
+    ParticipatesScreen,
+    WinnersScreen,
+    SelectLanguageScreen,
+    AddFosScreen
+
+}
