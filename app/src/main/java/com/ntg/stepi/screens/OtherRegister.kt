@@ -33,6 +33,7 @@ import com.ntg.stepi.components.Appbar
 import com.ntg.stepi.components.CustomButton
 import com.ntg.stepi.components.EditText
 import com.ntg.stepi.models.Failure
+import com.ntg.stepi.models.FieldOfStudy
 import com.ntg.stepi.models.Success
 import com.ntg.stepi.models.then
 import com.ntg.stepi.nav.Screens
@@ -43,7 +44,10 @@ import com.ntg.stepi.ui.theme.TERTIARY900
 import com.ntg.stepi.ui.theme.fontMedium12
 import com.ntg.stepi.util.extension.notEmptyOrNull
 import com.ntg.stepi.util.extension.orFalse
+import com.ntg.stepi.util.extension.orZero
 import com.ntg.stepi.util.extension.toast
+import com.ntg.stepi.util.extension.validLength
+import com.ntg.stepi.util.extension.validUsername
 import com.ntg.stepi.vm.LoginViewModel
 import com.ntg.stepi.vm.UserDataViewModel
 
@@ -102,6 +106,10 @@ private fun Content(
         mutableStateOf("")
     }
 
+    val jobId = rememberSaveable {
+        mutableStateOf(0)
+    }
+
     var applied by rememberSaveable {
         mutableStateOf(false)
     }
@@ -110,12 +118,21 @@ private fun Content(
         mutableStateOf(false)
     }
 
-    val loading = remember {
+    var usernameError = rememberSaveable {
         mutableStateOf(false)
     }
 
+    val loading = remember {
+        mutableStateOf(false)
+    }
+    job.value = loginViewModel.job?.title.orEmpty()
+    jobId.value = loginViewModel.job?.id.orZero()
+
+
     isVerified = userDataViewModel.isVerified().collectAsState(initial = false).value
 
+
+    val jobData = FieldOfStudy()
 
     if (edit.orFalse() && !applied) {
 
@@ -127,8 +144,19 @@ private fun Content(
             password.value = it
         }
 
+        userDataViewModel.getFieldStudy().collectAsState(initial = "").value.let {
+            job.value = it
+            jobData.title = it
+            loginViewModel.job = jobData
+        }
 
-        if (fullName.value.isNotEmpty()) {
+        userDataViewModel.getFosId().collectAsState(initial = -1).value.let {
+            jobId.value = it
+            jobData.id = it
+            loginViewModel.job = jobData
+        }
+
+        if (fullName.value.isNotEmpty() && fullName.value.isNotEmpty() && jobId.value != -1 && loginViewModel.job != null && loginViewModel.job?.id != null) {
             applied = true
         }
 
@@ -139,7 +167,7 @@ private fun Content(
 
 
         item {
-            if (edit.orFalse()){
+            if (edit.orFalse()) {
                 Box(
                     modifier = Modifier
                         .padding(top = 24.dp)
@@ -176,21 +204,28 @@ private fun Content(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp),
-                    label = stringResource(id = R.string.password),
-                    keyboardType = KeyboardType.Number,
+                    label = stringResource(id = R.string.username),
+                    keyboardType = KeyboardType.Text,
                     text = password,
-                    enabled = !(isVerified && edit.orFalse())
+                    setError = usernameError,
+                    errorMessage = ctx.getString(R.string.username_exist),
+                    enabled = !(isVerified && edit.orFalse()),
+                    onChange = {
+                        usernameError.value = false
+                    }
                 )
+
 
                 EditText(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp),
                     label = stringResource(id = R.string.job),
-                    keyboardType = KeyboardType.Number,
                     text = job,
-                    enabled = !(isVerified && edit.orFalse()),
-                )
+                    readOnly = true
+                ) {
+                    navHostController.navigate(Screens.JobScreen.name)
+                }
 
 
 
@@ -220,6 +255,19 @@ private fun Content(
                                     ctx.getString(R.string.job_empty)
                                 )
                             }
+                            .then {
+                                validUsername(
+                                    password.value,
+                                    ctx.getString(R.string.invalid_username)
+                                )
+                            }
+                            .then {
+                                validLength(
+                                    password.value,
+                                    5,
+                                    ctx.getString(R.string.most_more_5_char)
+                                )
+                            }
 
 
                     when (result) {
@@ -231,15 +279,13 @@ private fun Content(
                             loading.value = true
 
                             if (edit) {
-
-
                                 loginViewModel.editUserDate(
-                                    phoneNumber.orEmpty(),
-                                    fullName.value.trim(),
-                                    "4",
-                                    password.value,
-                                    "-4",
-                                    "-4"
+                                    phone = phoneNumber.orEmpty(),
+                                    fullName = fullName.value.trim(),
+                                    fosId = jobId.value.toString(),
+                                    uid = password.value,
+                                    state = "4",
+                                    gradeId = "4"
                                 ).observe(owner) {
                                     when (it) {
                                         is NetworkResult.Error -> {
@@ -251,13 +297,19 @@ private fun Content(
                                         }
 
                                         is NetworkResult.Success -> {
-                                            userDataViewModel.setUsername(fullName.value.trim())
-                                            userDataViewModel.setUserStatus("3")
-                                            userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
-                                            userDataViewModel.setUserId(password.value)
-                                            userDataViewModel.setPhone(phoneNumber.orEmpty())
-                                            navHostController.navigate(Screens.HomeScreen.name) {
-                                                popUpTo(0)
+                                            loading.value = false
+                                            if (it.data?.isSuccess.orFalse()) {
+                                                userDataViewModel.setUsername(fullName.value.trim())
+                                                userDataViewModel.setUserStatus("4")
+                                                userDataViewModel.setFieldStudy(loginViewModel.job?.title.orEmpty())
+                                                userDataViewModel.setUserId(password.value)
+                                                userDataViewModel.setPhone(phoneNumber.orEmpty())
+                                                userDataViewModel.setFosId(loginViewModel.job?.id.orZero())
+                                                navHostController.navigate(Screens.HomeScreen.name) {
+                                                    popUpTo(0)
+                                                }
+                                            } else {
+                                                usernameError.value = true
                                             }
                                         }
                                     }
@@ -265,13 +317,13 @@ private fun Content(
                                 }
                             } else {
                                 loginViewModel.register(
-                                    phoneNumber.orEmpty(),
-                                    fullName.value.trim(),
-                                    "4",
-                                    password.value,
-                                    "-4",
-                                    "-4",
-                                    System.currentTimeMillis().toString()
+                                    phone = phoneNumber.orEmpty(),
+                                    fullName = fullName.value.trim(),
+                                    fosId = jobId.value.toString(),
+                                    uid = password.value,
+                                    state = "4",
+                                    gradeId = "4",
+                                    timeSign = System.currentTimeMillis().toString()
                                 ).observe(owner) {
                                     when (it) {
                                         is NetworkResult.Error -> {
@@ -283,15 +335,21 @@ private fun Content(
                                         }
 
                                         is NetworkResult.Success -> {
-                                            userDataViewModel.setTimeSign(it.data?.data.orEmpty())
-                                            userDataViewModel.setUsername(fullName.value.trim())
-                                            userDataViewModel.setClaps(0)
-                                            userDataViewModel.setUserStatus("3")
-                                            userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
-                                            userDataViewModel.setUserId(password.value)
-                                            userDataViewModel.setPhone(phoneNumber.orEmpty())
-                                            navHostController.navigate(Screens.HomeScreen.name) {
-                                                popUpTo(0)
+                                            loading.value = false
+                                            if (it.data?.isSuccess.orFalse()) {
+                                                userDataViewModel.setTimeSign(it.data?.data.orEmpty())
+                                                userDataViewModel.setUsername(fullName.value.trim())
+                                                userDataViewModel.setClaps(0)
+                                                userDataViewModel.setUserStatus("4")
+                                                userDataViewModel.setFieldStudy(loginViewModel.job?.title.orEmpty())
+                                                userDataViewModel.setUserId(password.value)
+                                                userDataViewModel.setPhone(phoneNumber.orEmpty())
+                                                userDataViewModel.setFosId(loginViewModel.job?.id.orZero())
+                                                navHostController.navigate(Screens.HomeScreen.name) {
+                                                    popUpTo(0)
+                                                }
+                                            } else {
+                                                usernameError.value = true
                                             }
                                         }
                                     }

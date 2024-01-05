@@ -23,6 +23,7 @@ import com.google.gson.Gson
 import com.ntg.stepi.R
 import com.ntg.stepi.api.NetworkResult
 import com.ntg.stepi.components.Appbar
+import com.ntg.stepi.components.EmptyWidget
 import com.ntg.stepi.components.MessageItem
 import com.ntg.stepi.models.res.MessageRes
 import com.ntg.stepi.util.extension.openInBrowser
@@ -64,7 +65,7 @@ private fun Content(
     val owner = LocalLifecycleOwner.current
     val context = LocalContext.current
     var loadData by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
     
     val data = remember {
@@ -83,7 +84,6 @@ private fun Content(
                     }
                     is NetworkResult.Loading -> {
                         timber("Messages ld")
-                        loadData = true
                     }
                     is NetworkResult.Success -> {
                         timber("Messages sc ${it.data?.data}")
@@ -111,11 +111,19 @@ private fun Content(
     }
 
     LazyColumn(content = {
-        
+
+        item {
+            if (!loadData && data.value.isEmpty()){
+                EmptyWidget(modifier = Modifier.padding(horizontal = 24.dp).padding(top = 16.dp), title = stringResource(id = R.string.empty_box))
+            }
+        }
+
         items(data.value.sortedByDescending { it.id }){message ->
             
             MessageItem(
-                modifier = Modifier.padding(horizontal = 24.dp).padding(top = 16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 16.dp),
                 id = message.id,
                 title = message.title,
                 text = message.description,

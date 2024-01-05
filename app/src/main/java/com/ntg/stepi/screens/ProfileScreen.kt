@@ -125,6 +125,7 @@ fun ProfileScreen(
     val totalSteps = stepViewModel.getAllSteps().observeAsState().value
 
     val status = userDataViewModel.getUserStatus().collectAsState(initial = "").value
+    val userJob = userDataViewModel.getFieldStudy().collectAsState(initial = "").value
 
     val socials = socialNetworkViewModel.getAll().observeAsState().value
 
@@ -307,7 +308,7 @@ fun ProfileScreen(
                                     stringResource(id = R.string.employee)
                                 }
 
-                                else -> status
+                                else -> userJob
                             },
                             style = fontRegular12(MaterialTheme.colors.primary)
                         )

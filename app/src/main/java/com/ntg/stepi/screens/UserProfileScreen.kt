@@ -230,7 +230,7 @@ fun UserProfileScreen(
                             ctx.getString(R.string.employee)
                         }
 
-                        else -> ""
+                        else -> it.data?.data?.fosName.orEmpty()
                     }
                     loading = false
                 }
@@ -536,7 +536,7 @@ private fun Content(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = stringResource(id = R.string.report_workout),
+                        text = stringResource(id = R.string.report_workout_lastMonth),
                         style = fontMedium14(
                             MaterialTheme.colors.secondary
                         )

@@ -119,6 +119,10 @@ private fun Content(
         mutableStateOf(false)
     }
 
+    val sidError = remember {
+        mutableStateOf(false)
+    }
+
     fosId.value = loginViewModel.fieldOfStudy?.title.orEmpty()
     isVerified = userDataViewModel.isVerified().collectAsState(initial = false).value
 
@@ -195,7 +199,12 @@ private fun Content(
                         .padding(top = 8.dp),
                     label = stringResource(id = R.string.prof_id),
                     keyboardType = KeyboardType.Number, text = sId,
-                    enabled = !(isVerified && edit.orFalse())
+                    enabled = !(isVerified && edit.orFalse()),
+                    setError = sidError,
+                    errorMessage = ctx.getString(R.string.pid_already_exist),
+                    onChange = {
+                        sidError.value = false
+                    }
                 )
 
                 EditText(
@@ -265,14 +274,20 @@ private fun Content(
                                         }
 
                                         is NetworkResult.Success -> {
-                                            userDataViewModel.setUsername(fullName.value.trim())
-                                            userDataViewModel.setUserStatus("2")
-                                            userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
-                                            userDataViewModel.setUserId(sId.value)
-                                            userDataViewModel.setPhone(phoneNumber.orEmpty())
-                                            navHostController.navigate(Screens.HomeScreen.name) {
-                                                popUpTo(0)
+                                            loading.value = false
+                                            if (it.data?.isSuccess.orFalse()) {
+                                                userDataViewModel.setUsername(fullName.value.trim())
+                                                userDataViewModel.setUserStatus("2")
+                                                userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
+                                                userDataViewModel.setUserId(sId.value)
+                                                userDataViewModel.setPhone(phoneNumber.orEmpty())
+                                                navHostController.navigate(Screens.HomeScreen.name) {
+                                                    popUpTo(0)
+                                                }
+                                            }else{
+                                                sidError.value = true
                                             }
+
                                         }
                                     }
 
@@ -297,15 +312,20 @@ private fun Content(
                                         }
 
                                         is NetworkResult.Success -> {
-                                            userDataViewModel.setTimeSign(it.data?.data.orEmpty())
-                                            userDataViewModel.setUsername(fullName.value.trim())
-                                            userDataViewModel.setClaps(0)
-                                            userDataViewModel.setUserStatus("2")
-                                            userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
-                                            userDataViewModel.setUserId(sId.value)
-                                            userDataViewModel.setPhone(phoneNumber.orEmpty())
-                                            navHostController.navigate(Screens.HomeScreen.name) {
-                                                popUpTo(0)
+                                            loading.value = false
+                                            if (it.data?.isSuccess.orFalse()){
+                                                userDataViewModel.setTimeSign(it.data?.data.orEmpty())
+                                                userDataViewModel.setUsername(fullName.value.trim())
+                                                userDataViewModel.setClaps(0)
+                                                userDataViewModel.setUserStatus("2")
+                                                userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
+                                                userDataViewModel.setUserId(sId.value)
+                                                userDataViewModel.setPhone(phoneNumber.orEmpty())
+                                                navHostController.navigate(Screens.HomeScreen.name) {
+                                                    popUpTo(0)
+                                                }
+                                            }else{
+                                                sidError.value = true
                                             }
                                         }
                                     }
@@ -315,23 +335,6 @@ private fun Content(
                         }
                     }
                 }
-
-//                if (!isVerified && edit.orFalse() || !edit.orFalse()) {
-//                    CustomButton(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(top = 4.dp),
-//                        text = stringResource(id = R.string.im_student),
-//                        size = ButtonSize.XL,
-//                        style = ButtonStyle.TextOnly
-//                    ) {
-//                        if (navHostController.previousBackStackEntry?.destination?.route == Screens.SettingsScreen.name) {
-//                            navHostController.navigate(Screens.RegisterScreen.name + "?phone=$phoneNumber&edit=${true}")
-//                        } else {
-//                            navHostController.popBackStack()
-//                        }
-//                    }
-//                }
             }
 
         }

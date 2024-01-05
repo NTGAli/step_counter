@@ -208,6 +208,14 @@ fun notNull(
         Failure(errorMessage)
     }
 
+fun validUsername(text: String, errorMessage: String): Result<String> {
+    return if (text.all { it.isDigit() || it.isLetter() }) Success(text) else Failure(errorMessage)
+}
+
+fun validLength(txt: String, length: Int, errorMessage: String): Result<String> {
+    return if (txt.length >= length) Success(txt) else Failure(errorMessage)
+}
+
 fun dateOfToday(): String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
     val z = ZoneId.of("Asia/Tehran")
     val zdt = ZonedDateTime.now(z)

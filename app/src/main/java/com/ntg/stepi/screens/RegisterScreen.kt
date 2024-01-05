@@ -58,6 +58,7 @@ import com.ntg.stepi.util.extension.notNull
 import com.ntg.stepi.util.extension.orFalse
 import com.ntg.stepi.util.extension.orZero
 import com.ntg.stepi.util.extension.toast
+import com.ntg.stepi.util.extension.validLength
 import com.ntg.stepi.vm.LoginViewModel
 import com.ntg.stepi.vm.UserDataViewModel
 import kotlinx.coroutines.launch
@@ -128,6 +129,10 @@ fun RegisterScreen(
         mutableStateOf("")
     }
 
+    val uidError = remember {
+        mutableStateOf(false)
+    }
+
     isVerified = userDataViewModel.isVerified().collectAsState(initial = false).value
 
 
@@ -170,40 +175,49 @@ fun RegisterScreen(
 
     }
 
-    ModalBottomSheetLayout(sheetState = sheetState, sheetBackgroundColor = MaterialTheme.colors.onBackground, scrimColor = backgroundScrim, sheetContent = {
+    ModalBottomSheetLayout(
+        sheetState = sheetState,
+        sheetBackgroundColor = MaterialTheme.colors.onBackground,
+        scrimColor = backgroundScrim,
+        sheetContent = {
 
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier = Modifier
-                    .padding(vertical = 24.dp)
-                    .width(32.dp)
-                    .height(4.dp)
-                    .background(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colors.secondary)
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 24.dp)
+                        .width(32.dp)
+                        .height(4.dp)
+                        .background(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colors.secondary
+                        )
+                )
 
-            LazyColumn(modifier = Modifier.background(MaterialTheme.colors.onBackground)) {
-                items(gradeItems) {
-                    SampleItem(
-                        modifier = Modifier.padding(horizontal = 24.dp),
-                        title = it.title,
-                        id = it.id
-                    ) { _, id, _ ->
-                        gradeId.value = id.orZero()
-                        grade.value = try {
-                            gradeItems.first { it.id == id.orZero() }.title
-                        } catch (e: Exception) {
-                            ""
-                        }
-                        scope.launch {
-                            sheetState.hide()
+                LazyColumn(modifier = Modifier.background(MaterialTheme.colors.onBackground)) {
+                    items(gradeItems) {
+                        SampleItem(
+                            modifier = Modifier.padding(horizontal = 24.dp),
+                            title = it.title,
+                            id = it.id
+                        ) { _, id, _ ->
+                            gradeId.value = id.orZero()
+                            grade.value = try {
+                                gradeItems.first { it.id == id.orZero() }.title
+                            } catch (e: Exception) {
+                                ""
+                            }
+                            scope.launch {
+                                sheetState.hide()
+                            }
                         }
                     }
                 }
             }
-        }
 
 
-    }, sheetShape = RoundedCornerShape(topEnd = 32.dp, topStart = 32.dp)) {
+        },
+        sheetShape = RoundedCornerShape(topEnd = 32.dp, topStart = 32.dp)
+    ) {
 
         LazyColumn {
             item {
@@ -239,9 +253,11 @@ fun RegisterScreen(
             }
 
             item {
-                Column(modifier = Modifier
-                    .padding(horizontal = 32.dp)
-                    .padding(top = 16.dp)) {
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 32.dp)
+                        .padding(top = 16.dp)
+                ) {
 
                     EditText(
                         modifier = Modifier
@@ -257,7 +273,12 @@ fun RegisterScreen(
                             .padding(top = 8.dp),
                         label = stringResource(id = R.string.student_id),
                         keyboardType = KeyboardType.Number, text = sId,
-                        enabled = !(isVerified && edit.orFalse())
+                        enabled = !(isVerified && edit.orFalse()),
+                        setError = uidError,
+                        errorMessage = ctx.getString(R.string.uid_already_exist),
+                        onChange = {
+                            uidError.value = false
+                        }
                     )
 
                     EditText(
@@ -311,8 +332,15 @@ fun RegisterScreen(
                                 }
                                 .then {
                                     notEmptyOrNull(
-                                        gradeId.value,
-                                        ctx.getString(R.string.student_id)
+                                        gradeId.intValue,
+                                        ctx.getString(R.string.grade_id_empty)
+                                    )
+                                }
+                                .then {
+                                    validLength(
+                                        sId.value,
+                                        5,
+                                        ctx.getString(R.string.grad_most_more_5_char)
                                     )
                                 }
 
@@ -345,7 +373,7 @@ fun RegisterScreen(
                                             }
 
                                             is NetworkResult.Success -> {
-
+                                                loading.value = false
                                                 if (it.data?.isSuccess.orFalse()) {
                                                     userDataViewModel.setUserStatus("1")
                                                     userDataViewModel.setFieldStudy(loginViewModel.fieldOfStudy?.title.orEmpty())
@@ -360,7 +388,7 @@ fun RegisterScreen(
                                                         false
                                                     )
                                                 } else if (it.data?.message == "UID_ALREADY_EXIST") {
-                                                    ctx.toast(ctx.getString(R.string.uid_already_exist))
+                                                    uidError.value = true
                                                 } else {
                                                     ctx.toast(ctx.getString(R.string.user_not_updated))
                                                 }
@@ -388,6 +416,7 @@ fun RegisterScreen(
                                             }
 
                                             is NetworkResult.Success -> {
+                                                loading.value = false
                                                 if (it.data?.isSuccess.orFalse()) {
                                                     userDataViewModel.setTimeSign(it.data?.data.orEmpty())
                                                     userDataViewModel.setUserStatus("1")
@@ -399,7 +428,7 @@ fun RegisterScreen(
                                                     userDataViewModel.setGradeId(gradeId.value)
                                                     userDataViewModel.setFosId(loginViewModel.fieldOfStudy?.id.orZero())
                                                 } else if (it.data?.message == "UID_ALREADY_EXIST") {
-                                                    ctx.toast(ctx.getString(R.string.uid_already_exist))
+                                                    uidError.value = true
                                                 } else {
                                                     ctx.toast(ctx.getString(R.string.user_not_registered))
                                                 }

@@ -35,6 +35,8 @@ import com.ntg.stepi.screens.SignInScreen
 import com.ntg.stepi.screens.SocialListScreen
 import com.ntg.stepi.screens.SocialScreen
 import com.ntg.stepi.screens.DataChallengesScreen
+import com.ntg.stepi.screens.JobScreen
+import com.ntg.stepi.screens.OtherRegister
 import com.ntg.stepi.screens.SelectLanguageScreen
 import com.ntg.stepi.screens.UpdateScreen
 import com.ntg.stepi.screens.UserClapsScreen
@@ -194,6 +196,31 @@ fun AppNavHost(
 
 
         composable(
+            Screens.OtherRegisterScreen.name + "?phone={phone}&edit={edit}",
+            arguments = listOf(
+                navArgument("phone")
+                {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("edit")
+                {
+                    type = NavType.BoolType
+                    defaultValue = false
+                })
+
+        ) {
+            OtherRegister(
+                navController,
+                loginViewModel,
+                userDataViewModel,
+                it.arguments?.getString("phone"),
+                it.arguments?.getBoolean("edit").orFalse()
+            )
+        }
+
+
+        composable(
             Screens.RoleScreen.name + "?phone={phone}",
             arguments = listOf(
                 navArgument("phone")
@@ -235,6 +262,10 @@ fun AppNavHost(
 
         composable(Screens.FieldStudiesScreen.name) {
             FieldStudiesScreen(navController, loginViewModel)
+        }
+
+        composable(Screens.JobScreen.name) {
+            JobScreen(navController, loginViewModel)
         }
 
         composable(Screens.MessagesBoxScreen.name+ "?uid={uid}",

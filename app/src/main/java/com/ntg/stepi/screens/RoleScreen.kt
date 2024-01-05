@@ -45,6 +45,7 @@ private fun Content(paddingValues: PaddingValues, navController: NavController, 
        Pair(1, stringResource(id = R.string.im_student)),
        Pair(2, stringResource(id = R.string.im_prof)),
        Pair(3, stringResource(id = R.string.im_employee)),
+       Pair(4, stringResource(id = R.string.other)),
     )
 
     LazyColumn(modifier = Modifier.padding(paddingValues), content = {
@@ -64,6 +65,10 @@ private fun Content(paddingValues: PaddingValues, navController: NavController, 
 
                     3 -> {
                         navController.navigate(Screens.EmployeeScreen.name + "?phone=$phone")
+                    }
+
+                    4 -> {
+                        navController.navigate(Screens.OtherRegisterScreen.name + "?phone=$phone")
                     }
 
                 }

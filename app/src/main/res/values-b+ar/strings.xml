@@ -176,6 +176,19 @@
     <string name="password">كلمة المرور</string>
     <string name="password_id_empty">لا يمكن أن تكون كلمة المرور فارغة.</string>
     <string name="job_empty">لا يمكن أن تكون الوظيفة فارغة</string>
+    <string name="report_workout_lastMonth">تقرير الأداء (آخر 30 يومًا)</string>
+    <string name="username">بطاقة تعريف</string>
+    <string name="invalid_username">يجب أن يحتوي اسم المستخدم على حروف أو أرقام باللغة الإنجليزية.</string>
+    <string name="most_more_5_char">يجب أن يكون رقم التعريف أكثر من 5 أحرف</string>
+    <string name="username_exist">وسجلت بالفعل اسم المستخدم هذا</string>
+    <string name="grad_most_more_5_char">يجب أن يكون رقم الطالب أكثر من 5 أحرف</string>
+    <string name="grade_id_empty">لم يتم تحديد الدرجة</string>
+    <string name="pid_already_exist">تم تسجيل هذا الرمز بالفعل</string>
+    <string name="empty_box">لا توجد رسالة.</string>
+
+
+
+
 
 
 

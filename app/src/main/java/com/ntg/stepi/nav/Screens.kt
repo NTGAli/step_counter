@@ -30,6 +30,8 @@ enum class Screens {
     ParticipatesScreen,
     WinnersScreen,
     SelectLanguageScreen,
-    AddFosScreen
+    AddFosScreen,
+    OtherRegisterScreen,
+    JobScreen,
 
 }

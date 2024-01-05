@@ -145,17 +145,17 @@ fun WinnerItem(
                         id = R.string.days_format, days
                     )
                 )
-                SubItem(
-                    image = Icons.Rounded.Money,
-                    title = stringResource(id = R.string.sponsor),
-                    text = sponsor ?: stringResource(
-                        id = R.string.un_known
-                    )
-                ) {
-                    if (sponsorLink != null) {
-                        sponsorClick.invoke(sponsorLink)
-                    }
-                }
+//                SubItem(
+//                    image = Icons.Rounded.Money,
+//                    title = stringResource(id = R.string.sponsor),
+//                    text = sponsor ?: stringResource(
+//                        id = R.string.un_known
+//                    )
+//                ) {
+//                    if (sponsorLink != null) {
+//                        sponsorClick.invoke(sponsorLink)
+//                    }
+//                }
 
                 Spacer(modifier = Modifier.padding(8.dp))
             }

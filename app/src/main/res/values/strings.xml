@@ -17,6 +17,7 @@
     <string name="student">دانشجو</string>
     <string name="prof">استاد</string>
     <string name="report_workout">گزارش عملکرد</string>
+    <string name="report_workout_lastMonth">گزارش عملکرد (30 روز گذشته)</string>
     <string name="your_achievment">دستاورد های شما</string>
     <string name="no_achievment">دستاوردی ثبت نشده.</string>
     <string name="view">مشاهده</string>
@@ -96,6 +97,7 @@
     <string name="user_not_updated">خطا در بروزرسانی اطلاعات کاربری</string>
     <string name="user_not_registered">خطا در ثبت نام</string>
     <string name="uid_already_exist">شماره دانشجویی قبلا ثبت شده</string>
+    <string name="pid_already_exist">این کد قبلا ثبت شده</string>
     <string name="clpas_for_you_format">%s نفر برای شما دست زده</string>
     <string name="users">تشویق کنندگان</string>
     <string name="wrong">اشتباهی شده؟</string>
@@ -176,5 +178,12 @@
     <string name="password">رمز</string>
     <string name="password_id_empty">رمز عبور نمی تواند خالی باشد.</string>
     <string name="job_empty">شغل نمی تواند خالی باشد</string>
+    <string name="username">آیدی</string>
+    <string name="invalid_username">یوزرنیم باید شامل حروف انگلیسی یا عدد باشد.</string>
+    <string name="most_more_5_char">آیدی باید بیشتر از 5 کاراکتر باشد</string>
+    <string name="username_exist">این یوزرنیم قبلا ثبت شده</string>
+    <string name="grad_most_more_5_char">شماره دانشجویی باید بیشتر از 5 کاراکتر باشد</string>
+    <string name="grade_id_empty">مقطع تحصیلی انتخاب نشده</string>
+    <string name="empty_box">پیامی وجود ندارد.</string>
 
 </resources>

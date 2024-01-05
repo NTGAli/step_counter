@@ -2,11 +2,14 @@ package com.ntg.stepi.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -19,6 +22,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.ntg.stepi.R
 import com.ntg.stepi.api.NetworkResult
 import com.ntg.stepi.components.AdsItem
@@ -28,6 +32,7 @@ import com.ntg.stepi.components.Record
 import com.ntg.stepi.models.res.ADSRes
 import com.ntg.stepi.models.res.SummaryRes
 import com.ntg.stepi.nav.Screens
+import com.ntg.stepi.util.extension.timber
 import com.ntg.stepi.util.extension.toast
 import com.ntg.stepi.vm.StepViewModel
 import com.ntg.stepi.vm.UserDataViewModel
@@ -84,50 +89,42 @@ private fun Content(
     stepViewModel: StepViewModel,
     base: String
 ) {
-
-    var users by remember {
-        mutableStateOf(listOf<SummaryRes>())
-    }
-
-    var ads by remember {
-        mutableStateOf(listOf<ADSRes>())
-    }
-
-    var adsNum by remember {
-        mutableIntStateOf(0)
-    }
-
     var loading by remember {
         mutableStateOf(false)
     }
 
-    val context = LocalContext.current
 
     val uid = userDataViewModel.getUserId().collectAsState(initial = "").value
 
-    if (users.isEmpty()) {
+//    if (users.isEmpty()) {
+//
+//        stepViewModel.gerUserBase(base).observe(LocalLifecycleOwner.current) {
+//            when (it) {
+//                is NetworkResult.Error -> {
+//                    loading = false
+//                    context.toast(context.getString(R.string.sth_wrong))
+//                }
+//
+//                is NetworkResult.Loading -> {
+//                    loading = true
+//                }
+//
+//                is NetworkResult.Success -> {
+//                    users = it.data?.data?.users.orEmpty()
+//                    ads = it.data?.data?.ads.orEmpty()
+//                    adsNum = ads.size -1
+//                    loading = false
+//                }
+//            }
+//        }
+//
+//    }
 
-        stepViewModel.gerUserBase(base).observe(LocalLifecycleOwner.current) {
-            when (it) {
-                is NetworkResult.Error -> {
-                    loading = false
-                    context.toast(context.getString(R.string.sth_wrong))
-                }
 
-                is NetworkResult.Loading -> {
-                    loading = true
-                }
+    LaunchedEffect(key1 = Unit, block = {
 
-                is NetworkResult.Success -> {
-                    users = it.data?.data?.users.orEmpty()
-                    ads = it.data?.data?.ads.orEmpty()
-                    adsNum = ads.size -1
-                    loading = false
-                }
-            }
-        }
-
-    }
+    })
+    val usersData = stepViewModel.getBreakingNews(base).collectAsLazyPagingItems()
 
 
 
@@ -135,14 +132,17 @@ private fun Content(
 
     LazyColumn(modifier = Modifier.padding(horizontal = 16.dp), content = {
 
-        itemsIndexed(users) { index, it ->
+
+
+
+        items(usersData.itemCount) { index ->
             Column {
                 Record(modifier = Modifier.padding(top = 8.dp),
-                    uid = it.uid,
+                    uid = usersData[index]?.uid,
                     record = index,
-                    title = it.title.orEmpty(),
-                    steps = it.steps,
-                    primaryBorder = uid == it.uid,
+                    title = usersData[index]?.title.orEmpty(),
+                    steps = usersData[index]?.steps,
+                    primaryBorder = uid == usersData[index]?.uid,
                     onClick = {
                         if (base == "TopBaseFos") {
                             navHostController.navigate(Screens.FieldOfStudyDetailsScreen.name + "?uid=$it&rank=${index + 1}")
@@ -152,16 +152,45 @@ private fun Content(
 
                     })
 
-                if (ads.isNotEmpty() && (index+1) % 8 == 0) {
-
-                    AdsItem(modifier = Modifier.padding(top = 8.dp), ads[adsNum])
-                    if (adsNum < ads.size-1) adsNum++
-                    else adsNum = 0
+                if (usersData[index]?.ads != null) {
+                    AdsItem(modifier = Modifier.padding(top = 8.dp), usersData[index]?.ads)
                 }
             }
 
-
         }
+
+        item {
+            Spacer(modifier = Modifier.padding(24.dp))
+        }
+
+
+//        itemsIndexed(users) { index, it ->
+//            Column {
+//                Record(modifier = Modifier.padding(top = 8.dp),
+//                    uid = it.uid,
+//                    record = index,
+//                    title = it.title.orEmpty(),
+//                    steps = it.steps,
+//                    primaryBorder = uid == it.uid,
+//                    onClick = {
+//                        if (base == "TopBaseFos") {
+//                            navHostController.navigate(Screens.FieldOfStudyDetailsScreen.name + "?uid=$it&rank=${index + 1}")
+//                        } else {
+//                            navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
+//                        }
+//
+//                    })
+//
+//                if (ads.isNotEmpty() && (index+1) % 8 == 0) {
+//
+//                    AdsItem(modifier = Modifier.padding(top = 8.dp), ads[adsNum])
+//                    if (adsNum < ads.size-1) adsNum++
+//                    else adsNum = 0
+//                }
+//            }
+//
+//
+//        }
 
     })
 

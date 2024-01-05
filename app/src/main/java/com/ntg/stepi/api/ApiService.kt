@@ -34,6 +34,10 @@ interface ApiService {
     suspend fun filedOfStudies(
     ): Response<ResponseBody<List<FieldOfStudy>?>>
 
+    @GET("stepi/jobList.php")
+    suspend fun jobList(
+    ): Response<ResponseBody<List<FieldOfStudy>?>>
+
     @FormUrlEncoded
     @POST("stepi/registerNewUser.php")
     suspend fun register(
@@ -89,7 +93,8 @@ interface ApiService {
     @FormUrlEncoded
     @POST("stepi/getUserBase.php")
     suspend fun getUserBase(
-        @Field("base") base: String
+        @Field("base") base: String,
+        @Field("page") page: Int,
     ): Response<ResponseBody<UserBaseRes?>>
 
 

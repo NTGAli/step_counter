@@ -128,7 +128,7 @@ fun EditText(
 
         )
 
-        if (errorMessage != null){
+        if (errorMessage != null && setError.value){
             Text(modifier = Modifier.padding(top = 4.dp),text = errorMessage, style = fontRegular12(MaterialTheme.colors.error))
         }
     }

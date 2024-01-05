@@ -114,6 +114,8 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
                     navHostController.navigate(Screens.ProfRegisterScreen.name + "?phone=$userPhone&edit=${true}")
                 }else if (userStatus.value == "3"){
                     navHostController.navigate(Screens.EmployeeScreen.name + "?phone=$userPhone&edit=${true}")
+                }else if (userStatus.value == "4"){
+                    navHostController.navigate(Screens.OtherRegisterScreen.name + "?phone=$userPhone&edit=${true}")
                 }
             })
 

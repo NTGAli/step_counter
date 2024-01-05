@@ -1,5 +1,6 @@
 package com.ntg.stepi.screens
 
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -115,6 +116,10 @@ fun ParticipatesScreen(
                         navController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
                     }
                 )
+            }
+
+            item {
+                Spacer(modifier = Modifier.padding(24.dp))
             }
 
         })

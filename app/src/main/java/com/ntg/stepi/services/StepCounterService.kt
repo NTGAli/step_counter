@@ -47,6 +47,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -96,7 +97,8 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
         super.onCreate()
         timber("BackgroundService:::onCreate")
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::StepCounterService")
+        wakeLock =
+            powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::StepCounterService")
         mNetworkReceiver = NetworkChangeReceiver()
 
     }
@@ -190,8 +192,8 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
 
                 timber("TOTAL_STEPS_NEED_TO_SYNC DATE = $date :::: steps need to sync = ${totalSteps - totalSynced}")
 
-                if ((date != dateOfToday() && totalSteps != stepsWaitForSync && totalSteps > totalSynced) ||  (totalSteps - totalSynced > 50 && totalSteps != 0 && totalSteps != stepSynced && totalSteps > stepsWaitForSync + 5)) {
-                    if (date != null){
+                if ((date != dateOfToday() && totalSteps != stepsWaitForSync && totalSteps > totalSynced) || (totalSteps - totalSynced > 50 && totalSteps != 0 && totalSteps != stepSynced && totalSteps > stepsWaitForSync + 5)) {
+                    if (date != null) {
                         syncStep(scope, totalSteps, date)
                     }
                 }
@@ -203,46 +205,49 @@ class StepCounterService : Service(), SensorEventListener, LifecycleOwner, StepL
     }
 
     private fun syncStep(scope: CoroutineScope, totalSteps: Int, date: String) {
-        stepsWaitForSync = totalSteps
-        status = totalSteps.toString()
+
         scope.launch {
+            withContext(Dispatchers.IO) {
+                stepsWaitForSync = totalSteps
+                status = totalSteps.toString()
+                timber("TOTAL_STEPS_NEED_TO_SYNC ::: START")
+                status = "start"
+                if (this@StepCounterService.checkInternet()) {
+                    timber("TOTAL_STEPS_NEED_TO_SYNC ::: INTERNET-OK")
+                    status = "OK"
 
-            timber("TOTAL_STEPS_NEED_TO_SYNC ::: START")
-            status = "start"
-            if (this@StepCounterService.checkInternet()) {
-                timber("TOTAL_STEPS_NEED_TO_SYNC ::: INTERNET-OK")
-                status = "OK"
-
-                val call = apiService.syncStepsInBack(date, totalSteps, userId)
-                call.enqueue(object : Callback<ResponseBody<StepSynced?>> {
-                    override fun onResponse(
-                        call: Call<ResponseBody<StepSynced?>>,
-                        response: Response<ResponseBody<StepSynced?>>
-                    ) {
-                        if (response.isSuccessful) {
-                            status = "Successful"
-                            timber("TOTAL_STEPS_NEED_TO_SYNC ::: STEP-SYNCED")
-                            val data = response.body()
-                            stepSynced = totalSteps
-                            if (data?.data?.date != null && data.data.count != null) {
-                                scope.launch {
-                                    appDB.stepDao()
-                                        .updateSync(data.data.date, data.data.count.orZero())
+                    val call = apiService.syncStepsInBack(date, totalSteps, userId)
+                    call.enqueue(object : Callback<ResponseBody<StepSynced?>> {
+                        override fun onResponse(
+                            call: Call<ResponseBody<StepSynced?>>,
+                            response: Response<ResponseBody<StepSynced?>>
+                        ) {
+                            if (response.isSuccessful) {
+                                status = "Successful"
+                                timber("TOTAL_STEPS_NEED_TO_SYNC ::: STEP-SYNCED")
+                                val data = response.body()
+                                stepSynced = totalSteps
+                                if (data?.data?.date != null && data.data.count != null) {
+                                    scope.launch {
+                                        appDB.stepDao()
+                                            .updateSync(data.data.date, data.data.count.orZero())
+                                    }
                                 }
                             }
+                            stepsWaitForSync = 0
                         }
-                        stepsWaitForSync = 0
-                    }
 
-                    override fun onFailure(
-                        call: Call<ResponseBody<StepSynced?>>,
-                        t: Throwable
-                    ) {
-                    }
-                })
+                        override fun onFailure(
+                            call: Call<ResponseBody<StepSynced?>>,
+                            t: Throwable
+                        ) {
+                        }
+                    })
+
+                }
+
 
             }
-
         }
     }
 

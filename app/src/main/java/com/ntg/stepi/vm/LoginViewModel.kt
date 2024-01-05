@@ -24,7 +24,9 @@ class LoginViewModel @Inject constructor(
     private var insertFos: MutableLiveData<NetworkResult<ResponseBody<Int?>>> = MutableLiveData()
     private var editPhoneResult: MutableLiveData<NetworkResult<ResponseBody<String?>>> = MutableLiveData()
     private var listOfFos: MutableLiveData<NetworkResult<ResponseBody<List<FieldOfStudy>?>>> = MutableLiveData()
+    private var listOfJobs: MutableLiveData<NetworkResult<ResponseBody<List<FieldOfStudy>?>>> = MutableLiveData()
     var fieldOfStudy: FieldOfStudy? = null
+    var job: FieldOfStudy? = null
 
 
     fun login(phone: String): MutableLiveData<NetworkResult<ResponseBody<String?>>> {
@@ -73,6 +75,16 @@ class LoginViewModel @Inject constructor(
             } as MutableLiveData<NetworkResult<ResponseBody<List<FieldOfStudy>?>>>
         }
         return listOfFos
+    }
+
+
+    fun jobs(): MutableLiveData<NetworkResult<ResponseBody<List<FieldOfStudy>?>>> {
+        viewModelScope.launch {
+            listOfJobs = safeApiCall(Dispatchers.IO){
+                apiService.jobList()
+            } as MutableLiveData<NetworkResult<ResponseBody<List<FieldOfStudy>?>>>
+        }
+        return listOfJobs
     }
 
 
