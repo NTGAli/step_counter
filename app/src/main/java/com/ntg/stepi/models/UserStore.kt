@@ -26,6 +26,7 @@ class UserStore(private val context: Context) {
         private val IS_BLOCKED = booleanPreferencesKey("isBlocked")
         private val SHOW_REPORT = booleanPreferencesKey("showReport")
         private val AUTO_DETECT = booleanPreferencesKey("auto_detect")
+        private val AUTO_START = booleanPreferencesKey("auto_start")
         private val GRADE_ID = intPreferencesKey("grade_id")
         private val FOS_ID = intPreferencesKey("fos_id")
         private val TIME_SIGN = stringPreferencesKey("time_sign")
@@ -50,7 +51,7 @@ class UserStore(private val context: Context) {
     }
 
     val getTheme: Flow<String> = context.dataStore.data.map { preferences ->
-        preferences[THEME] ?: "light"
+        preferences[THEME] ?: "default"
     }
 
     val getLanguage: Flow<String> = context.dataStore.data.map { preferences ->
@@ -115,6 +116,10 @@ class UserStore(private val context: Context) {
 
     val isAutoDetect: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[AUTO_DETECT] ?: true
+    }
+
+    val isAutoStart: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[AUTO_START] ?: false
     }
 
 
@@ -241,6 +246,12 @@ class UserStore(private val context: Context) {
     suspend fun isAutoDetect(isAuto: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[AUTO_DETECT] = isAuto
+        }
+    }
+
+    suspend fun isAutoStart(isAuto: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[AUTO_START] = isAuto
         }
     }
 }

@@ -50,6 +50,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.ntg.stepi.R
 import com.ntg.stepi.api.NetworkResult
 import com.ntg.stepi.components.ErrorMessage
@@ -59,6 +61,7 @@ import com.ntg.stepi.components.ReportWidget
 import com.ntg.stepi.models.ErrorStatus
 import com.ntg.stepi.models.RGBColor
 import com.ntg.stepi.models.components.ReportWidgetType
+import com.ntg.stepi.models.res.SummaryRes
 import com.ntg.stepi.models.res.UserRes
 import com.ntg.stepi.nav.Screens
 import com.ntg.stepi.ui.theme.fontBlack24
@@ -81,7 +84,7 @@ fun FieldOfStudyDetailsScreen(
     uid: String,
     rank: String
 ) {
-
+    userDataViewModel.fosId.value = uid
     var totalSteps by remember {
         mutableIntStateOf(0)
     }
@@ -105,10 +108,6 @@ fun FieldOfStudyDetailsScreen(
 
     var loading by remember {
         mutableStateOf(false)
-    }
-
-    var users by remember {
-        mutableStateOf(listOf<UserRes>())
     }
 
     var error by remember {
@@ -162,27 +161,27 @@ fun FieldOfStudyDetailsScreen(
 
     }
 
-    if (users.isEmpty() && internetConnection || tryAgain) {
-        LaunchedEffect(key1 = Unit, block = {
-            userDataViewModel.userOfFos(uid).observe(owner) {
-                when (it) {
-                    is NetworkResult.Error -> {
-                        timber("UsersOfFos ::: ERR")
-                        error = true
-                    }
-
-                    is NetworkResult.Loading -> {
-                        timber("UsersOfFos ::: Loading")
-                    }
-
-                    is NetworkResult.Success -> {
-                        timber("UsersOfFos ::: ${it.data}")
-                        users = it.data?.data.orEmpty()
-                    }
-                }
-            }
-        })
-    }
+//    if (users.isEmpty() && internetConnection || tryAgain) {
+//        LaunchedEffect(key1 = Unit, block = {
+//            userDataViewModel.userOfFos(uid).observe(owner) {
+//                when (it) {
+//                    is NetworkResult.Error -> {
+//                        timber("UsersOfFos ::: ERR")
+//                        error = true
+//                    }
+//
+//                    is NetworkResult.Loading -> {
+//                        timber("UsersOfFos ::: Loading")
+//                    }
+//
+//                    is NetworkResult.Success -> {
+//                        timber("UsersOfFos ::: ${it.data}")
+//                        users = it.data?.data.orEmpty()
+//                    }
+//                }
+//            }
+//        })
+//    }
 
 
     var appbarHeight by remember { mutableFloatStateOf(0f) }
@@ -191,7 +190,7 @@ fun FieldOfStudyDetailsScreen(
     var contentHeight by remember { mutableFloatStateOf(0f) }
     var topBarColor by remember { mutableStateOf(RGBColor(252, 252, 255)) }
 
-
+    val users = userDataViewModel.userOfFOS.collectAsLazyPagingItems()
 
 
     BoxWithConstraints {
@@ -312,7 +311,7 @@ private fun BaseFosData(
         ) {
             Text(
                 text = fosName,
-                style = fontBlack24(MaterialTheme.colors.onPrimary)
+                style = fontBlack24(MaterialTheme.colors.surface)
             )
         }
 
@@ -374,7 +373,7 @@ private fun Content(
     navHostController: NavHostController,
     sheetHeight: Dp,
     animateRotation: Animatable<Float, AnimationVector1D>,
-    users: List<UserRes>,
+    users: LazyPagingItems<UserRes>,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -405,13 +404,13 @@ private fun Content(
             )
         }
 
-        items(users) {
+        items(users.itemCount) {index ->
             Record(
                 modifier = Modifier.padding(bottom = 8.dp),
-                uid = it.uid,
-                record = it.rank.orZero() - 1,
-                title = it.fullName.orEmpty(),
-                steps = it.steps.orZero(),
+                uid = users[index]?.uid,
+                record = users[index]?.rank.orZero() - 1,
+                title = users[index]?.fullName.orEmpty(),
+                steps = users[index]?.steps.orZero(),
                 onClick = {
                     navHostController.navigate(Screens.UserProfileScreen.name + "?uid=$it")
                 }

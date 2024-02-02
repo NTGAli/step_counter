@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 
 object StepRippleTheme : RippleTheme {
     @Composable
-    override fun defaultColor(): Color = MaterialTheme.colors.primary
+    override fun defaultColor(): Color = MaterialTheme.colors.secondary
 
     @Composable
     override fun rippleAlpha(): RippleAlpha = RippleTheme.defaultRippleAlpha(

@@ -10,6 +10,7 @@
     <string name="app_name_farsi">قدم های من</string>
     <string name="days_ago">%s روز پیش</string>
     <string name="step_format">%s قدم</string>
+    <string name="report_steps_format">%s قدم | %s | %s کالری | تقریبا در %s</string>
     <string name="no_record">-</string>
     <string name="profile">پروفایل</string>
     <string name="student_of">دانشجوی رشته ی %s</string>
@@ -185,5 +186,8 @@
     <string name="grad_most_more_5_char">شماره دانشجویی باید بیشتر از 5 کاراکتر باشد</string>
     <string name="grade_id_empty">مقطع تحصیلی انتخاب نشده</string>
     <string name="empty_box">پیامی وجود ندارد.</string>
+    <string name="startup">استارتاپ</string>
+    <string name="startup_permission_description">برای زمانی که گوشی مجدد روشن شد، اپ بطور خودکار در پس زمینه اجرا شود.</string>
+    <string name="top_challenge">30 نفر اول</string>
 
 </resources>

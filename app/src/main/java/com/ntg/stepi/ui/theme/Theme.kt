@@ -1,11 +1,5 @@
 package com.ntg.stepi.ui.theme
 
-//import androidx.compose.material3.MaterialTheme
-//import androidx.compose.material3.darkColorScheme
-//import androidx.compose.material3.dynamicDarkColorScheme
-//import androidx.compose.material3.dynamicLightColorScheme
-//import androidx.compose.material3.lightColorScheme
-
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
@@ -31,12 +25,12 @@ import java.util.Locale
 
 
 private val DarkColorScheme = darkColors(
-    primary = PrimaryDark,
+    primary = PRIMARY300,
     primaryVariant = PrimaryContainer,
     secondary = SecondaryDark,
     background = BackgroundDark,
     surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
+    onPrimary = PRIMARY900,
     onSecondary = SECONDARY200,
     onBackground = OnBackgroundDark,
     onSurface = OnSurfaceDark,
@@ -51,7 +45,7 @@ private val LightColorScheme = lightColors(
     secondary = SECONDARY500,
     background = Background,
     surface = SECONDARY700,
-    onPrimary = OnPrimary,
+    onPrimary = Color.White,
     onSecondary = SECONDARY900,
     onBackground = OnBackground,
     onSurface = OnSurface,
@@ -60,7 +54,6 @@ private val LightColorScheme = lightColors(
     secondaryVariant = SECONDARY100
 )
 
-@Composable
 fun isDark() = _isDark
 
 private var _isDark: Boolean = true
@@ -74,16 +67,18 @@ fun StepCounterTheme(
 
     val userData = UserStore(LocalContext.current)
     val userTheme =
-        userData.getTheme.collectAsState(initial = "light")
+        userData.getTheme.collectAsState(initial = "default")
 
-    val colorScheme = if (userTheme.value == "light"){
+
+
+    val colorScheme = if (userTheme.value == "default"){
+        if (darkTheme) DarkColorScheme else LightColorScheme
+    }else if (userTheme.value == "light"){
         LightColorScheme
-    }else{
-        DarkColorScheme
-    }
+    }else DarkColorScheme
 
+    _isDark = colorScheme == DarkColorScheme
     val view = LocalView.current
-    _isDark = userTheme.value == "dark"
 
     if (!view.isInEditMode) {
         SideEffect {
@@ -100,24 +95,12 @@ fun StepCounterTheme(
         }
     }
 
-    val ctx = LocalContext.current
     val configuration = LocalConfiguration.current
-    var resources = LocalContext.current.resources
+    val resources = LocalContext.current.resources
 
 
     userData.getLanguage.asLiveData().observe(LocalLifecycleOwner.current){lang ->
-//        try {
-//        } catch (e: Exception) {
-//            lang = "fa"
-//        }
-
-//        ctx.findActivity()?.runOnUiThread {
-//            val appLocale = LocaleListCompat.forLanguageTags(lang) //here ta is hardcoded for testing purpose,you can add users selected language code.
-//            AppCompatDelegate.setApplicationLocales(appLocale)
-//        }
         timber("AppLanguage %s", lang)
-//        val appLocale = LocaleListCompat.forLanguageTags(lang)
-//        AppCompatDelegate.setApplicationLocales(appLocale)
 
         val locale = Locale(lang)
         Locale.setDefault(locale)
@@ -126,13 +109,6 @@ fun StepCounterTheme(
         resources.updateConfiguration(configuration, resources.displayMetrics)
 
     }
-
-//    MaterialTheme(
-//        typography = Typography,
-//        content = content,
-//        colors = colorScheme
-//    )
-
     MaterialTheme(
         colors = colorScheme,
         typography = Typography,

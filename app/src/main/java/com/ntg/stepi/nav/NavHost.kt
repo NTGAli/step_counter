@@ -338,7 +338,7 @@ fun AppNavHost(
         }
 
         composable(Screens.PermissionScreen.name) {
-            PermissionsScreen(navController)
+            PermissionsScreen(navController, userDataViewModel)
         }
 
         composable(Screens.TermAndConditionsScreen.name) {

@@ -10,6 +10,7 @@
     <string name="app_name_farsi">خطواتي</string>
     <string name="days_ago">منذ %s يومًا</string>
     <string name="step_format">%s خطوات</string>
+    <string name="report_steps_format">خطوات %s | %s  | %s سعرات حرارية | في %s تقريبًا</string>
     <string name="no_record">-</string>
     <string name="profile">پروفایل</string>
     <string name="student_of">طالب %s</string>
@@ -185,7 +186,9 @@
     <string name="grade_id_empty">لم يتم تحديد الدرجة</string>
     <string name="pid_already_exist">تم تسجيل هذا الرمز بالفعل</string>
     <string name="empty_box">لا توجد رسالة.</string>
-
+    <string name="startup">استارتاپ</string>
+    <string name="startup_permission_description">سيتم تشغيل التطبيق تلقائيًا في الخلفية عند تشغيل الهاتف مرة أخرى.</string>
+    <string name="top_challenge">أول 30 شخصا</string>
 
 
 

@@ -59,7 +59,7 @@ fun ReportWidget(
 
                 Column(modifier = Modifier.padding(start = 8.dp)) {
                     Text(text = if (viewType == ReportWidgetType.Default) stringResource(id = R.string.your_record) else if (viewType == ReportWidgetType.Update) stringResource(id = R.string.version) else stringResource(id = R.string.total_steps), style = fontRegular12(MaterialTheme.colors.secondary))
-                    Text(modifier = Modifier.padding(top = 2.dp), text =if (viewType == ReportWidgetType.Update) firstTextString else  ctx.getString(R.string.step_format, formatNumber(firstText.toDouble())), style = fontBold12(MaterialTheme.colors.onPrimary))
+                    Text(modifier = Modifier.padding(top = 2.dp), text =if (viewType == ReportWidgetType.Update) firstTextString else  ctx.getString(R.string.step_format, formatNumber(firstText.toDouble())), style = fontBold12(MaterialTheme.colors.surface))
 
                 }
             }
@@ -69,7 +69,6 @@ fun ReportWidget(
                 .fillMaxHeight()
                 .padding(horizontal = 12.dp)
                 .background(MaterialTheme.colors.onSurface)
-                .height(31.dp)
                 .width(1.dp))
 
 
@@ -89,7 +88,7 @@ fun ReportWidget(
                         id = R.string.today
                     ) else if (secondText != -1)  ctx.getString(R.string.days_ago, secondText.toString()) else ctx.getString(R.string.no_record)} else if (viewType == ReportWidgetType.Profile){ if (secondText != -1) ctx.getString(R.string.days_format, secondText.toString()) else "-"} else if (viewType == ReportWidgetType.Update) stringResource(
                         id = R.string.mb_format, secondText.toString()
-                    ) else secondText.toString() , style = fontBold12(MaterialTheme.colors.onPrimary))
+                    ) else secondText.toString() , style = fontBold12(MaterialTheme.colors.surface))
 
                 }
             }

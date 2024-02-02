@@ -9,6 +9,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -75,7 +76,7 @@ private fun Content(navHostController: NavHostController, paddingValues: Padding
 
     val owner = LocalLifecycleOwner.current
     var loading by remember {
-        mutableStateOf(false)
+        mutableStateOf(true)
     }
 
     var error by remember {
@@ -86,23 +87,23 @@ private fun Content(navHostController: NavHostController, paddingValues: Padding
         mutableStateOf(listOf<FieldOfStudy>())
     }
 
-    if (listOfStudies.value.isEmpty()){
-        loginViewModel.jobs().observe(owner){
-            when (it){
-                is NetworkResult.Error -> {
-                    error = true
-                    loading = false
-                }
-                is NetworkResult.Loading -> {
-                    loading = true
-                }
-                is NetworkResult.Success -> {
-                    listOfStudies.value = it.data?.data.orEmpty()
-                    loading = false
+        LaunchedEffect(key1 = loading, block = {
+            loginViewModel.jobs().observe(owner){
+                when (it){
+                    is NetworkResult.Error -> {
+                        error = true
+                        loading = false
+                    }
+                    is NetworkResult.Loading -> {
+                    }
+                    is NetworkResult.Success -> {
+                        listOfStudies.value = it.data?.data.orEmpty()
+                        loading = false
+                    }
                 }
             }
-        }
-    }
+        })
+
 
 
     if (loading) Loading()

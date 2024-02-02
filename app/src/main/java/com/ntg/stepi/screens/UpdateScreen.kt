@@ -259,7 +259,7 @@ fun UpdateScreen(
                     ) {
                         Text(
                             text = stringResource(id = R.string.update),
-                            style = fontBlack24(MaterialTheme.colors.onPrimary)
+                            style = fontBlack24(MaterialTheme.colors.surface)
                         )
                     }
 

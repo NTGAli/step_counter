@@ -62,7 +62,7 @@ internal fun rememberMarker(): Marker {
         innerPaddingAll = indicatorCenterAndOuterComponentPaddingValue,
     )
     val guideline = lineComponent(
-        MaterialTheme.colors.onPrimary.copy(GUIDELINE_ALPHA),
+        MaterialTheme.colors.surface.copy(GUIDELINE_ALPHA),
         guidelineThickness,
         guidelineShape,
     )

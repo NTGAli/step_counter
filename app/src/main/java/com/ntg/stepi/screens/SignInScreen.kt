@@ -90,9 +90,9 @@ private fun Content(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp),
-            label = stringResource(id = if (state.orEmpty() == "1") R.string.student_id else R.string.prof_id),
+            label = stringResource(id = if (state.orEmpty() == "1") R.string.student_id else if (state.orEmpty() == "2") R.string.prof_id else if (state.orEmpty() == "3") R.string.employee_id else R.string.username),
             text = uid,
-            keyboardType = KeyboardType.Number
+            keyboardType = if (state.orEmpty() == "4") KeyboardType.Text else KeyboardType.Number
         )
 
         CustomButton(

@@ -1,16 +1,15 @@
 package com.ntg.stepi.vm
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import com.ntg.stepi.api.ApiService
+import com.ntg.stepi.api.paging.UserPagingSource
 import com.ntg.stepi.api.NetworkResult
-import com.ntg.stepi.api.UsersPagingSource
 import com.ntg.stepi.db.AppDB
 import com.ntg.stepi.models.ResponseBody
 import com.ntg.stepi.models.Step
@@ -18,7 +17,6 @@ import com.ntg.stepi.models.TopRecord
 import com.ntg.stepi.models.res.DataChallenge
 import com.ntg.stepi.models.res.StepSynced
 import com.ntg.stepi.models.res.SummariesRes
-import com.ntg.stepi.models.res.SummaryRes
 import com.ntg.stepi.models.res.UserBaseRes
 import com.ntg.stepi.models.res.UserWinnerData
 import com.ntg.stepi.util.extension.dateOfToday
@@ -26,14 +24,13 @@ import com.ntg.stepi.util.extension.safeApiCall
 import com.ntg.stepi.util.extension.timber
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class StepViewModel @Inject constructor(
     private val appDB: AppDB,
-    private val apiService: ApiService
+    private val apiService: ApiService,
 ) : ViewModel() {
 
     private var stepsOfToday: LiveData<List<Step>> = MutableLiveData()
@@ -49,6 +46,8 @@ class StepViewModel @Inject constructor(
         MutableLiveData()
     private var usersBase: MutableLiveData<NetworkResult<ResponseBody<UserBaseRes?>>> =
         MutableLiveData()
+    var query = mutableStateOf("")
+
 
     fun clearSummaries() {
         summaries = MutableLiveData()
@@ -143,26 +142,19 @@ class StepViewModel @Inject constructor(
         return usersBase
     }
 
-    private fun getNews(base: String) = Pager(
-        config = PagingConfig(
-            pageSize = 20,
-        ),
-        pagingSourceFactory = {
-            UsersPagingSource(apiService,base)
-        }
-    ).flow
-
-    fun getBreakingNews(base: String): Flow<PagingData<SummaryRes>> = getNews(base).cachedIn(viewModelScope)
+    val userData = Pager(PagingConfig(pageSize = 30)) {
+        UserPagingSource(query.value, apiService)
+    }.flow
 
 
     fun dataChallenge(
         uid: String,
     ): MutableLiveData<NetworkResult<ResponseBody<DataChallenge?>>> {
-            viewModelScope.launch {
-                dataChallenge = safeApiCall(Dispatchers.IO) {
-                    apiService.dataChallenge(uid)
-                } as MutableLiveData<NetworkResult<ResponseBody<DataChallenge?>>>
-            }
+        viewModelScope.launch {
+            dataChallenge = safeApiCall(Dispatchers.IO) {
+                apiService.dataChallenge(uid)
+            } as MutableLiveData<NetworkResult<ResponseBody<DataChallenge?>>>
+        }
         return dataChallenge
     }
 

@@ -3,12 +3,17 @@ package com.ntg.stepi.screens
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
 import android.content.Context.POWER_SERVICE
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.net.Uri
+import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
@@ -36,12 +41,15 @@ import com.ntg.stepi.components.PermissionItem
 import com.ntg.stepi.nav.Screens
 import com.ntg.stepi.ui.theme.fontMedium14
 import com.ntg.stepi.util.extension.OnLifecycleEvent
+import com.ntg.stepi.util.extension.timber
+import com.ntg.stepi.vm.UserDataViewModel
 
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun PermissionsScreen(
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    userDataViewModel: UserDataViewModel
 ) {
 
     Scaffold(
@@ -52,7 +60,7 @@ fun PermissionsScreen(
             )
         },
         content = {
-            Content(navHostController = navHostController)
+            Content(navHostController = navHostController, userDataViewModel = userDataViewModel)
         }
     )
 
@@ -60,7 +68,7 @@ fun PermissionsScreen(
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-private fun Content(navHostController: NavHostController) {
+private fun Content(navHostController: NavHostController, userDataViewModel: UserDataViewModel) {
     var physicalPermission by remember {
         mutableStateOf(false)
     }
@@ -133,7 +141,7 @@ private fun Content(navHostController: NavHostController) {
             ),
             btnText = stringResource(id = R.string.access),
             isGranted = physicalPermission,
-            permissionDestination= stringResource(id = R.string.physical_activity_permission_description),
+            permissionDestination = stringResource(id = R.string.physical_activity_permission_description),
             onClick = {
 //                if (setManuallyPhysicalActivity.value){
 //                    openAppSettings(context)
@@ -143,13 +151,13 @@ private fun Content(navHostController: NavHostController) {
             })
 
         PermissionItem(id = 0,
-            icon = painterResource(id = R.drawable.icons8_notification_1),
+            icon = painterResource(id = R.drawable.notification),
             text = stringResource(
                 id = R.string.notification
             ),
             btnText = stringResource(id = R.string.access),
             isGranted = notificationStatusPermission,
-            permissionDestination= stringResource(id = R.string.notification_permission_description),
+            permissionDestination = stringResource(id = R.string.notification_permission_description),
             onClick = {
 //                if (setManually.value) {
 //                    openAppSettings(context)
@@ -161,13 +169,13 @@ private fun Content(navHostController: NavHostController) {
             })
 
         PermissionItem(id = 0,
-            icon = painterResource(id = R.drawable.icons8_batteries_1),
+            icon = painterResource(id = R.drawable.battery_charging_full),
             text = stringResource(
                 id = R.string.battery
             ),
             btnText = stringResource(id = R.string.access),
             isGranted = batteryState,
-            permissionDestination= stringResource(id = R.string.battery_permission_description),
+            permissionDestination = stringResource(id = R.string.battery_permission_description),
             onClick = {
                 val intent = Intent()
                 intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
@@ -177,12 +185,29 @@ private fun Content(navHostController: NavHostController) {
             })
 
 
+        if (checkStartUpPermissionNeed()){
+            PermissionItem(id = 0,
+                icon = painterResource(id = R.drawable.restart),
+                text = stringResource(
+                    id = R.string.startup
+                ),
+                btnText = stringResource(id = R.string.access),
+                isGranted = false,
+                permissionDestination = stringResource(id = R.string.startup_permission_description),
+                onClick = {
+                    addAutoStartup(context){
+                        userDataViewModel.isAutoStart(true)
+                    }
+                })
+        }
+
+
     }
-    
+
     OnLifecycleEvent(onEvent = { _, event ->
-        if (event == Lifecycle.Event.ON_RESUME){
+        if (event == Lifecycle.Event.ON_RESUME) {
             batteryState = pm.isIgnoringBatteryOptimizations(packageName)
-            if (physicalPermission && notificationStatusPermission && batteryState){
+            if (physicalPermission && notificationStatusPermission && batteryState) {
                 navHostController.navigate(Screens.HomeScreen.name)
             }
         }
@@ -196,4 +221,70 @@ private fun openAppSettings(context: Context) {
     val uri = Uri.fromParts("package", context.packageName, null)
     intent.data = uri
     context.startActivity(intent)
+}
+
+fun checkStartUpPermissionNeed(): Boolean {
+    val manufacturer = Build.MANUFACTURER
+    return ("xiaomi".equals(manufacturer, ignoreCase = true)) || ("oppo".equals(
+        manufacturer,
+        ignoreCase = true
+    )) || ("vivo".equals(manufacturer, ignoreCase = true)) || ("Letv".equals(
+        manufacturer,
+        ignoreCase = true
+    )) || ("Honor".equals(manufacturer, ignoreCase = true))
+}
+
+private fun addAutoStartup(context: Context, onClick:() -> Unit) {
+    try {
+        val intent = Intent()
+        val manufacturer = Build.MANUFACTURER
+        if ("xiaomi".equals(manufacturer, ignoreCase = true)) {
+            onClick.invoke()
+            intent.setComponent(
+                ComponentName(
+                    "com.miui.securitycenter",
+                    "com.miui.permcenter.autostart.AutoStartManagementActivity"
+                )
+            )
+        } else if ("oppo".equals(manufacturer, ignoreCase = true)) {
+            onClick.invoke()
+            intent.setComponent(
+                ComponentName(
+                    "com.coloros.safecenter",
+                    "com.coloros.safecenter.permission.startup.StartupAppListActivity"
+                )
+            )
+        } else if ("vivo".equals(manufacturer, ignoreCase = true)) {
+            onClick.invoke()
+            intent.setComponent(
+                ComponentName(
+                    "com.vivo.permissionmanager",
+                    "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"
+                )
+            )
+        } else if ("Letv".equals(manufacturer, ignoreCase = true)) {
+            onClick.invoke()
+            intent.setComponent(
+                ComponentName(
+                    "com.letv.android.letvsafe",
+                    "com.letv.android.letvsafe.AutobootManageActivity"
+                )
+            )
+        } else if ("Honor".equals(manufacturer, ignoreCase = true)) {
+            onClick.invoke()
+            intent.setComponent(
+                ComponentName(
+                    "com.huawei.systemmanager",
+                    "com.huawei.systemmanager.optimize.process.ProtectActivity"
+                )
+            )
+        }
+        val list: List<ResolveInfo> =
+            context.packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        if (list.isNotEmpty()) {
+            context.startActivity(intent)
+        }
+    } catch (e: Exception) {
+        timber("startup permission :::: ${e.printStackTrace()}")
+    }
 }

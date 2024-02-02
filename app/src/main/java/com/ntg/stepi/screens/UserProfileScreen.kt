@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -64,6 +65,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieAnimationState
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
@@ -92,9 +94,14 @@ import com.ntg.stepi.ui.theme.fontRegular12
 import com.ntg.stepi.util.extension.calculateRadius
 import com.ntg.stepi.util.extension.checkInternet
 import com.ntg.stepi.util.extension.daysUntilToday
+import com.ntg.stepi.util.extension.divideNumber
 import com.ntg.stepi.util.extension.getColorComponentsForNumber
 import com.ntg.stepi.util.extension.orFalse
 import com.ntg.stepi.util.extension.orZero
+import com.ntg.stepi.util.extension.stepsToCalories
+import com.ntg.stepi.util.extension.stepsToKilometers
+import com.ntg.stepi.util.extension.stepsToTime
+import com.ntg.stepi.util.extension.toReadableTime
 import com.ntg.stepi.vm.UserDataViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -123,6 +130,10 @@ fun UserProfileScreen(
         mutableStateOf("")
     }
 
+    var appbarTitle by remember {
+        mutableStateOf("")
+    }
+
     var userSate by remember {
         mutableStateOf("")
     }
@@ -136,6 +147,10 @@ fun UserProfileScreen(
     }
 
     var isVerified by remember {
+        mutableStateOf(false)
+    }
+
+    var clapAnimation by remember {
         mutableStateOf(false)
     }
 
@@ -265,20 +280,20 @@ fun UserProfileScreen(
         LaunchedEffect(key1 = scaffoldState.bottomSheetState.isExpanded) {
             coroutineScope.launch {
                 if (scaffoldState.bottomSheetState.isExpanded) {
+                    appbarTitle = userName
                     animateRotation.animateTo(180f)
                 } else {
+                    appbarTitle = ""
                     animateRotation.animateTo(0f)
                 }
             }
         }
 
 
-
-
         BottomSheetScaffold(
             sheetPeekHeight = sheetPeekHeight,
             topBar = {
-                TopBar(navHostController, topBarColor) {
+                TopBar(navHostController, topBarColor, appbarTitle) {
                     appbarHeight = it
                 }
             },
@@ -299,7 +314,9 @@ fun UserProfileScreen(
             sheetElevation = radius.dp / 2,
             sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp),
             floatingActionButton = {
-                ClapButton(userDataViewModel, uid, isClap,userId, totalClaps)
+                ClapButton(userDataViewModel, uid, isClap,userId, totalClaps){
+                    clapAnimation = true
+                }
             },
             sheetBackgroundColor = MaterialTheme.colors.background,
             contentColor = MaterialTheme.colors.primary,
@@ -321,6 +338,11 @@ fun UserProfileScreen(
         if (loading) {
             Loading()
         }
+
+        if (clapAnimation){
+            ClapAnimation()
+        }
+
 
         if (!internetConnection) {
             ErrorMessage(modifier = Modifier.fillMaxHeight(), status = ErrorStatus.Internet) {
@@ -353,6 +375,7 @@ fun UserProfileScreen(
 private fun TopBar(
     navHostController: NavHostController,
     topBarColor: RGBColor,
+    title: String,
     appbarHeight: (Float) -> Unit
 ) {
     TopAppBar(
@@ -364,7 +387,7 @@ private fun TopBar(
         backgroundColor = Color(topBarColor.red, topBarColor.green, topBarColor.blue),
         title = {
             Text(
-                text = stringResource(id = R.string.profile),
+                text = title,
                 style = fontMedium14(
                     MaterialTheme.colors.secondary
                 )
@@ -393,6 +416,7 @@ private fun ClapButton(
     isClap: Boolean,
     userId: String,
     totalClaps: Int,
+    clapped:()-> Unit
 ){
     var isClapped by remember {
         mutableStateOf(isClap)
@@ -400,8 +424,19 @@ private fun ClapButton(
     var countClaps by remember {
         mutableIntStateOf(totalClaps)
     }
-    isClapped = isClap
-    countClaps = totalClaps
+
+    var userClapped by remember {
+        mutableStateOf(false)
+    }
+
+
+    if (userClapped) {
+        isClapped = true
+        countClaps= totalClaps + 1
+    }else{
+        isClapped = isClap
+        countClaps = totalClaps
+    }
 
     Box(
         modifier = Modifier, contentAlignment = Alignment.Center
@@ -410,11 +445,13 @@ private fun ClapButton(
             modifier = Modifier
                 .wrapContentSize(),
             onClick = {
-                if (!isClap && userId.isNotEmpty()) {
-                    userDataViewModel.clap(userId, uid)
-                    isClapped = true
-                    countClaps += 1
+                if (!isClap && userId.isNotEmpty() && !userClapped) {
+                    userDataViewModel.clap(userId,uid)
+                    clapped.invoke()
+                    userClapped = true
                 }
+
+
             },
             shape = RoundedCornerShape(8.dp),
             elevation = 4.dp,
@@ -462,6 +499,10 @@ private fun Content(
     }
     var steps by remember {
         mutableStateOf(listOf<StepRes>())
+    }
+
+    var dataDateSelected by remember {
+        mutableIntStateOf(0)
     }
 
     var error by remember {
@@ -635,16 +676,22 @@ private fun Content(
                             }, style = fontMedium12(MaterialTheme.colors.secondary)
                         )
 
+                        dataDateSelected = steps
+                            .first { it.date == dateSelected }.steps.orZero()
+
                         Text(
                             modifier = Modifier.padding(
                                 top = 2.dp,
                                 start = 16.dp,
                                 bottom = 24.dp
                             ),
+
                             text = stringResource(
-                                id = R.string.step_format,
-                                steps
-                                    .first { it.date == dateSelected }.steps.orZero()
+                                id = R.string.report_steps_format,
+                                divideNumber(dataDateSelected),
+                                LocalContext.current.stepsToKilometers(dataDateSelected),
+                                stepsToCalories(dataDateSelected),
+                                stepsToTime(dataDateSelected).toReadableTime(LocalContext.current)
                             ), style = fontMedium12(MaterialTheme.colors.secondary)
                         )
                     }
@@ -823,39 +870,40 @@ private fun Content(
 
 
 @Composable
-fun LottieExample() {
+fun ClapAnimation() {
 
-    var isPlaying by remember {
+    val isPlaying by remember {
         mutableStateOf(true)
     }
-    var speed by remember {
-        mutableFloatStateOf(1f)
+    val speed by remember {
+        mutableFloatStateOf(2f)
     }
 
     val composition by rememberLottieComposition(
         LottieCompositionSpec
-            .RawRes(R.raw.clap_back)
+            .RawRes(R.raw.clap)
     )
+
 
     val progress by animateLottieCompositionAsState(
         composition,
-        iterations = LottieConstants.IterateForever,
         isPlaying = isPlaying,
         speed = speed,
         restartOnPlay = false
-
     )
 
-    Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        LottieAnimation(
-            composition,
-            progress,
-            modifier = Modifier
-                .size(164.dp)
-        )
+    if (progress != 1f){
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            LottieAnimation(
+                composition,
+                progress,
+                modifier = Modifier
+                    .size(164.dp),
+            )
+        }
     }
 }
 
@@ -893,7 +941,7 @@ private fun UserProfileData(
         ) {
             Text(
                 text = userName,
-                style = fontBlack24(MaterialTheme.colors.onPrimary)
+                style = fontBlack24(MaterialTheme.colors.surface)
             )
             if (isVerified) {
                 Image(

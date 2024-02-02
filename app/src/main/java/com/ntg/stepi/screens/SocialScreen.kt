@@ -130,7 +130,7 @@ private fun Content(paddingValues: PaddingValues, navHostController: NavHostCont
             if (id == null || id == -1){
 
                 socialNetworkViewModel.insertInServer(uid, Social(0, socialName.value,
-                    socialNetworkViewModel.socialNetworks.first { it.isSelected.orFalse() }.link.replace("PAGE_NAME", pageId.value))).observe(owner){
+                    socialNetworkViewModel.socialNetworks.first { it.isSelected.orFalse() }.link.replace("PAGE_NAME", pageId.value).replace("@",""))).observe(owner){
                     when(it){
                         is NetworkResult.Error -> {
                             ctx.toast(ctx.getString(R.string.sth_wrong))

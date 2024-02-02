@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.Context.ACTIVITY_SERVICE
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -34,6 +35,7 @@ import com.ntg.stepi.components.ItemOption
 import com.ntg.stepi.nav.Screens
 import com.ntg.stepi.ui.theme.fontBold14
 import com.ntg.stepi.ui.theme.fontRegular12
+import com.ntg.stepi.ui.theme.isDark
 import com.ntg.stepi.util.extension.orFalse
 import com.ntg.stepi.util.extension.sendMail
 import com.ntg.stepi.util.extension.toast
@@ -130,8 +132,10 @@ private fun  Content(navHostController: NavHostController, paddingValues: Paddin
                 .padding(top = 24.dp, bottom = 8.dp), text = stringResource(id = R.string.theme), style = fontBold14(MaterialTheme.colors.primary))
 
 
-            ItemOption(text = if (theme.value == "light") stringResource(id = R.string.light_mode) else stringResource(id = R.string.dark_mode), onClick = {
-                if (theme.value == "light") userDataViewModel.setTheme("dark") else userDataViewModel.setTheme("light")
+            ItemOption(text = if (theme.value == "light") stringResource(id = R.string.light_mode) else if (theme.value == "dark") stringResource(id = R.string.dark_mode)
+                else if (isSystemInDarkTheme()) stringResource(id = R.string.dark_mode) else stringResource(id = R.string.light_mode), onClick = {
+                if (theme.value == "light") userDataViewModel.setTheme("dark") else if (theme.value == "dark") userDataViewModel.setTheme("light")
+                else if (isDark()) userDataViewModel.setTheme("light") else userDataViewModel.setTheme("dark")
             })
 
             Text(modifier = Modifier

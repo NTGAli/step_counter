@@ -1,10 +1,14 @@
 package com.ntg.stepi.vm
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import com.ntg.stepi.api.ApiService
 import com.ntg.stepi.api.NetworkResult
+import com.ntg.stepi.api.paging.UserDataPagingSource
 import com.ntg.stepi.models.ResponseBody
 import com.ntg.stepi.models.UserStore
 import com.ntg.stepi.models.res.AccountStateRes
@@ -30,7 +34,6 @@ class UserDataViewModel @Inject constructor(
     private var updateInfo: MutableLiveData<NetworkResult<ResponseBody<UpdateRes?>>> = MutableLiveData()
     private var fodDetails: MutableLiveData<NetworkResult<ResponseBody<FosDetailsRes?>>> = MutableLiveData()
     private var signInData: MutableLiveData<NetworkResult<ResponseBody<UserProfile?>>> = MutableLiveData()
-    private var usersFos: MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> = MutableLiveData()
     private var userSteps: MutableLiveData<NetworkResult<ResponseBody<List<StepRes>?>>> = MutableLiveData()
     private var clapsData: MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> = MutableLiveData()
     private var userDataAchievement: MutableLiveData<NetworkResult<ResponseBody<Achievement?>>> = MutableLiveData()
@@ -38,6 +41,7 @@ class UserDataViewModel @Inject constructor(
     private var fcmResult: MutableLiveData<NetworkResult<ResponseBody<String?>>> = MutableLiveData()
     private var accountStateDate: MutableLiveData<NetworkResult<ResponseBody<AccountStateRes?>>> = MutableLiveData()
     private var clapResult: MutableLiveData<NetworkResult<ResponseBody<Any?>>> = MutableLiveData()
+    var fosId = mutableStateOf("")
 
 
     fun getUsername() = userStore.getUserName
@@ -58,6 +62,7 @@ class UserDataViewModel @Inject constructor(
     fun isBlocked() = userStore.isBlocked
     fun isShowReport() = userStore.showReport
     fun isAutoDetect() = userStore.isAutoDetect
+    fun isAutoStart() = userStore.isAutoStart
     fun deadCode() = userStore.getDeadCode
 
     fun clearUserData() = viewModelScope.launch { userStore.clearUserData() }
@@ -126,6 +131,10 @@ class UserDataViewModel @Inject constructor(
         userStore.isAutoDetect(isAuto)
     }
 
+    fun isAutoStart(isAuto: Boolean) = viewModelScope.launch {
+        userStore.isAutoStart(isAuto)
+    }
+
     fun setGradeId(id: Int) = viewModelScope.launch {
         userStore.setGradeId(id)
     }
@@ -167,14 +176,18 @@ class UserDataViewModel @Inject constructor(
         return fodDetails
     }
 
-    fun userOfFos(fosId: String): MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> {
-        viewModelScope.launch {
-            usersFos = safeApiCall(Dispatchers.IO){
-                apiService.userOfFos(fosId)
-            } as MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>>
-        }
-        return usersFos
-    }
+//    fun userOfFos(fosId: String): MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>> {
+//        viewModelScope.launch {
+//            usersFos = safeApiCall(Dispatchers.IO){
+//                apiService.userOfFos(fosId)
+//            } as MutableLiveData<NetworkResult<ResponseBody<List<UserRes>?>>>
+//        }
+//        return usersFos
+//    }
+
+    val userOfFOS = Pager(PagingConfig(pageSize = 30)) {
+        UserDataPagingSource(fosId.value, apiService)
+    }.flow
 
 
     fun getUserSteps(uid: String): MutableLiveData<NetworkResult<ResponseBody<List<StepRes>?>>> {

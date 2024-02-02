@@ -115,6 +115,7 @@ interface ApiService {
     @POST("stepi/UserOfFieldStudy.php")
     suspend fun userOfFos(
         @Field("fosId") fosId: String,
+        @Field("page") page: Int,
     ): Response<ResponseBody<List<UserRes>?>>
 
     @FormUrlEncoded

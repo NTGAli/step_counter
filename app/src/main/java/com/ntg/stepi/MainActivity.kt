@@ -49,6 +49,7 @@ import com.ntg.stepi.api.NetworkResult
 import com.ntg.stepi.components.CustomButton
 import com.ntg.stepi.nav.AppNavHost
 import com.ntg.stepi.nav.Screens
+import com.ntg.stepi.screens.checkStartUpPermissionNeed
 import com.ntg.stepi.ui.theme.Background
 import com.ntg.stepi.ui.theme.ERROR500
 import com.ntg.stepi.ui.theme.SECONDARY700
@@ -262,25 +263,36 @@ class MainActivity : ComponentActivity() {
 
 
     }
+
+    @OptIn(ExperimentalPermissionsApi::class)
+    @Composable
+    private fun checkPermissions(): String {
+        val context = LocalContext.current
+        var autoStartPermission = true
+        val autoStart = userDataViewModel.isAutoStart().collectAsState(initial = false).value.orFalse()
+
+        if (checkStartUpPermissionNeed() && !autoStart){
+            autoStartPermission = false
+        }else{
+            userDataViewModel.isAutoStart(true)
+        }
+
+        val physicalActivityPermission =
+            rememberPermissionState(Manifest.permission.ACTIVITY_RECOGNITION).status.isGranted
+
+        val notificationPermission =
+            rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS).status.isGranted
+        val packageName: String = context.packageName
+        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager?
+
+        val batteryState = pm!!.isIgnoringBatteryOptimizations(packageName)
+
+        return if (physicalActivityPermission && notificationPermission && batteryState && autoStartPermission) Screens.HomeScreen.name
+        else Screens.PermissionScreen.name
+    }
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-private fun checkPermissions(): String {
-    val context = LocalContext.current
-    val physicalActivityPermission =
-        rememberPermissionState(Manifest.permission.ACTIVITY_RECOGNITION).status.isGranted
 
-    val notificationPermission =
-        rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS).status.isGranted
-    val packageName: String = context.packageName
-    val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager?
-
-    val batteryState = pm!!.isIgnoringBatteryOptimizations(packageName)
-
-    return if (physicalActivityPermission && notificationPermission && batteryState) Screens.HomeScreen.name
-    else Screens.PermissionScreen.name
-}
 
 @Composable
 private fun SyncSteps(stepViewModel: StepViewModel, owner: LifecycleOwner, uid: String) {

@@ -113,13 +113,14 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     navHostController: NavHostController,
     stepViewModel: StepViewModel,
     userDataViewModel: UserDataViewModel
 ) {
+
     val ctx = LocalContext.current
     startService(ctx)
     var topBarHeight by remember { mutableFloatStateOf(0f) }
@@ -159,9 +160,6 @@ fun HomeScreen(
         mutableIntStateOf(-1)
     }
 
-
-
-
     var messagesID by remember {
         mutableStateOf(emptyList<String>())
     }
@@ -172,56 +170,13 @@ fun HomeScreen(
 
     internetConnection = ctx.checkInternet()
 
-
-//    val saver = object : Saver<BottomSheetState, Bundle> {
-//
-//        override fun restore(value: Bundle): BottomSheetState? {
-//            return BottomSheetState(initialValue = BottomSheetValue.Expanded, density = Density(ctx))
-//        }
-//
-//        override fun SaverScope.save(value: BottomSheetState): Bundle? {
-//            val bundle = Bundle()
-//            bundle.putFloat("currentValue", value.progress)
-//            return bundle
-//        }
-//    }
-
-//    val state =
-//        rememberSaveable(saver = saver) {
-//            BottomSheetState(
-//                initialValue = BottomSheetValue.Expanded,
-//                density = Density(ctx)
-//            )
-//        }
-
-
-
     BoxWithConstraints(modifier = Modifier.background(MaterialTheme.colors.onBackground)) {
         val sheetHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() - topOffset }
         val sheetPeekHeight =
             with(LocalDensity.current) { constraints.maxHeight.toDp() - contentHeight.toDp() - topOffset }
 
 
-
-
-
-
-
-//        val stateValue by rememberSaveable {
-//            mutableStateOf(scaffoldState.bottomSheetState.currentValue)
-//        }
-
-
-//        val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = state
-
-        val scaffoldState = rememberBottomSheetScaffoldState(
-//            bottomSheetState = state
-        )
-
-//        scaffoldState.bottomSheetState.
-
-//        scaffoldState.bottomSheetState
-
+        val scaffoldState = rememberBottomSheetScaffoldState()
 
         val animateRotation = remember { Animatable(0f) }
         val coroutineScope = rememberCoroutineScope()
@@ -240,6 +195,7 @@ fun HomeScreen(
             LocalDensity.current.run { (sheetHeight - sheetPeekHeight + topOffset).toPx() }
         val minOffset = LocalDensity.current.run { topOffset.toPx() }
         topBarColor = getColorComponentsForNumber(radius.toInt())
+
 
 
         BottomSheetScaffold(
@@ -280,7 +236,7 @@ fun HomeScreen(
             },
             scaffoldState = scaffoldState,
             sheetElevation = radius.dp / 2,
-            sheetShape = RoundedCornerShape(radius.dp, radius.dp, 0.dp, 0.dp),
+            sheetShape = RoundedCornerShape(if (!radius.isNaN()) radius.dp else 16.dp, if (!radius.isNaN()) radius.dp else 16.dp, 0.dp, 0.dp),
             sheetBackgroundColor = MaterialTheme.colors.background,
             contentColor = MaterialTheme.colors.primary,
             backgroundColor = MaterialTheme.colors.onBackground,
@@ -338,9 +294,14 @@ private fun TopBar(
                         MaterialTheme.colors.primary
                     )
                 )
-                Icon(modifier = Modifier
-                    .padding(start = 2.dp)
-                    .size(16.dp), painter = painterResource(id = R.drawable.icons8_sneakers_1), contentDescription = null, tint = MaterialTheme.colors.primary)
+                Icon(
+                    modifier = Modifier
+                        .padding(start = 2.dp)
+                        .size(16.dp),
+                    painter = painterResource(id = R.drawable.icons8_sneakers_1),
+                    contentDescription = null,
+                    tint = MaterialTheme.colors.primary
+                )
             }
 
 
@@ -497,7 +458,7 @@ private fun ReportItem(
                     modifier = Modifier
                         .padding(top = 24.dp, bottom = 8.dp),
                     text = digit.digitChar.toString(),
-                    style = fontBold36(MaterialTheme.colors.onPrimary)
+                    style = fontBold36(MaterialTheme.colors.surface)
                 )
             }
 
@@ -860,7 +821,6 @@ private fun Content(
                 item {
                     Spacer(modifier = Modifier.padding(24.dp))
                 }
-            }
-        , state = listState)
+            }, state = listState)
     }
 }

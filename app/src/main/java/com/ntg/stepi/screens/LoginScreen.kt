@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -168,24 +169,30 @@ private fun TextWithLink(
 ) {
 
     val annotatedString = buildAnnotatedString {
-        append(stringResource(R.string.privacy_first_part))
+        withStyle(style = SpanStyle(color = MaterialTheme.colors.secondary)) {
+            append(stringResource(R.string.privacy_first_part))
+        }
 
         pushStringAnnotation(tag = "policy", annotation = "policy")
-        withStyle(style = SpanStyle(color = PRIMARY500)) {
+        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
             append(stringResource(id = R.string.privacy_policies))
         }
         pop()
 
-        append(stringResource(R.string.and_format))
+        withStyle(style = SpanStyle(color = MaterialTheme.colors.secondary)) {
+            append(stringResource(R.string.and_format))
+        }
 
         pushStringAnnotation(tag = "terms", annotation = "terms")
-        withStyle(style = SpanStyle(color = PRIMARY500)) {
+        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
             append(stringResource(id = R.string.terms_and_conditions))
         }
 
         pop()
 
-        append(stringResource(R.string.agree_privacy))
+        withStyle(style = SpanStyle(color = MaterialTheme.colors.secondary)) {
+            append(stringResource(R.string.agree_privacy))
+        }
 
     }
 

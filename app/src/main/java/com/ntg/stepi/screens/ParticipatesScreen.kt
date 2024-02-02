@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,6 +25,7 @@ import com.ntg.stepi.components.Loading
 import com.ntg.stepi.components.Record
 import com.ntg.stepi.models.res.SummaryRes
 import com.ntg.stepi.nav.Screens
+import com.ntg.stepi.ui.theme.fontMedium14
 import com.ntg.stepi.util.extension.orZero
 import com.ntg.stepi.vm.StepViewModel
 
@@ -100,6 +103,15 @@ fun ParticipatesScreen(
                     second = rank
                 )
 
+            }
+
+            item {
+                Text(modifier = Modifier
+                    .padding(top = 4.dp)
+                    .padding(bottom = 8.dp)
+                    .padding(horizontal = 32.dp),
+                    text = stringResource(id = R.string.top_challenge),
+                    style = fontMedium14(androidx.compose.material.MaterialTheme.colors.secondary))
             }
 
             itemsIndexed(users){index,user ->

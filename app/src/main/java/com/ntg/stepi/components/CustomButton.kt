@@ -48,10 +48,10 @@ fun CustomButton(
     var left = paddingLeft
     var right = paddingRight
 
-    var textColor = Color.White
+    var textColor = MaterialTheme.colors.onPrimary
     var background = SECONDARY500
     var borderColor = SECONDARY500
-    var loadingColor = MaterialTheme.colors.primary
+    var loadingColor = MaterialTheme.colors.onPrimary
     var textStyle = fontMedium14(textColor)
 
     when (type) {
@@ -62,8 +62,8 @@ fun CustomButton(
                 ButtonStyle.Contained -> {
                     background = MaterialTheme.colors.primary
                     borderColor = MaterialTheme.colors.primary
-                    textColor = Color.White
-                    loadingColor = Color.White
+                    textColor = MaterialTheme.colors.onPrimary
+                    loadingColor = MaterialTheme.colors.onPrimary
                 }
                 ButtonStyle.Outline -> {
                     background = Color.Transparent

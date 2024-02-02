@@ -89,6 +89,10 @@ import com.ntg.stepi.util.extension.divideNumber
 import com.ntg.stepi.util.extension.getColorComponentsForNumber
 import com.ntg.stepi.util.extension.orFalse
 import com.ntg.stepi.util.extension.orZero
+import com.ntg.stepi.util.extension.stepsToCalories
+import com.ntg.stepi.util.extension.stepsToKilometers
+import com.ntg.stepi.util.extension.stepsToTime
+import com.ntg.stepi.util.extension.toReadableTime
 import com.ntg.stepi.vm.SocialNetworkViewModel
 import com.ntg.stepi.vm.StepViewModel
 import com.ntg.stepi.vm.UserDataViewModel
@@ -274,7 +278,7 @@ fun ProfileScreen(
                         Text(
                             text = userDataViewModel.getUsername()
                                 .collectAsState(initial = "").value,
-                            style = fontBlack24(MaterialTheme.colors.onPrimary)
+                            style = fontBlack24(MaterialTheme.colors.surface)
                         )
                         if (isVerified) {
                             Image(
@@ -770,8 +774,11 @@ private fun UserDataSteps(
                         bottom = 24.dp
                     ),
                     text = stringResource(
-                        id = R.string.step_format,
-                        divideNumber(countSelected)
+                        id = R.string.report_steps_format,
+                        divideNumber(countSelected),
+                        LocalContext.current.stepsToKilometers(countSelected),
+                        stepsToCalories(countSelected),
+                        stepsToTime(countSelected).toReadableTime(LocalContext.current)
                     ), style = fontMedium12(MaterialTheme.colors.secondary)
                 )
 
